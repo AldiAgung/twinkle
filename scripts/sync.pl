@@ -68,7 +68,7 @@ my $mw = MediaWiki::API->new({
 			      api_url => "$conf{url}/w/api.php",
 			      max_lag => 1000000, # not a botty script, thus smash it!
 			      on_error => \&dieNice
-			     });
+			    });
 $mw->{ua}->agent('Twinkle/sync.pl ('.$mw->{ua}->agent.')');
 $mw->login({lgname => $conf{username}, lgpassword => $conf{password}});
 
@@ -390,12 +390,12 @@ sub buildEditSummary {
 sub editPage {
   my ($pTitle, $nText, $pSummary, $pTimestamp) = @_;
   $mw->edit({
-	     action => 'edit',
-	     assert => 'user',
-	     title => $pTitle,
-	     basetimestamp => $pTimestamp, # Avoid edit conflicts
-	     text => $nText,
-	     summary => $pSummary
+	    action => 'edit',
+	    assert => 'user',
+	    title => $pTitle,
+	    basetimestamp => $pTimestamp, # Avoid edit conflicts
+	    text => $nText,
+	    summary => $pSummary
 	    });
   return $mw->{response};
 }

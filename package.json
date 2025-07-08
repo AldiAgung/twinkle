@@ -4,7 +4,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/kenrick95/twinkle"
+    "url": "https://github.com/AldiAgung/twinkle"
   },
   "scripts": {
     "lint": "eslint .",
