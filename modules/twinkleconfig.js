@@ -241,7 +241,7 @@ Twinkle.config.sections = [
 			// Whether to default partial blocks on or off
 			{
 				name: 'defaultToPartialBlocks',
-				label: 'Pilih pemblokiran sebagian sebagai default saat membuka menu block',
+				label: 'Pilih pemblokiran sebagian sebagai default saat membuka menu block ',
 				type: 'boolean'
 			},
 

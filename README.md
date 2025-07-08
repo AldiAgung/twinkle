@@ -2,7 +2,7 @@
 
 ![Lint](https://github.com/kenrick95/twinkle/workflows/Lint/badge.svg)
 
-Catatan: Ini adalah merupakan fork dari [AzaToth's Twinkle](https://github.com/azatoth/twinkle/) untuk pengguan di Wikipedia Indonesia.
+Catatan: Ini adalah merupakan fork dari [AzaToth's Twinkle](https://github.com/azatoth/twinkle/) untuk penggunaan di Wikipedia Indonesia.
 
 -----
 
@@ -10,7 +10,7 @@ Twinkle adalah sebuah aplikasi JavaScript yang memberikan pengguna Wiki sebuah c
 
 Lihat [Wikipedia:Twinkle][] di Wikipedia Indonesia untuk informasi lanjutan.
 
-[AzaToth][] is the original author and maintainer of the tool, as well as the `morebits.js` library gadget, which forms the basis for many Wikipedia scripts and editing tools in addition to Twinkle.
+[AzaToth][] adalah penulis asli dan pengurus dari alat ini, seperti halnya pustaka gawai `morebits.js`, yang membentuk dasar untuk kebanyakan skrip Wikipedia dan alat menyunting sebagai tambahan ke Twinkle.
 
 ## How to file a bug report or feature request
 
