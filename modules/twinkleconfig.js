@@ -190,7 +190,7 @@ Twinkle.config.sections = [
 				name: 'userTalkPageMode',
 				label: 'Ketika membuka halaman pembicaraan pengguna, buka',
 				type: 'enum',
-				enumValues: { window: 'In a window, replacing other user talks', tab: 'In a new tab', blank: 'In a totally new window' }
+				enumValues: { window: 'Jendela menempatkan ulang pembicaraan pengguna lain', tab: 'Tab baru', blank: 'Jendela baru' }
 			},
 
 			// TwinkleConfig.dialogLargeFont (boolean)
@@ -241,7 +241,7 @@ Twinkle.config.sections = [
 			// Whether to default partial blocks on or off
 			{
 				name: 'defaultToPartialBlocks',
-				label: 'Select partial blocks by default when opening the block menu',
+				label: 'Pilih pemblokiran sebagian sebagai default saat membuka menu block',
 				type: 'boolean'
 			},
 
@@ -412,7 +412,7 @@ Twinkle.config.sections = [
 
 				label: 'Tampilkan tautan-tautan pengembalian pada halaman ini',
 				type: 'set',
-				setValues: { diff: 'Halaman Diff', others: 'Halaman kontribusi pengguna lain', mine: 'Halaman kontribusi saya', recent: 'Recent changes and related changes special pages', history: 'History pages' }
+				setValues: { diff: 'Halaman Diff', others: 'Halaman kontribusi pengguna lain', mine: 'Halaman kontribusi saya', recent: 'Perubahan terbaru dan halaman khusus perubahan terkait', history: 'Halaman riwayat' }
 			}
 		]
 	},
