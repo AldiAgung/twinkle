@@ -6,7 +6,7 @@
 
 /*
  ****************************************
- *** twinklewarn.js: Warn module
+ *** twinklewarn.js: Model peringatan
  ****************************************
  * Mode of invocation:     Tab ("Warn")
  * Active on:              Any page with relevant user name (userspace, contribs,
@@ -91,8 +91,8 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 	if (Twinkle.getPref('customWarningList').length) {
 		main_group.append({ type: 'option', label: 'Peringatan kustom', value: 'custom', selected: defaultGroup === 9 });
 	}
-	main_group.append({ type: 'option', label: 'All warning templates', value: 'kitchensink', selected: defaultGroup === 10 });
-	main_group.append({ type: 'option', label: 'Auto-select level (1-4)', value: 'autolevel', selected: defaultGroup === 11 });
+	main_group.append({ type: 'option', label: 'Semua templat peringatan', value: 'kitchensink', selected: defaultGroup === 10 });
+	main_group.append({ type: 'option', label: 'Pemilihan tingkat otomatis (1-4)', value: 'autolevel', selected: defaultGroup === 11 });
 
 	main_select.append({ type: 'select', name: 'sub_group', event: Twinkle.warn.callback.change_subcategory }); // Will be empty to begin with.
 
@@ -131,7 +131,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 			new Morebits.wiki.api('Checking if you successfully reverted the page', query, function(apiobj) {
 				var revertUser = $(apiobj.getResponse()).find('revisions rev')[1].getAttribute('user');
 				if (revertUser && revertUser !== mw.config.get('wgUserName')) {
-					message += ' Someone else reverted the page and may have already warned the user.';
+					message += ' Seseorang telah membalikkan halamannya dan telah memperingati pengguna tersebut.';
 					$('#twinkle-warn-revert-messages').text('Note:' + message);
 				}
 			}).post();
@@ -149,7 +149,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 			var revDate = new Morebits.date(vantimestamp);
 			if (vantimestamp && revDate.isValid()) {
 				if (revDate.add(24, 'hours').isBefore(new Date())) {
-					message += ' This edit was made more than 24 hours ago so a warning may be stale.';
+					message += ' Suntingan ini telah dibuat lebih dari 24 jam lalu jadi peringatannya mungkin sudah tidak berlaku.';
 					$('#twinkle-warn-revert-messages').text('Note:' + message);
 				}
 			}
@@ -566,16 +566,16 @@ Twinkle.warn.messages = {
 		'Perilaku terhadap pengguna lain': {
 			'uw-agf': {
 				level1: {
-					label: 'Not assuming good faith',
-					summary: 'Catatan: Not assuming good faith'
+					label: 'Tidak mengasumsikan niat baik',
+					summary: 'Catatan: Tidak mengasumsikan niat baik'
 				},
 				level2: {
-					label: 'Not assuming good faith',
-					summary: 'Pemberitahuan: Not assuming good faith'
+					label: 'Tidak mengasumsikan niat baik',
+					summary: 'Pemberitahuan: Tidak mengasumsikan niat baik'
 				},
 				level3: {
-					label: 'Not assuming good faith',
-					summary: 'Peringatan: Not assuming good faith'
+					label: 'Tidak mengasumsikan niat baik',
+					summary: 'Peringatan: Tidak mengasumsikan niat baik'
 				}
 			},
 			'uw-harass': {
@@ -602,34 +602,34 @@ Twinkle.warn.messages = {
 			},
 			'uw-npa': {
 				level1: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Catatan: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Catatan: Serangan pribadi kepada penyunting spesifik'
 				},
 				level2: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Pemberitahuan: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Pemberitahuan: Serangan pribadi kepada penyunting spesifik'
 				},
 				level3: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Peringatan: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Peringatan: Serangan pribadi kepada penyunting spesifik'
 				},
 				level4: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Peringatan terakhir: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Peringatan terakhir: Serangan pribadi kepada penyunting spesifik'
 				},
 				level4im: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Sekadar peringatan: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Sekadar peringatan: Serangan pribadi kepada penyunting spesifik'
 				}
 			},
 			'uw-tempabuse': {
 				level1: {
-					label: 'Improper use of warning or blocking template',
-					summary: 'Catatan: Improper use of warning or blocking template'
+					label: 'Penggunaan templat dan pemblokiran tidak wajar',
+					summary: 'Catatan: Penggunaan templat dan pemblokiran tidak wajar'
 				},
 				level2: {
-					label: 'Improper use of warning or blocking template',
-					summary: 'Pemberitahuan: Improper use of warning or blocking template'
+					label: 'Penggunaan templat dan pemblokiran tidak wajar',
+					summary: 'Pemberitahuan: Penggunaan templat dan pemblokiran tidak wajar'
 				}
 			}
 		},
@@ -1038,12 +1038,12 @@ Twinkle.warn.messages = {
 			summary: 'Peringatan: Penganvasan'
 		},
 		'uw-copyright': {
-			label: 'Copyright violation',
-			summary: 'Warning: Copyright violation'
-		},
-		'uw-copyright-link': {
 			label: 'Pelanggaran hak cipta',
 			summary: 'Peringatan: Pelanggaran hak cipta'
+		},
+		'uw-copyright-link': {
+			label: 'Pelanggaran hak cipta pranala',
+			summary: 'Peringatan: Pelanggaran hak cipta pranala'
 		},
 		'uw-copyright-new': {
 			label: 'Menautkan ke pelanggaran karya berhak cipta',
@@ -1067,8 +1067,8 @@ Twinkle.warn.messages = {
 			summary: 'Pemberitahuan: Perang suntingan'
 		},
 		'uw-hijacking': {
-			label: 'Hijacking articles',
-			summary: 'Warning: Hijacking articles'
+			label: 'Membajak artikel',
+			summary: 'Peringatan: Membajak artikel'
 		},
 		'uw-hoax': {
 			label: 'Membuat cerita/kabar bohong',
@@ -1371,7 +1371,7 @@ Twinkle.warn.callback.change_subcategory = function twinklewarnCallbackChangeSub
 		$redWarning.insertAfter(Morebits.quickForm.getElementLabelObject(e.target.form.reasonGroup));
 	} else if (value === 'uw-coi-username') {
 		$redWarning = $("<div style='color: red;' id='tw-warn-red-notice'>{{uw-coi-username}} seharusnya <b>tidak</b> digunakan untuk pelanggaran kebijakan nama pengguna secara <b>terang-terangan</b>. " +
-			"Blatant violations should be reported directly to UAA (via Twinkle's ARV tab). " +
+			"Pelanggaran terang-terangan harus dilaporkan langsung kepada UAA (melalui tab ARV Twinkle). " +
 			'{{uw-coi-username}} sebaiknya hanya digunakan dalam kasus ringan untuk berdiskusi dengan pengguna tersebut.</div>');
 		$redWarning.insertAfter(Morebits.quickForm.getElementLabelObject(e.target.form.reasonGroup));
 	}
@@ -1518,7 +1518,7 @@ Twinkle.warn.callbacks = {
 		if (isNaN(level)) { // No prior warnings found, this is the first
 			level = 1;
 		} else if (level > 4 || level < 1) { // Shouldn't happen
-			var message = 'Unable to parse previous warning level, please manually select a warning level.';
+			var message = 'Tidak dapat mengambil tingkat peringatan sebelumnya, tolong secara manual memilih sebuah tingkat peringatan.';
 			if (statelem) {
 				statelem.error(message);
 			} else {
@@ -1547,7 +1547,7 @@ Twinkle.warn.callbacks = {
 							}
 						});
 						var statusNode = $('<div/>', {
-							'text': mw.config.get('wgRelevantUserName') + ' recently received a level 4 warning (' + latest.type + ') so it might be better to report them instead; ',
+							'text': mw.config.get('wgRelevantUserName') + ' baru-baru ini menerima sebuah peringatan tingkat 4 (' + latest.type + ') lebih baik untuk melaporkannya langsung; ',
 							'css': {'color': 'red' }
 						});
 						statusNode.append($link[0]);

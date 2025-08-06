@@ -1,8 +1,8 @@
 /**
  * +-------------------------------------------------------------------------+
  * |                  === WARNING: GLOBAL GADGET FILE ===                    |
- * |                Changes to this page affect many users.                  |
- * |           Please discuss changes at [[WT:TW]] before editing.           |
+ * |            Mengubah halaman ini dapat mempengaruhi banyak pengguna  	 |
+ * |           Tolong diskusikan perubahan di [[WT:TW]] sebelum menynunting. |
  * +-------------------------------------------------------------------------+
  *
  * Imported from github [https://github.com/azatoth/twinkle].

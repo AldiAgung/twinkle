@@ -1,39 +1,39 @@
-# Contributing to Twinkle
+# Kontribusi ke Twinkle
 
 :tada::tada: Thanks for taking the time to contribute! :tada::tada:
 
-There are many ways to help out!
+Banyak cara untuk membantu!
 
-## Bug reports and feature requests
+##Pelaporan galat dan permintaan fitur
 
 If you think you've found a bug or have a great idea for a new feature, great!  You can [open a new GitHub issue here](https://github.com/azatoth/twinkle/issues/new) (GitHub account required) or report it at [Wikipedia talk:Twinkle][].  Bigger changes or more complicated requests should be made on-wiki so other users can take part in the discussion of your feature proposal.  If you're unsure if something is a bug, other editors may be able to help identify the issue.  Be sure to search the talk page archives and GitHub issues to see if your request has already been discussed in the past.
 
-Whatever the case, the more detailed your description the easier it will be to respond to your report or request.
+Apapun kasusnya, lebih mendeksripsikan permasalahnnya mempermudah untuk merespon laporan atau permintaan anda.
 
-### Reporting a bug
+### Melaporkan sebuah bug
 
-A good bug report will include:
+Penulisan laporan galat yang bagus terdiri dari:
 - A brief, descriptive title that mentions the module you were using (tag, CSD, xfd, etc.).
 - The steps leading up to the issue so we can replicate it.  This should include the page and revision you were on, the action you were performing, and the options you selected.
 - Any errors or messages that Twinkle reported an error when it got stuck.
 - What you think *should* have happened.
 - Anything you can find in your [browser's console window][jserrors].
 
-If you believe you have found a security issue, follow the guidelines in [SECURITY.md](./SECURITY.md).
+Jika anda yakin menemukan sebuah masalah keamanan, ikuti panduan di [SECURITY.md](./SECURITY.md).
 
-## Contributing a pull request
-### Getting started
+## Kontribusi sebuah pull request
+### Untuk memulai
 
-If you'd like to help with Twinkle's development, wonderful!  Anyone can contribute, and it's easy to get set up to do so.
+Jika anda ingin membantu pengembangan Twinkle, sangat indah!  Siapapun dapat berkontribusi, dan mudah untuk melakukannya.
 
 First, familiarize yourself with the code; most likely, the changes you want are to one of the [modules](./modules); you can also check out the [individual Gadget pages][twinkle_gadget] onwiki.  If you want to propose changes yourself, [fork the repository](https://help.github.com/articles/fork-a-repo/) to make sure you always have the latest versions.  If you're new to GitHub or Git in general, you probably want to read [Getting started with GitHub](https://help.github.com/en/github/getting-started-with-github) first.
 
 Once you've got a local fork up and running, commit your changes!
 
 
-### Testing your code
+### Tes kode anda
 
-Testing Twinkle can be tricky, but the most straightforward way to test your code is to open up your [browser's console window][jserrors] and paste in your new code.  You'll have to load the new version by running the corresponding function in your console, e.g., `Twinkle.protect()` for twinkleprotect.js.
+Mencoba Twinkle dapat sedikit susah, but the most straightforward way to test your code is to open up your [browser's console window][jserrors] and paste in your new code.  You'll have to load the new version by running the corresponding function in your console, e.g., `Twinkle.protect()` for twinkleprotect.js.
 
 Some things to watch out for:
 - If your tests have any chance of making actual edits, consider making them in a sandbox; be aware that some things may not work properly outside the appropriate namespace.  An even better place to test is on the [test wiki](http://test.wikipedia.org)!  Some parts of Twinkle rely on specific template code or on certain wiki-preferences, so testing certain things outside of enWiki may be difficlut (e.g., pending changes).
