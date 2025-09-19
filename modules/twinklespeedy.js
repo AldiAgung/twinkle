@@ -695,48 +695,6 @@ Twinkle.speedy.articleList = [
 		tooltip: 'Artikel tentang tokoh, organisasi (termasuk di dalamnya band, klub, perusahaan, dll., kecuali sekolah), atau isi situs yang tidak menunjukkan alasan mengapa subyek itu dianggap penting. Jika yang kontroversial, maka Anda dapat mengusulkan penghapusan dengan templat {{hapus}} atau membawanya ke halaman Wikipedia:Usulan penghapusan'
 		// hideWhenSingle: true
 	},
-	/* {
-		label: 'A7: No indication of importance (person)',
-		value: 'person',
-		tooltip: 'An article about a real person that does not assert the importance or significance of its subject. If controversial, or if there has been a previous AfD that resulted in the article being kept, the article should be nominated for AfD instead',
-		hideWhenMultiple: true
-	},
-	{
-		label: 'A7: No indication of importance (musician(s) or band)',
-		value: 'band',
-		tooltip: 'Article about a band, singer, musician, or musical ensemble that does not assert the importance or significance of the subject',
-		hideWhenMultiple: true
-	},
-	{
-		label: 'A7: No indication of importance (club, society or group)',
-		value: 'club',
-		tooltip: 'Article about a club, society or group that does not assert the importance or significance of the subject',
-		hideWhenMultiple: true
-	},
-	{
-		label: 'A7: No indication of importance (company or organization)',
-		value: 'corp',
-		tooltip: 'Article about a company or organization that does not assert the importance or significance of the subject',
-		hideWhenMultiple: true
-	},
-	{
-		label: 'A7: No indication of importance (website or web content)',
-		value: 'web',
-		tooltip: 'Article about a web site, blog, online forum, webcomic, podcast, or similar web content that does not assert the importance or significance of its subject',
-		hideWhenMultiple: true
-	},
-	{
-		label: 'A7: No indication of importance (individual animal)',
-		value: 'animal',
-		tooltip: 'Article about an individual animal (e.g. pet) that does not assert the importance or significance of its subject',
-		hideWhenMultiple: true
-	},
-	{
-		label: 'A7: No indication of importance (organized event)',
-		value: 'event',
-		tooltip: 'Article about an organized event (tour, function, meeting, party, etc.) that does not assert the importance or significance of its subject',
-		hideWhenMultiple: true
-	}, */
 	{
 		label: 'A9: Artikel yang tidak mengindikasikan kepentingan (rekaman musik)',
 		value: 'a9',
@@ -925,7 +883,7 @@ Twinkle.speedy.generalList = [
 		}
 	},
 	{
-		label: 'G6: Move',
+		label: 'G6: Pindah',
 		value: 'move',
 		tooltip: 'Memberi tempat untuk pemindahan.',
 		subgroup: [
@@ -1060,16 +1018,21 @@ Twinkle.speedy.generalList = [
 				label: 'URL tambahan: ',
 				tooltip: 'Opsional. Harus dimulai dengan "http://" or "https://"',
 				size: 60
-			}
+			},
 		]
 	},
 	{
+		label: 'U13: Artikel dibuat secara murni dengan tulisan AI generatif.',
+		value: 'ai',
+		tooltip: 'Artikel dibuat secara murni mengguakan alat AI, dan tanpa adanya sumber/referensi yang jelas.'
+	},
+	/*{
 		label: 'G13: Page in draft namespace or userspace AfC submission, stale by over 6 months',
 		value: 'afc',
 		tooltip: 'Any rejected or unsubmitted AfC submission in userspace or any non-redirect page in draft namespace, that has not been edited for more than 6 months. Blank drafts in either namespace are also included.',
 		hideWhenRedirect: true,
 		showInNamespaces: [2, 118]  // user, draft namespaces only
-	},
+	 },*/
 	{
 		label: 'G14: Halaman disambiguasi yang tidak perlu',
 		value: 'disambig',
@@ -1138,9 +1101,10 @@ Twinkle.speedy.normalizeHash = {
 	'u11': 'u11',
 	'spam': 'u11',
 	'iklan': 'u11',
+	'ai':'u13',
 	'spamuser': 'u11',
 	'copyvio': 'u12',
-	'afc': 'u13',
+	//'afc': 'u13',
 	'nocontext': 'a1',
 	'foreign': 'a2',
 	'nocontent': 'a3',
@@ -1550,9 +1514,9 @@ Twinkle.speedy.callbacks = {
 			}
 
 			// Set the correct value for |ts= parameter in {{db-g13}}
-			if (params.normalizeds.indexOf('u13') !== -1) {
-				code = code.replace('$TIMESTAMP', pageobj.getLastEditTime());
-			}
+			//if (params.normalizeds.indexOf('u13') !== -1) {
+				//code = code.replace('$TIMESTAMP', pageobj.getLastEditTime());
+			//}
 
 			pageobj.setPageText(code + (params.normalizeds.indexOf('g10') !== -1 ? '' : '\n' + text)); // cause attack pages to be blanked
 			pageobj.setEditSummary(editsummary + Twinkle.getPref('summaryAd'));
@@ -1777,7 +1741,7 @@ Twinkle.speedy.getParameters = function twinklespeedyGetParameters(form, values)
 					var xfd = form['csd.xfd_fullvotepage'].value;
 					if (xfd) {
 						if (!/^(?:wp|wikipedia):/i.test(xfd)) {
-							alert('CSD G6 (XFD):  The deletion discussion page name, if provided, must start with "Wikipedia:".');
+							alert('CSD G6 (XFD):  Penghapusan ruang nama halaman diskusi, jika disediakan, harus dimulai dengan "Wikipedia:".');
 							parameters = null;
 							return false;
 						}
@@ -1833,9 +1797,9 @@ Twinkle.speedy.getParameters = function twinklespeedyGetParameters(form, values)
 				}
 				break;
 
-			case 'afc':  // G13
-				currentParams.ts = '$TIMESTAMP'; // to be replaced by the last revision timestamp when page is saved
-				break;
+			//case 'afc':  // G13
+				//currentParams.ts = '$TIMESTAMP'; // to be replaced by the last revision timestamp when page is saved
+				//break;
 
 			case 'redundantimage':  // F1
 				if (form['csd.redundantimage_filename']) {
@@ -1846,6 +1810,12 @@ Twinkle.speedy.getParameters = function twinklespeedyGetParameters(form, values)
 						return false;
 					}
 					currentParams.filename = /^\s*(Image|File):/i.test(redimage) ? redimage : 'File:' + redimage;
+				}
+				break;
+
+				case 'ai':  // u13
+				if (form['csd.g13_rationale'] && form['csd.g13_rationale'].value) {
+					currentParams.rationale = form['csd.g13_rationale'].value;
 				}
 				break;
 

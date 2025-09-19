@@ -23,66 +23,66 @@ Twinkle.deprod = function() {
 	Twinkle.addPortletLink(Twinkle.deprod.callback, 'Deprod', 'tw-deprod', 'Delete prod pages found in this category');
 };
 
-var concerns = {};
+const concerns = {};
 
 Twinkle.deprod.callback = function() {
-	var Window = new Morebits.simpleWindow(800, 400);
+	const Window = new Morebits.simpleWindow(800, 400);
 	Window.setTitle('PROD cleaning');
 	Window.setScriptName('Twinkle');
 	Window.addFooterLink('Proposed deletion', 'WP:PROD');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#deprod');
 
-	var form = new Morebits.quickForm(callback_commit);
+	const form = new Morebits.quickForm(callback_commit);
 
-	var statusdiv = document.createElement('div');
-	statusdiv.style.padding = '15px';  // just so it doesn't look broken
+	const statusdiv = document.createElement('div');
+	statusdiv.style.padding = '15px';
 	Window.setContent(statusdiv);
 	Morebits.status.init(statusdiv);
 	Window.display();
 
-	var query = {
-		'action': 'query',
-		'generator': 'categorymembers',
-		'gcmtitle': mw.config.get('wgPageName'),
-		'gcmlimit': 'max', // 500 is max for normal users, 5000 for bots and sysops
-		'gcmnamespace': '0|6|108|2', // mostly to ignore categories
-		'prop': [ 'info', 'revisions' ],
-		'rvprop': [ 'content' ],
-		'inprop': [ 'protection' ]
+	const query = {
+		action: 'query',
+		generator: 'categorymembers',
+		gcmtitle: mw.config.get('wgPageName'),
+		gcmlimit: Twinkle.getPref('batchMax'),
+		gcmnamespace: '0|2', // mostly to ignore categories
+		prop: 'info|revisions',
+		rvprop: 'content',
+		inprop: 'protection',
+		format: 'json'
 	};
 
-	var statelem = new Morebits.status('Grabbing list of pages');
-	var wikipedia_api = new Morebits.wiki.api('loading...', query, function(apiobj) {
-		var $doc = $(apiobj.responseXML);
-		var $pages = $doc.find('page[ns!="6"]');  // all non-files
-		var list = [];
-		var re = /\{\{Proposed deletion/;
-		$pages.each(function() {
-			var $page = $(this);
-			var title = $page.attr('title');
-			var content = $page.find('revisions rev').text();
-			var $editprot = $page.find('pr[type="edit"][level="sysop"]');
-			var isProtected = $editprot.length > 0;
+	const statelem = new Morebits.status('Mengambil daftar halaman');
+	const wikipedia_api = new Morebits.wiki.api('memuat...', query, ((apiobj) => {
+		const respon = apiobj.getResponse();
+		const pages = (respon.query && respon.query.pages) || [];
+		const list = [];
+		const re = /\{\{Proposed deletion/;
+		pages.sort(Twinkle.sortByNamespace);
+		pages.forEach((page) => {
+			const metadata = [];
 
-			var metadata = [];
-			var res = re.exec(content);
+			const content = page.revisions[0].content;
+			const res = re.exec(content);
+			const title = page.title;
 			if (res) {
-				var parsed = Morebits.wikitext.template.parse(content, res.index);
+				const parsed = Morebits.wikitext.parseTemplate(content, res.index);
 				concerns[title] = parsed.parameters.concern || '';
 				metadata.push(concerns[title]);
 			}
-			if (isProtected) {
+			const editProt = page.protection.filter((pr) => pr.type === 'edit' && pr.level === 'sysop').pop();
+			if (editProt) {
 				metadata.push('fully protected' +
-					($editprot.attr('expiry') === 'infinity' ? ' indefinitely' : ', expires ' + $editprot.attr('expiry')));
+					(editProt.expiry === 'infinity' ? ' indefinitely' : ', expires ' + editProt.expiry));
 			}
 			list.push({
 				label: metadata.length ? '(' + metadata.join('; ') + ')' : '',
 				value: title,
 				checked: concerns[title] !== '',
-				style: isProtected ? 'color:red' : ''
+				style: editProt ? 'color:red' : ''
 			});
 		});
-		apiobj.params.form.append({ type: 'header', label: 'Pages to delete' });
+		apiobj.params.form.append({ type: 'header', label: 'Halaman untuk dihapus' });
 		apiobj.params.form.append({
 			type: 'button',
 			label: 'Select All',
@@ -98,90 +98,88 @@ Twinkle.deprod.callback = function() {
 			}
 		});
 		apiobj.params.form.append({
-			'type': 'checkbox',
-			'name': 'pages',
-			'list': list
+			type: 'checkbox',
+			name: 'pages',
+			list: list
 		});
 		apiobj.params.form.append({
-			'type': 'submit'
+			type: 'submit'
 		});
 
-		var rendered = apiobj.params.form.render();
+		const rendered = apiobj.params.form.render();
 		apiobj.params.Window.setContent(rendered);
-		$(Morebits.quickForm.getElements(rendered, 'pages')).each(function(index, checkbox) {
-			var $checkbox = $(checkbox);
-			var link = Morebits.htmlNode('a', $checkbox.val());
-			link.setAttribute('class', 'deprod-page-link');
-			link.setAttribute('href', mw.util.getUrl($checkbox.val()));
-			link.setAttribute('target', '_blank');
-			$checkbox.next().prepend([link, ' ']);
-		});
-	}, statelem);
+		Morebits.QuickForm.getElements(rendered, 'pages').forEach(Twinkle.generateBatchPageLinks);
+	}), statelem);
 
 	wikipedia_api.params = { form: form, Window: Window };
 	wikipedia_api.post();
 };
 
 var callback_commit = function(event) {
-		var pages = event.target.getChecked('pages');
+		const pages = Morebits.quickForm.getInputData(event.target).pages;
 		Morebits.status.init(event.target);
 
-		var batchOperation = new Morebits.batchOperation('Deleting pages');
-		batchOperation.setOption('chunkSize', Twinkle.getPref('proddeleteChunks'));
+		const batchOperation = new Morebits.batchOperation('Menghapus halaman');
+		batchOperation.setOption('chunkSize', Twinkle.getPref('batchChunks'));
 		batchOperation.setOption('preserveIndividualStatusLines', true);
 		batchOperation.setPageList(pages);
-		batchOperation.run(function(pageName) {
-			var params = { page: pageName, reason: concerns[page] };
+		batchOperation.run((pageName) => {
+			const params = { page: pageName, reason: concerns[page] };
 
-			var query = {
-				'action': 'query',
-				'titles': pageName,
-				'prop': 'redirects',
-				'rdlimit': 'max' // 500 is max for normal users, 5000 for bots and sysops
+			let query = {
+				action: 'query',
+				titles: pageName,
+				prop: 'redirects',
+				rdlimit: 'max', // 500 is max for normal users, 5000 for bots and sysops
+				format: 'json'
 			};
-			var wikipedia_api = new Morebits.wiki.api('Grabbing redirects', query, callback_deleteRedirects);
+			let wikipedia_api = new Morebits.wiki.api('Mengambil pengalihan', query, callback_deleteRedirects);
 			wikipedia_api.params = params;
 			wikipedia_api.post();
 
-			query = {
-				'action': 'query',
-				'titles': 'Talk:' + pageName
-			};
-			wikipedia_api = new Morebits.wiki.api('Checking whether ' + pageName + ' has a talk page', query,
-				callback_deleteTalk);
+			const judulHalaman = mw.Title.newFromText(pageName);
+			if (judulHalaman && judulHalaman.namespace % 2 === 0 && judulHalaman.namespace !== 2) {
+				judulHalaman.namespace++; // sekarang judulHalaman adalah judul halaman pembicaraan!
+				query = {
+					action: 'query',
+					titles: judulHalaman.toText(),
+					format: 'json'
+				};
+			let wikipedia_api = new Morebits.wiki.api('Mengecek ' + pageName + ' mempunyai halaman pembicaraan', query, callback_deleteTalk);
 			wikipedia_api.params = params;
 			wikipedia_api.post();
+			}
 
-			var page = new Morebits.wiki.page(pageName, 'Deleting article ' + pageName);
-			page.setEditSummary('Expired [[WP:PROD|PROD]], concern was: ' + concerns[pageName] + Twinkle.getPref('deletionSummaryAd'));
+			var page = new Morebits.wiki.page(pageName, 'Menghapus halaman ' + pageName);
+			page.setEditSummary('[[WP:PROD|PROD]] sudah tidak berlaku, concern was: ' + concerns[pageName] + Twinkle.getPref('deletionSummaryAd'));
+			page.setChangeTags(Twinkle.changeTags);
 			page.suppressProtectWarning();
 			page.deletePage(batchOperation.workerSuccess, batchOperation.workerFailure);
 		});
 	},
 	callback_deleteTalk = function(apiobj) {
-		var $doc = $(apiobj.responseXML);
-		var exists = $doc.find('page:not([missing])').length > 0;
-
-		if (!exists) {
-		// no talk page; forget about it
+		if (apiobj.getResponse().query.pages[0].missing) {
 			return;
 		}
 
-		var page = new Morebits.wiki.page('Talk:' + apiobj.params.page, 'Deleting talk page of article ' + apiobj.params.page);
-		page.setEditSummary('[[WP:CSD#G8|G8]]: [[Help:Talk page|Talk page]] of deleted page "' + apiobj.params.page + '"' + Twinkle.getPref('deletionSummaryAd'));
+		const page = new Morebits.wiki.Page('Talk:' + apiobj.params.page, 'Menghapus halaman pembicaraan dari halaman ' + apiobj.params.page);
+		page.setEditSummary('[[WP:CSD#G8|G8]]: [[Help:Talk page|Halaman pembicaraan]] dari halaman terhapus [[' + apiobj.params.page + ']]');
+		page.setChangeTags(Twinkle.changeTags);
 		page.deletePage();
 	},
 	callback_deleteRedirects = function(apiobj) {
-		var $doc = $(apiobj.responseXML);
-		$doc.find('redirects rd').each(function() {
-			var title = $(this).attr('title');
-			var page = new Morebits.wiki.page(title, 'Deleting redirecting page ' + title);
-			page.setEditSummary('[[WP:CSD#G8|G8]]: Redirect to deleted page "' + apiobj.params.page + '"' + Twinkle.getPref('deletionSummaryAd'));
+		const respon = apiobj.getResponse();
+		const redirects = respon.query.pages[0].redirects || [];
+		redirects.forEach((rd) => {
+			const judul = rd.title;
+			const page = new Morebits.wiki.Page(judul, 'Menghapus pengalihan halaman' + judul);
+			page.setEditSummary('[[WP:CSD#G8|G8]]: Mengalihkan ke halaman terhapus [[' + apiobj.params.page + ']]');
+			page.setChangeTags(Twinkle.changeTags);
 			page.deletePage();
 		});
 	};
 
-})(jQuery);
-
+Twinkle.addInitCallback(Twinkle.deprod, 'deprod');
+}());
 
 // </nowiki>
