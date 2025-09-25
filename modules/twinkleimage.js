@@ -20,9 +20,9 @@ Twinkle.image = function twinkleimage() {
 
 Twinkle.image.callback = function twinkleimageCallback() {
 	var Window = new Morebits.simpleWindow(600, 330);
-	Window.setTitle('File for dated speedy deletion');
+	Window.setTitle('Berkas untuk penghapusan cepat');
 	Window.setScriptName('Twinkle');
-	Window.addFooterLink('Speedy deletion policy', 'WP:CSD#Files');
+	Window.addFooterLink('Kebijakan penghapusan cepat', 'WP:Pedoman gaya/Gambar');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#image');
 
 	var form = new Morebits.quickForm(Twinkle.image.callback.evaluate);
@@ -30,7 +30,7 @@ Twinkle.image.callback = function twinkleimageCallback() {
 		type: 'checkbox',
 		list: [
 			{
-				label: 'Notify original uploader',
+				label: 'Peringati pengunggah asli',
 				value: 'notify',
 				name: 'notify',
 				tooltip: "Uncheck this if you are planning to make multiple nominations from the same user, and don't want to overload their talk page with too many notifications.",
@@ -41,7 +41,7 @@ Twinkle.image.callback = function twinkleimageCallback() {
 	);
 	var field = form.append({
 		type: 'field',
-		label: 'Type of action wanted'
+		label: 'Jenis tindakan yang diinginkan'
 	});
 	field.append({
 		type: 'radio',
@@ -93,7 +93,7 @@ Twinkle.image.callback = function twinkleimageCallback() {
 	});
 	form.append({
 		type: 'div',
-		label: 'Work area',
+		label: 'Lingkup kerja',
 		name: 'work_area'
 	});
 	form.append({ type: 'submit' });
@@ -102,7 +102,7 @@ Twinkle.image.callback = function twinkleimageCallback() {
 	Window.setContent(result);
 	Window.display();
 
-	// We must init the parameters
+	// Inialisasi paramater
 	var evt = document.createEvent('Event');
 	evt.initEvent('change', true, true);
 	result.type[0].dispatchEvent(evt);
@@ -124,7 +124,7 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 				name: 'non_free',
 				list: [
 					{
-						label: 'Non-free',
+						label: 'Non-bebas',
 						tooltip: 'File is licensed under a fair use claim'
 					}
 				]
@@ -136,7 +136,7 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 				name: 'derivative',
 				list: [
 					{
-						label: 'Derivative work which lacks a source for incorporated works',
+						label: 'Karya turunan yang tidak memiliki sumber untuk karya yang disertakan',
 						tooltip: 'File is a derivative of one or more other works whose source is not specified'
 					}
 				]
@@ -146,21 +146,21 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 			work_area.append({
 				type: 'input',
 				name: 'source',
-				label: 'Source: '
+				label: 'Sumber: '
 			});
 			break;
 		case 'disputed fair use rationale':
 			work_area.append({
 				type: 'textarea',
 				name: 'reason',
-				label: 'Concern: '
+				label: 'Kepentingan: '
 			});
 			break;
 		case 'orphaned fair use':
 			work_area.append({
 				type: 'input',
 				name: 'replacement',
-				label: 'Replacement: ',
+				label: 'Penggantian: ',
 				tooltip: 'Optional file that replaces this one.  The "File:" prefix is optional.'
 			});
 			break;
@@ -168,7 +168,7 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 			work_area.append({
 				type: 'textarea',
 				name: 'reason',
-				label: 'Reason: '
+				label: 'Alasan: '
 			});
 			break;
 		default:
@@ -200,7 +200,7 @@ Twinkle.image.callback.evaluate = function twinkleimageCallbackEvaluate(event) {
 	}
 	if (event.target.replacement && event.target.replacement.value.trim()) {
 		replacement = event.target.replacement.value;
-		replacement = /^\s*(Image|File):/i.test(replacement) ? replacement : 'File:' + replacement;
+		replacement = /^\s*(Image|File):/i.test(replacement) ? replacement : 'Berkas:' + replacement;
 	}
 	if (event.target.derivative) {
 		derivative = event.target.derivative.checked;
@@ -227,7 +227,7 @@ Twinkle.image.callback.evaluate = function twinkleimageCallbackEvaluate(event) {
 			csdcrit = 'F11';
 			break;
 		default:
-			throw new Error('Twinkle.image.callback.evaluate: unknown criterion');
+			throw new Error('Twinkle.image.callback.evaluate: kriteria yang tidak diketahui');
 	}
 
 	var lognomination = Twinkle.getPref('logSpeedyNominations') && Twinkle.getPref('noLogOnSpeedyNomination').indexOf(csdcrit.toLowerCase()) === -1;
@@ -247,10 +247,10 @@ Twinkle.image.callback.evaluate = function twinkleimageCallbackEvaluate(event) {
 	Morebits.status.init(event.target);
 
 	Morebits.wiki.actionCompleted.redirect = mw.config.get('wgPageName');
-	Morebits.wiki.actionCompleted.notice = 'Tagging complete';
+	Morebits.wiki.actionCompleted.notice = 'Menandai selesai';
 
 	// Tagging image
-	var wikipedia_page = new Morebits.wiki.page(mw.config.get('wgPageName'), 'Tagging file with deletion tag');
+	var wikipedia_page = new Morebits.wiki.page(mw.config.get('wgPageName'), 'Menandai berkas dengan tag penghapusan');
 	wikipedia_page.setCallbackParameters(params);
 	wikipedia_page.load(Twinkle.image.callbacks.taggingImage);
 
@@ -266,7 +266,7 @@ Twinkle.image.callback.evaluate = function twinkleimageCallbackEvaluate(event) {
 		// No auto-notification, display what was going to be added.
 		var noteData = document.createElement('pre');
 		noteData.appendChild(document.createTextNode('{{subst:di-' + templatename + '-notice|1=' + mw.config.get('wgTitle') + '}} ~~~~'));
-		Morebits.status.info('Notification', [ 'Following/similar data should be posted to the original uploader:', document.createElement('br'), noteData ]);
+		Morebits.status.info('Notifikasi', [ 'Data yang mirip/mengikuti diharuskan di unggah kepada pengunggah asli:', document.createElement('br'), noteData ]);
 	}
 };
 
@@ -276,7 +276,7 @@ Twinkle.image.callbacks = {
 		var params = pageobj.getCallbackParameters();
 
 		// remove "move to Commons" tag - deletion-tagged files cannot be moved to Commons
-		text = text.replace(/\{\{(mtc|(copy |move )?to ?commons|move to wikimedia commons|copy to wikimedia commons)[^}]*\}\}/gi, '');
+		text = text.replace(/\{\{(mtc|(salin |pindah )?to ?commons|pindahkan ke wikimedia commons|salin ke wikimedia commons)[^}]*\}\}/gi, '');
 
 		var tag = '{{di-' + params.templatename + '|date={{subst:#time:j F Y}}';
 		switch (params.type) {
@@ -302,7 +302,7 @@ Twinkle.image.callbacks = {
 		tag += '|help=off}}\n';
 
 		pageobj.setPageText(tag + text);
-		pageobj.setEditSummary('This file is up for deletion, per [[WP:CSD#' + params.normalized + '|CSD ' + params.normalized + ']] (' + params.type + ').' + Twinkle.getPref('summaryAd'));
+		pageobj.setEditSummary('Berkas ini memenuhi kriteria untuk penghapusan	, per [[WP:CSD#' + params.normalized + '|CSD ' + params.normalized + ']] (' + params.type + ').' + Twinkle.getPref('summaryAd'));
 		switch (Twinkle.getPref('deliWatchPage')) {
 			case 'yes':
 				pageobj.setWatchlist(true);
@@ -321,18 +321,18 @@ Twinkle.image.callbacks = {
 		var params = pageobj.getCallbackParameters();
 		var initialContrib = pageobj.getCreator();
 
-		// disallow warning yourself
+		// Tidak boleh memperingati diri sendiri
 		if (initialContrib === mw.config.get('wgUserName')) {
-			pageobj.getStatusElement().warn('You (' + initialContrib + ') created this page; skipping user notification');
+			pageobj.getStatusElement().warn('Anda (' + initialContrib + ') memperingati anda sendiri; melewati notifikasi pengguna');
 		} else {
-			var usertalkpage = new Morebits.wiki.page('User talk:' + initialContrib, 'Notifying initial contributor (' + initialContrib + ')');
+			var usertalkpage = new Morebits.wiki.page('User talk:' + initialContrib, 'Memberitahu penyunting awal (' + initialContrib + ')');
 			var notifytext = '\n{{subst:di-' + params.templatename + '-notice|1=' + mw.config.get('wgTitle');
 			if (params.type === 'no permission') {
 				notifytext += params.source ? '|source=' + params.source : '';
 			}
 			notifytext += '}} ~~~~';
 			usertalkpage.setAppendText(notifytext);
-			usertalkpage.setEditSummary('Notification: tagging for deletion of [[:' + Morebits.pageNameNorm + ']].' + Twinkle.getPref('summaryAd'));
+			usertalkpage.setEditSummary('Notifikasi: memberi tag untuk penghapusan [[:' + Morebits.pageNameNorm + ']].' + Twinkle.getPref('summaryAd'));
 			usertalkpage.setCreateOption('recreate');
 			switch (Twinkle.getPref('deliWatchUser')) {
 				case 'yes':

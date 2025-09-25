@@ -2,7 +2,7 @@
 
 (WIP)
 
-Collaborators are encouraged to thoroughly review and [test](./CONTRIBUTING.md) each pull request, including their own.  Unless urgent or obvious, it can be helpful to leave PRs open for folks to opine.
+Kolaborator sangat dianjurkan untuk membaca  are encouraged to thoroughly review and [test](./CONTRIBUTING.md) setiap pull request, termasuk masing-masing.  Kecuali sangat perlu, dapat membantu untuk membiarkan PRs dibuka untuk berdiskusi.
 
 Things to watch out for:
 

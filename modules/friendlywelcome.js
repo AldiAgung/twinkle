@@ -6,7 +6,7 @@
 
 /*
  ****************************************
- *** friendlywelcome.js: Welcome module
+ *** friendlywelcome.js: Modul selamat datang
  ****************************************
  * Mode of invocation:     Tab ("Wel"), or from links on diff pages
  * Active on:              Any page with relevant user name (userspace,
@@ -127,7 +127,7 @@ Twinkle.welcome.callback = function friendlywelcomeCallback(uid) {
 	form.append({
 		type: 'select',
 		name: 'type',
-		label: 'Type of welcome: ',
+		label: 'Jenis selamat datang: ',
 		event: Twinkle.welcome.populateWelcomeList,
 		list: [
 			{ type: 'option', value: 'standard', label: 'Penyambutan standar', selected: !mw.util.isIPAddress(mw.config.get('wgRelevantUserName')) },
@@ -226,11 +226,11 @@ Twinkle.welcome.populateWelcomeList = function(e) {
 
 Twinkle.welcome.templates = {
 	'standard': {
-		'General welcome templates': {
-			'welcome': {
-				description: 'standard welcome',
+		'Templat selamat datang umum': {
+			'Selamat datang': {
+				description: 'selamat datang standar',
 				linkedArticle: true,
-				syntax: '{{subst:welcome|$USERNAME$|art=$ARTICLE$}} ~~~~'
+				syntax: '{{Subst:Selamat datang|$USERNAME$|art=$ARTICLE$}} ~~~~'
 			},
 			'welcome-retro': {
 				description: 'a welcome message with a small list of helpful links',
@@ -275,7 +275,7 @@ Twinkle.welcome.templates = {
 			}
 		},
 
-		'Problem user welcome templates': {
+		'Templat pengguna bermasalah': {
 			'welcomelaws': {
 				description: 'welcome with information about copyrights, NPOV, the sandbox, and vandalism',
 				syntax: '{{subst:welcomelaws|$USERNAME$}} ~~~~'
@@ -334,7 +334,7 @@ Twinkle.welcome.templates = {
 	},
 
 	'anonymous': {
-		'Anonymous user welcome templates': {
+		'Templat selamat datang pengguna anonim': {
 			'welcome-anon': {
 				description: 'for anonymous users; encourages creating an account',
 				linkedArticle: true,
@@ -364,7 +364,7 @@ Twinkle.welcome.templates = {
 	},
 
 	'wikiProject': {
-		'WikiProject-specific welcome templates': {
+		'Templat selamat datang ProyekWiki spesifik': {
 			'welcome-anatomy': {
 				description: 'welcome for users with an apparent interest in anatomy topics',
 				syntax: '{{subst:welcome-anatomy}} ~~~~'
@@ -480,7 +480,7 @@ Twinkle.welcome.templates = {
 	},
 
 	'nonEnglish': {
-		'Non-English welcome templates': {
+		'Templat selamat datang non-Inggris': {
 			'welcomeen': {
 				description: 'welcome for users whose first language is not listed here',
 				syntax: '{{subst:welcomeen}}'
@@ -655,7 +655,7 @@ Twinkle.welcome.callback.evaluate = function friendlywelcomeCallbackEvaluate(e) 
 
 	var userTalkPage = mw.config.get('wgFormattedNamespaces')[3] + ':' + mw.config.get('wgRelevantUserName');
 	Morebits.wiki.actionCompleted.redirect = userTalkPage;
-	Morebits.wiki.actionCompleted.notice = 'Welcoming complete, reloading talk page in a few seconds';
+	Morebits.wiki.actionCompleted.notice = 'Penyambutan selesai, halaman pembicaraan akan dimuat ulang beberapa saat lagi';
 
 	var wikipedia_page = new Morebits.wiki.page(userTalkPage, 'User talk page modification');
 	wikipedia_page.setFollowRedirect(true);
