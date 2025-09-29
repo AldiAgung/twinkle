@@ -93,15 +93,15 @@ Twinkle.defaultConfig = {
 
 	// CSD
 	speedySelectionStyle: 'buttonClick',
-	watchSpeedyPages: [ 'g3', 'g5', 'g10', 'g11', 'g12' ],
+	watchSpeedyPages: [ 'u3', 'u5', 'u10', 'u11', 'u12' ],
 	watchSpeedyExpiry: '1 month',
 	markSpeedyPagesAsPatrolled: false,
 	watchSpeedyUser: '1 month',
 
 	// these next two should probably be identical by default
-	welcomeUserOnSpeedyDeletionNotification: [ 'db', 'g1', 'g2', 'g3', 'g4', 'g6', 'g10', 'g11', 'g12', 'g13', 'g14', 'g15', 'a1', 'a2', 'a3', 'a7', 'a9', 'a10', 'a11', 'c1', 'f1', 'f2', 'f3', 'f7', 'f9', 'r3', 'u5' ],
-	notifyUserOnSpeedyDeletionNomination: [ 'db', 'g1', 'g2', 'g3', 'g4', 'g6', 'g10', 'g11', 'g12', 'g13', 'g14', 'g15', 'a1', 'a2', 'a3', 'a7', 'a9', 'a10', 'a11', 'c1', 'f1', 'f2', 'f3', 'f7', 'f9', 'r3', 'u5' ],
-	warnUserOnSpeedyDelete: [ 'db', 'g1', 'g2', 'g3', 'g4', 'g6', 'g10', 'g11', 'g12', 'g13', 'g14', 'g15', 'a1', 'a2', 'a3', 'a7', 'a9', 'a10', 'a11', 'c1', 'f1', 'f2', 'f3', 'f7', 'f9', 'r3', 'u5' ],
+	welcomeUserOnSpeedyDeletionNotification: [ 'db', 'u1', 'u2', 'u3', 'u4', 'u6', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'a1', 'a2', 'a3', 'a7', 'a9', 'a10', 'a11', 'c1', 'f1', 'f2', 'f3', 'f7', 'f9', 'r3', 'u5' ],
+	notifyUserOnSpeedyDeletionNomination: [ 'db', 'u1', 'u2', 'u3', 'u4', 'u6', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'a1', 'a2', 'a3', 'a7', 'a9', 'a10', 'a11', 'c1', 'f1', 'f2', 'f3', 'f7', 'f9', 'r3', 'u5' ],
+	warnUserOnSpeedyDelete: [ 'db', 'u1', 'u2', 'u3', 'u4', 'u6', 'u10', 'u11', 'u12', 'u13', 'u14', 'u15', 'a1', 'a2', 'a3', 'a7', 'a9', 'a10', 'a11', 'c1', 'f1', 'f2', 'f3', 'f7', 'f9', 'r3', 'u5' ],
 	promptForSpeedyDeletionSummary: [],
 	deleteTalkPageOnDelete: true,
 	deleteRedirectsOnDelete: true,
@@ -264,7 +264,7 @@ Twinkle.addPortlet = function() {
 
 		// .vector-page-tools-landmark is unstable and could change. If so, log it to console, to hopefully get someone's attention.
 		if (!$landmark) {
-			mw.log.warn('Unexpected change in DOM');
+			mw.log.warn('Perubahan tidak terduga di DOM');
 		}
 	}
 
@@ -316,7 +316,7 @@ $.ajax({
 	dataType: 'text'
 })
 	.fail(() => {
-		console.log('Could not load your Twinkle preferences, resorting to default preferences'); // eslint-disable-line no-console
+		console.log('Tidak dapat memuat preferensi Twinkle anda, mengembalikan ke preferensi default'); // eslint-disable-line no-console
 	})
 	.done((optionsText) => {
 
@@ -345,7 +345,7 @@ $.ajax({
 				Twinkle.prefs.optionsVersion = Twinkle.prefs.optionsVersion || 1;
 			}
 		} catch (e) {
-			mw.notify('Could not parse your Twinkle preferences', {type: 'error'});
+			mw.notify('Tidak dapat mengambil preferensi Twinkle anda', {type: 'error'});
 		}
 	})
 	.always(() => {
@@ -404,7 +404,7 @@ Twinkle.load = function () {
 	// If using a skin with space for lots of modules, display a link to Twinkle Preferences
 	const usingSkinWithDropDownMenu = mw.config.get('skin') === 'vector' || mw.config.get('skin') === 'vector-2022' || mw.config.get('skin') === 'timeless';
 	if (usingSkinWithDropDownMenu) {
-		Twinkle.addPortletLink(mw.util.getUrl('Wikipedia:Twinkle/Preferences'), 'Config', 'tw-config', 'Membuka halaman preferensi Twinkle');
+		Twinkle.addPortletLink(mw.util.getUrl('Wikipedia:Twinkle/Preferences'), 'Config', 'tw-config', 'Open Twinkle preferences page');
 	}
 };
 
