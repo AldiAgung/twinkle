@@ -1,45 +1,45 @@
 // <nowiki>
 
-
-(function($) {
-
+(function() {
 
 /*
  ****************************************
  *** twinkleimage.js: Image CSD module
  ****************************************
  * Mode of invocation:     Tab ("DI")
- * Active on:              Local nonredirect file pages (not on Commons)
+ * Active on:              Local nonredirect file pages (not on Commons) - Only file pages that exist locally; Files that exist on Commons do not trigger this module.
  */
 
 Twinkle.image = function twinkleimage() {
-	if (mw.config.get('wgNamespaceNumber') === 6 && mw.config.get('wgArticleId') && !document.getElementById('mw-sharedupload') && !Morebits.wiki.isPageRedirect()) {
-		Twinkle.addPortletLink(Twinkle.image.callback, 'DI', 'tw-di', 'Nominate file for delayed speedy deletion');
+	if (mw.config.get('wgNamespaceNumber') === 6 && mw.config.get('wgArticleId') && !document.getElementById('mw-sharedupload') && !Morebits.isPageRedirect()) {
+		Twinkle.addPortletLink(Twinkle.image.callback, 'DI', 'tw-di', 'Menominasikan berkas untuk penundaan penghapusan cepat');
 	}
 };
 
 Twinkle.image.callback = function twinkleimageCallback() {
-	var Window = new Morebits.simpleWindow(600, 330);
-	Window.setTitle('Berkas untuk penghapusan cepat');
+	const Window = new Morebits.SimpleWindow(600, 330);
+	Window.setTitle('File for dated speedy deletion');
 	Window.setScriptName('Twinkle');
-	Window.addFooterLink('Kebijakan penghapusan cepat', 'WP:Pedoman gaya/Gambar');
-	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#image');
+	Window.addFooterLink('Kebijakan pengahpusan cepat', 'WP:KPC#Berkas');
+	Window.addFooterLink('Preferesni berkas', 'WP:TW/PREF#image');
+	Window.addFooterLink('Bantuan Twinkel', 'WP:TW/DOC#gambar');
+	Window.addFooterLink('Give feedback', 'WT:TW');
 
-	var form = new Morebits.quickForm(Twinkle.image.callback.evaluate);
+	const form = new Morebits.QuickForm(Twinkle.image.callback.evaluate);
 	form.append({
 		type: 'checkbox',
 		list: [
 			{
-				label: 'Peringati pengunggah asli',
+				label: 'Beritahu pengunggah asli',
 				value: 'notify',
 				name: 'notify',
-				tooltip: "Uncheck this if you are planning to make multiple nominations from the same user, and don't want to overload their talk page with too many notifications.",
+				tooltip: "Batalkan pilihan ini jika anda ingin membuat beberapa nominasi dari pengguna yang sama, dan tidak ingin memenuhi halamn pembicaraannya dengan terlalu banyak notifikasi.",
 				checked: Twinkle.getPref('notifyUserOnDeli')
 			}
 		]
 	}
 	);
-	var field = form.append({
+	const field = form.append({
 		type: 'field',
 		label: 'Jenis tindakan yang diinginkan'
 	});
@@ -49,45 +49,45 @@ Twinkle.image.callback = function twinkleimageCallback() {
 		event: Twinkle.image.callback.choice,
 		list: [
 			{
-				label: 'Tanpa sumber (KPC B4)',
+				label: 'Tidak ada sumber (KPC B4)',
 				value: 'no source',
 				checked: true,
-				tooltip: 'Gambar atau media yang tidak memiliki informasi sumber'
+				tooltip: 'Gambar atau media tidak memiliki informasi'
 			},
 			{
-				label: 'Tanpa lisensi (KPC B4)',
+				label: 'Tidak ada lisensi (KPC B4)',
 				value: 'no license',
-				tooltip: 'Gambar atau media tidak memiliki informasi hak cipta dan status lisensinya'
+				tooltip: 'Gambar atau media tidak memilki informasi di status hak ciptanya'
 			},
 			{
-				label: 'Tanpa sumber dan tanpa lisensi (KPC B4)',
+				label: 'Tidak ada sumber dan lisensi (KPC B4)',
 				value: 'no source no license',
-				tooltip: 'Image or media has neither information on source nor its copyright status'
+				tooltip: 'Gambar atau media tidak memilki informasi serta status hak ciptanya'
 			},
 			{
-				label: 'Berkas nonbebas yang tak digunakan (KPC B5)',
-				value: 'orphaned fair use',
-				tooltip: 'Image or media is unlicensed for use on Wikipedia and allowed only under a claim of fair use per Wikipedia:Non-free content, but it is not used in any articles'
+				label: 'Penggunaan berkas yatim tidak bebas digunakan (KPC B5)',
+				value: 'orphaned non-free use',
+				tooltip: 'Gambar atau media tidak dilisensikan untuk penggunaan pada Wikipedia dan hanya diizinkan dibawah klaim penggunaan wajar per Wikipedia:Konten tak bebas, tetapi tidak digunakan di artikel manapun'
 			},
 			{
-				label: 'Tidak memiliki alasan penggunaan nonbebas (KPC B6)',
-				value: 'no fair use rationale',
-				tooltip: 'Gambar atau media yang diklaim perlu digunakan sejalan dengan kebijakan berkas non-bebas, tetapi tidak memiliki alasan mengapa hal ini dapat diizinkan untuk berkas ini'
+				label: 'Tidak penggunaan wajar tidak bebas (KPC B6)',
+				value: 'no non-free use rationale',
+				tooltip: 'Gambar atau media diklaim untuk digunakan dibawah kebijakan penggunaan bebas Wiki, tetapi tidak ada penjelasan mengapa berkas tersebut diizinkan dibawah kebijakan tersebut.'
 			},
 			{
-				label: 'Berkas penggunaan wajar yang dipertentangkan (KPC B7)',
-				value: 'disputed fair use rationale',
-				tooltip: 'Gambar atau media yang memiliki alasan penggunaan wajar yang dipertentangkan'
+				label: 'Alasan penggunaan non-bebas yang disengketakan (KPC B7)',
+				value: 'disputed non-free use rationale',
+				tooltip: 'Gambar atau media mempunyai sebuah hak penggunaan wajar yang dipertentangkan atau tidak sah, seperti tag {{Non-free logo}} pada sebuah fotografi dari sebuah maskot'
 			},
 			{
-				label: 'Berkas penggunaan wajar yang dapat digantikan (KPC B7)',
-				value: 'replaceable fair use',
+				label: 'Penggantian tidak bebas yang dapat diganti (KPC B7)',
+				value: 'replaceable non-free use',
 				tooltip: 'Image or media may fail Wikipedia\'s first non-free content criterion ([[WP:NFCC#1]]) in that it illustrates a subject for which a free image might reasonably be found or created that adequately provides the same information'
 			},
 			{
-				label: 'Tidak ada bukti izin penggunaan (KPC B11)',
+				label: 'Tidak ada bukti untuk perizinan (KPC B11)',
 				value: 'no permission',
-				tooltip: 'Image or media does not have proof that the author agreed to licence the file'
+				tooltip: 'Gambar atau media tidak mempunyai bukti bahwa pengunggah setuju untuk melisensikan berkasnya'
 			}
 		]
 	});
@@ -98,20 +98,20 @@ Twinkle.image.callback = function twinkleimageCallback() {
 	});
 	form.append({ type: 'submit' });
 
-	var result = form.render();
+	const result = form.render();
 	Window.setContent(result);
 	Window.display();
 
-	// Inialisasi paramater
-	var evt = document.createEvent('Event');
+	// We must init the parameters
+	const evt = document.createEvent('Event');
 	evt.initEvent('change', true, true);
 	result.type[0].dispatchEvent(evt);
 };
 
 Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
-	var value = event.target.values;
-	var root = event.target.form;
-	var work_area = new Morebits.quickForm.element({
+	const value = event.target.values;
+	const root = event.target.form;
+	const work_area = new Morebits.QuickForm.Element({
 		type: 'div',
 		name: 'work_area'
 	});
@@ -121,11 +121,11 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 		case 'no source':
 			work_area.append({
 				type: 'checkbox',
-				name: 'non_free',
 				list: [
 					{
-						label: 'Non-bebas',
-						tooltip: 'File is licensed under a fair use claim'
+						label: 'Tidak bebas',
+						name: 'non_free',
+						tooltip: 'Berkas dilisensikan dibawah klaim pneggunaan wajar'
 					}
 				]
 			});
@@ -133,11 +133,11 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 		case 'no license':
 			work_area.append({
 				type: 'checkbox',
-				name: 'derivative',
 				list: [
 					{
-						label: 'Karya turunan yang tidak memiliki sumber untuk karya yang disertakan',
-						tooltip: 'File is a derivative of one or more other works whose source is not specified'
+						name: 'derivative',
+						label: 'Karya pengganti yang kekurnagan sumber untuk karya yang tergabung',
+						tooltip: 'Berkas merupakan turunan dari satu atau lebih karya lain yang sumbernya tidak disebutkan'
 					}
 				]
 			});
@@ -146,29 +146,29 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 			work_area.append({
 				type: 'input',
 				name: 'source',
-				label: 'Sumber: '
+				label: 'Sumber:'
 			});
 			break;
-		case 'disputed fair use rationale':
+		case 'disputed non-free use rationale':
 			work_area.append({
 				type: 'textarea',
 				name: 'reason',
-				label: 'Kepentingan: '
+				label: 'Tujuan:'
 			});
 			break;
-		case 'orphaned fair use':
+		case 'orphaned non-free use':
 			work_area.append({
 				type: 'input',
 				name: 'replacement',
-				label: 'Penggantian: ',
-				tooltip: 'Optional file that replaces this one.  The "File:" prefix is optional.'
+				label: 'Penggantian:',
+				tooltip: 'Berkas opsional yang mengganti berkas lama.   Prefix "Berkas:" opsional.'
 			});
 			break;
-		case 'replaceable fair use':
+		case 'replaceable non-free use':
 			work_area.append({
 				type: 'textarea',
 				name: 'reason',
-				label: 'Alasan: '
+				label: 'Alasan:'
 			});
 			break;
 		default:
@@ -179,106 +179,80 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 };
 
 Twinkle.image.callback.evaluate = function twinkleimageCallbackEvaluate(event) {
-	var type, non_free, source, reason, replacement, derivative;
 
-	var notify = event.target.notify.checked;
-	var types = event.target.type;
-	for (var i = 0; i < types.length; ++i) {
-		if (types[i].checked) {
-			type = types[i].values;
-			break;
-		}
-	}
-	if (event.target.non_free) {
-		non_free = event.target.non_free.checked;
-	}
-	if (event.target.source) {
-		source = event.target.source.value;
-	}
-	if (event.target.reason) {
-		reason = event.target.reason.value;
-	}
-	if (event.target.replacement && event.target.replacement.value.trim()) {
-		replacement = event.target.replacement.value;
-		replacement = /^\s*(Image|File):/i.test(replacement) ? replacement : 'Berkas:' + replacement;
-	}
-	if (event.target.derivative) {
-		derivative = event.target.derivative.checked;
+	const input = Morebits.QuickForm.getInputData(event.target);
+	if (input.replacement) {
+		input.replacement = (new RegExp('^' + Morebits.namespaceRegex(6) + ':', 'i').test(input.replacement) ? '' : 'File:') + input.replacement;
 	}
 
-	var csdcrit;
-	switch (type) {
+	let csdcrit;
+	switch (input.type) {
 		case 'no source no license':
 		case 'no source':
 		case 'no license':
 			csdcrit = 'F4';
 			break;
-		case 'orphaned fair use':
+		case 'orphaned non-free use':
 			csdcrit = 'F5';
 			break;
-		case 'no fair use rationale':
+		case 'no non-free use rationale':
 			csdcrit = 'F6';
 			break;
-		case 'disputed fair use rationale':
-		case 'replaceable fair use':
+		case 'disputed non-free use rationale':
+		case 'replaceable non-free use':
 			csdcrit = 'F7';
 			break;
 		case 'no permission':
 			csdcrit = 'F11';
 			break;
 		default:
-			throw new Error('Twinkle.image.callback.evaluate: kriteria yang tidak diketahui');
+			throw new Error('Twinkle.image.callback.evaluate: unknown criterion');
 	}
 
-	var lognomination = Twinkle.getPref('logSpeedyNominations') && Twinkle.getPref('noLogOnSpeedyNomination').indexOf(csdcrit.toLowerCase()) === -1;
-	var templatename = derivative ? 'dw ' + type : type;
+	const lognomination = Twinkle.getPref('logSpeedyNominations') && !Twinkle.getPref('noLogOnSpeedyNomination').includes(csdcrit.toLowerCase());
+	const templatename = input.derivative ? 'dw ' + input.type : input.type;
 
-	var params = {
-		'type': type,
-		'templatename': templatename,
-		'normalized': csdcrit,
-		'non_free': non_free,
-		'source': source,
-		'reason': reason,
-		'replacement': replacement,
-		'lognomination': lognomination
-	};
-	Morebits.simpleWindow.setButtonsEnabled(false);
-	Morebits.status.init(event.target);
+	const params = $.extend({
+		templatename: templatename,
+		normalized: csdcrit,
+		lognomination: lognomination
+	}, input);
+
+	Morebits.SimpleWindow.setButtonsEnabled(false);
+	Morebits.Status.init(event.target);
 
 	Morebits.wiki.actionCompleted.redirect = mw.config.get('wgPageName');
-	Morebits.wiki.actionCompleted.notice = 'Menandai selesai';
+	Morebits.wiki.actionCompleted.notice = 'Memberi tag selesai';
 
 	// Tagging image
-	var wikipedia_page = new Morebits.wiki.page(mw.config.get('wgPageName'), 'Menandai berkas dengan tag penghapusan');
+	const wikipedia_page = new Morebits.wiki.Page(mw.config.get('wgPageName'), 'Memberi tag pada berkas dengan tag penghapusan');
 	wikipedia_page.setCallbackParameters(params);
 	wikipedia_page.load(Twinkle.image.callbacks.taggingImage);
 
 	// Notifying uploader
-	if (notify) {
+	if (input.notify) {
 		wikipedia_page.lookupCreation(Twinkle.image.callbacks.userNotification);
 	} else {
 		// add to CSD log if desired
 		if (lognomination) {
-			params.fromDI = true;
-			Twinkle.speedy.callbacks.user.addToLog(params, null);
+			Twinkle.image.callbacks.addToLog(params, null);
 		}
 		// No auto-notification, display what was going to be added.
-		var noteData = document.createElement('pre');
+		const noteData = document.createElement('pre');
 		noteData.appendChild(document.createTextNode('{{subst:di-' + templatename + '-notice|1=' + mw.config.get('wgTitle') + '}} ~~~~'));
-		Morebits.status.info('Notifikasi', [ 'Data yang mirip/mengikuti diharuskan di unggah kepada pengunggah asli:', document.createElement('br'), noteData ]);
+		Morebits.Status.info('Notifikasi', [ 'Data yang mengikuti/mirip harus diunggah ke penggunggah asli:', document.createElement('br'), noteData ]);
 	}
 };
 
 Twinkle.image.callbacks = {
 	taggingImage: function(pageobj) {
-		var text = pageobj.getPageText();
-		var params = pageobj.getCallbackParameters();
+		let text = pageobj.getPageText();
+		const params = pageobj.getCallbackParameters();
 
 		// remove "move to Commons" tag - deletion-tagged files cannot be moved to Commons
-		text = text.replace(/\{\{(mtc|(salin |pindah )?to ?commons|pindahkan ke wikimedia commons|salin ke wikimedia commons)[^}]*\}\}/gi, '');
+		text = text.replace(/\{\{(mtc|(copy |move )?to ?commons|move to wikimedia commons|copy to wikimedia commons)[^}]*\}\}/gi, '');
 
-		var tag = '{{di-' + params.templatename + '|date={{subst:#time:j F Y}}';
+		let tag = '{{di-' + params.templatename + '|date={{subst:#time:j F Y}}';
 		switch (params.type) {
 			case 'no source no license':
 			case 'no source':
@@ -287,76 +261,100 @@ Twinkle.image.callbacks = {
 			case 'no permission':
 				tag += params.source ? '|source=' + params.source : '';
 				break;
-			case 'disputed fair use rationale':
+			case 'disputed non-free use rationale':
 				tag += params.reason ? '|concern=' + params.reason : '';
 				break;
-			case 'orphaned fair use':
+			case 'orphaned non-free use':
 				tag += params.replacement ? '|replacement=' + params.replacement : '';
 				break;
-			case 'replaceable fair use':
+			case 'replaceable non-free use':
 				tag += params.reason ? '|1=' + params.reason : '';
 				break;
 			default:
-				break;  // doesn't matter
+				break; // doesn't matter
 		}
 		tag += '|help=off}}\n';
 
 		pageobj.setPageText(tag + text);
-		pageobj.setEditSummary('Berkas ini memenuhi kriteria untuk penghapusan	, per [[WP:CSD#' + params.normalized + '|CSD ' + params.normalized + ']] (' + params.type + ').' + Twinkle.getPref('summaryAd'));
-		switch (Twinkle.getPref('deliWatchPage')) {
-			case 'yes':
-				pageobj.setWatchlist(true);
-				break;
-			case 'no':
-				pageobj.setWatchlistFromPreferences(false);
-				break;
-			default:
-				pageobj.setWatchlistFromPreferences(true);
-				break;
-		}
+		pageobj.setEditSummary('Berkas ini layak untuk dihapus per [[WP:KPC#' + params.normalized + '|KPC ' + params.normalized + ']] (' + params.type + ').');
+		pageobj.setChangeTags(Twinkle.changeTags);
+		pageobj.setWatchlist(Twinkle.getPref('deliWatchPage'));
 		pageobj.setCreateOption('nocreate');
 		pageobj.save();
 	},
 	userNotification: function(pageobj) {
-		var params = pageobj.getCallbackParameters();
-		var initialContrib = pageobj.getCreator();
+		const params = pageobj.getCallbackParameters();
+		const initialContrib = pageobj.getCreator();
 
-		// Tidak boleh memperingati diri sendiri
+		// disallow warning yourself
 		if (initialContrib === mw.config.get('wgUserName')) {
-			pageobj.getStatusElement().warn('Anda (' + initialContrib + ') memperingati anda sendiri; melewati notifikasi pengguna');
+			pageobj.getStatusElement().warn('Anda (' + initialContrib + ') membuat halaman ini; melewati notifikasi pengguna');
 		} else {
-			var usertalkpage = new Morebits.wiki.page('User talk:' + initialContrib, 'Memberitahu penyunting awal (' + initialContrib + ')');
-			var notifytext = '\n{{subst:di-' + params.templatename + '-notice|1=' + mw.config.get('wgTitle');
+			const usertalkpage = new Morebits.wiki.Page('User talk:' + initialContrib, 'Memberitahu kontributor awal (' + initialContrib + ')');
+			let notifytext = '\n{{subst:di-' + params.templatename + '-notice|1=' + mw.config.get('wgTitle');
 			if (params.type === 'no permission') {
 				notifytext += params.source ? '|source=' + params.source : '';
 			}
 			notifytext += '}} ~~~~';
 			usertalkpage.setAppendText(notifytext);
-			usertalkpage.setEditSummary('Notifikasi: memberi tag untuk penghapusan [[:' + Morebits.pageNameNorm + ']].' + Twinkle.getPref('summaryAd'));
+			usertalkpage.setEditSummary('Notifikasi: memberi tag untuk penghapusan [[:' + Morebits.pageNameNorm + ']].');
+			usertalkpage.setChangeTags(Twinkle.changeTags);
 			usertalkpage.setCreateOption('recreate');
-			switch (Twinkle.getPref('deliWatchUser')) {
-				case 'yes':
-					usertalkpage.setWatchlist(true);
-					break;
-				case 'no':
-					usertalkpage.setWatchlistFromPreferences(false);
-					break;
-				default:
-					usertalkpage.setWatchlistFromPreferences(true);
-					break;
-			}
-			usertalkpage.setFollowRedirect(true);
+			usertalkpage.setWatchlist(Twinkle.getPref('deliWatchUser'));
+			usertalkpage.setFollowRedirect(true, false);
 			usertalkpage.append();
 		}
 
 		// add this nomination to the user's userspace log, if the user has enabled it
 		if (params.lognomination) {
-			params.fromDI = true;
-			Twinkle.speedy.callbacks.user.addToLog(params, initialContrib);
+			Twinkle.image.callbacks.addToLog(params, initialContrib);
 		}
+	},
+	addToLog: function(params, initialContrib) {
+		const usl = new Morebits.UserspaceLogger(Twinkle.getPref('speedyLogPageName'));
+		usl.initialText =
+			"Ini adalah semua catatan untuk nominasi [[WP:KPC|penghapusan cepat]] yang dibuat oleh pengguna ini dengan modul KPC [[WP:TW|Twinkle]].\n\n" +
+			'Jika Anda tidak ingin lagi menyimpan catatan ini, Anda dapat menonaktifkannya menggunakan [[Wikipedia:Twinkle/Preferences|panel preferensi]], dan ' +
+			'nominasi halaman ini untuk penghapusan cepat dibawah [[WP:KPC#U1|KPC U1]].' +
+			(Morebits.userIsSysop ? '\n\nCatatan ini tidak melacak penghapusan cepat yang dilakukan menggunakan Twinkle.' : '');
+
+		const formatParamLog = function(normalize, csdparam, input) {
+			if (normalize === 'F5' && csdparam === 'replacement') {
+				input = '[[:' + input + ']]';
+			}
+			return ' {' + normalize + ' ' + csdparam + ': ' + input + '}';
+		};
+
+		let extraInfo = '';
+
+		// If a logged file is deleted but exists on commons, the wikilink will be blue, so provide a link to the log
+		const fileLogLink = ' ([{{fullurl:Special:Log|page=' + mw.util.wikiUrlencode(mw.config.get('wgPageName')) + '}} log])';
+
+		let appendText = '# [[:' + Morebits.pageNameNorm + ']]' + fileLogLink + ': DI [[WP:KPC#' + params.normalized.toUpperCase() + '|KPC ' + params.normalized.toUpperCase() + ']] ({{tl|di-' + params.templatename + '}})';
+
+		['reason', 'replacement', 'source'].forEach((item) => {
+			if (params[item]) {
+				extraInfo += formatParamLog(params.normalized.toUpperCase(), item, params[item]);
+				return false;
+			}
+		});
+
+		if (extraInfo) {
+			appendText += '; informasi tambahan:' + extraInfo;
+		}
+		if (initialContrib) {
+			appendText += '; {{user|1=' + initialContrib + '}} diberitahu';
+		}
+		appendText += ' ~~~~~\n';
+
+		const editsummary = 'Mencatat penghapusan cepat nominasi [[:' + Morebits.pageNameNorm + ']].';
+
+		usl.changeTags = Twinkle.changeTags;
+		usl.log(appendText, editsummary);
 	}
 };
-})(jQuery);
 
+Twinkle.addInitCallback(Twinkle.image, 'image');
+}());
 
 // </nowiki>
