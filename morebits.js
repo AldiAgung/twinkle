@@ -12,7 +12,7 @@
  * - {@link Morebits.wikitext} - utilitas untuk mengurus wikitext
  * - {@link Morebits.string} - utilitas untuk manipulasi strings
  * - {@link Morebits.array} - utilitas untuk manipulasi array
- * - {@link Morebits.ip} - utilitas untuk membantu memproses alamt IP
+ * - {@link Morebits.ip} - utilitas untuk membantu memproses alamat IP
  *
  * Dependencies:
  * - The whole thing relies on jQuery.  But most wikis should provide this by default.
@@ -5793,7 +5793,7 @@ Morebits.simpleWindow = function SimpleWindow(width, height) {
 		height: height + 20,
 		close: function(event) {
 			// dialogs and their content can be destroyed once closed
-			$(event.target).dialog('hilangkan').remove();
+			$(event.target).dialog('destroy').remove();
 		},
 		resizeStart: function() {
 			this.scrollbox = $(this).find('.morebits-scrollbox')[0];

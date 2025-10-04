@@ -15,73 +15,73 @@
 Twinkle.config = {};
 
 Twinkle.config.watchlistEnums = {
-	yes: 'Add to watchlist (indefinitely)',
-	no: "Don't add to watchlist",
-	default: 'Follow your site preferences',
-	'1 week': 'Watch for 1 week',
-	'1 month': 'Watch for 1 month',
-	'3 months': 'Watch for 3 months',
-	'6 months': 'Watch for 6 months'
+	yes: 'Masukan ke daftar pantauan (selamanya)',
+	no: "Jangan masukan ke daftar pantauan",
+	default: 'Ikuti preferensi situs anda',
+	'1 minggu': 'Pantau untuk 1 minggu',
+	'1 bulan': 'Pantau untuk 1 bulan',
+	'3 bulan': 'Pantau untuk 3 bulan',
+	'6 bulan': 'Pantau untuk 6 bulan'
 };
 
 Twinkle.config.commonSets = {
 	csdCriteria: {
-		db: 'Custom rationale ({{db}})',
+		db: 'Alasan khusus ({{db}})',
 		a1: 'A1', a2: 'A2', a3: 'A3', a7: 'A7', a9: 'A9', a10: 'A10', a11: 'A11',
 		c1: 'C1', c4: 'C4',
 		f1: 'F1', f2: 'F2', f3: 'F3', f7: 'F7', f8: 'F8', f9: 'F9',
-		g1: 'G1', g2: 'G2', g3: 'G3', g4: 'G4', g5: 'G5', g6: 'G6', g7: 'G7', g8: 'G8', g10: 'G10', g11: 'G11', g12: 'G12', g13: 'G13', g14: 'G14', g15: 'G15',
+		u1: 'U1', g2: 'U2', g3: 'U3', g4: 'U4', g5: 'U5', U6: 'U6', g7: 'U7', g8: 'U8', g10: 'U10', g11: 'U11', g12: 'U12', g13: 'U13', g14: 'U14', g15: 'U15',
 		r2: 'R2', r3: 'R3', r4: 'R4',
 		t5: 'T5',
 		u1: 'U1', u2: 'U2', u5: 'U5',
 		x3: 'X3'
 	},
 	csdCriteriaNotification: {
-		db: 'Custom rationale ({{db}})',
+		db: 'Alasan khusus ({{db}})',
 		a1: 'A1', a2: 'A2', a3: 'A3', a7: 'A7', a9: 'A9', a10: 'A10', a11: 'A11',
 		c1: 'C1',
 		f1: 'F1', f2: 'F2', f3: 'F3', f7: 'F7', f9: 'F9',
-		g1: 'G1', g2: 'G2', g3: 'G3', g4: 'G4', g6: 'G6 ("copy-paste move" only)', g10: 'G10', g11: 'G11', g12: 'G12', g13: 'G13', g14: 'G14', g15: 'G15',
+		g1: 'U1', g2: 'U2', g3: 'U3', g4: 'U4', g6: 'U6 (hanya "pindah salin-tempel")', g10: 'U10', g11: 'U11', g12: 'U12', g13: 'U13', g14: 'U14', g15: 'U15',
 		r2: 'R2', r3: 'R3', r4: 'R4',
 		u5: 'U5',
 		x3: 'X3'
 	},
 	csdAndImageDeletionCriteria: {
-		db: 'Custom rationale ({{db}})',
+		db: 'Alasan khusus ({{db}})',
 		a1: 'A1', a2: 'A2', a3: 'A3', a7: 'A7', a9: 'A9', a10: 'A10', a11: 'A11',
 		c1: 'C1', c4: 'C4',
 		f1: 'F1', f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5', f6: 'F6', f7: 'F7', f8: 'F8', f9: 'F9', f11: 'F11',
-		g1: 'G1', g2: 'G2', g3: 'G3', g4: 'G4', g5: 'G5', g6: 'G6', g7: 'G7', g8: 'G8', g10: 'G10', g11: 'G11', g12: 'G12', g13: 'G13', g14: 'G14', g15: 'G15',
+		g1: 'U1', g2: 'U2', g3: 'U3', g4: 'U4', g5: 'U5', g6: 'U6', g7: 'U7', g8: 'U8', g10: 'U10', g11: 'U11', g12: 'U12', g13: 'U13', g14: 'U14', g15: 'U15',
 		r2: 'R2', r3: 'R3', r4: 'R4',
 		t5: 'T5',
 		u1: 'U1', u2: 'U2', u5: 'U5',
 		x3: 'X3'
 	},
 	namespacesNoSpecial: {
-		0: 'Article',
-		1: 'Talk (article)',
-		2: 'User',
-		3: 'User talk',
+		0: 'Artikel',
+		1: 'Pembicaraan (artikel)',
+		2: 'Pengguna',
+		3: 'Pembicaraan pengguna',
 		4: 'Wikipedia',
-		5: 'Wikipedia talk',
-		6: 'File',
-		7: 'File talk',
+		5: 'Pembicaraan Wikipedia',
+		6: 'Berkas',
+		7: 'Pembicaraan berkas',
 		8: 'MediaWiki',
-		9: 'MediaWiki talk',
-		10: 'Template',
-		11: 'Template talk',
-		12: 'Help',
-		13: 'Help talk',
-		14: 'Category',
-		15: 'Category talk',
+		9: 'Pembicaraan MediaWiki',
+		10: 'Templat',
+		11: 'Templat pembicaraan',
+		12: 'Bantuan',
+		13: 'Bantuan pembicaraan',
+		14: 'Kategori',
+		15: 'Pembicaraan kategori',
 		100: 'Portal',
-		101: 'Portal talk',
+		101: 'Pembicaraan portal',
 		118: 'Draft',
-		119: 'Draft talk',
-		710: 'TimedText',
-		711: 'TimedText talk',
-		828: 'Module',
-		829: 'Module talk'
+		119: 'Pembicaraan draft',
+		710: 'Teks berwaktu',
+		711: 'Pembicaran teks berwaktu',
+		828: 'Modul',
+		829: 'Pembicaraan modul'
 	}
 };
 
@@ -120,40 +120,68 @@ Twinkle.config.commonSets.csdAndImageDeletionCriteriaDisplayOrder = Object.keys(
 Twinkle.config.sections = [
 	{
 		title: 'General',
-		module: 'general',
 		preferences: [
+			// TwinkleConfig.summaryAd (string)
+			// Text to be appended to the edit summary of edits made using Twinkle
+			{
+				name: 'summaryAd',
+				label: '"Iklan" yang akan ditambahkan ke dalam ringkasan suntingan Twinkle',
+				helptip: 'Iklan ringkasan harus diawali dengan sebuah spasi, dan singkat.',
+				type: 'string'
+			},
+
+			// TwinkleConfig.deletionSummaryAd (string)
+			// Text to be appended to the edit summary of deletions made using Twinkle
+			{
+				name: 'deletionSummaryAd',
+				label: 'Iklan ringkasan yang digunakan untuk ringkasan penghapusan',
+				helptip: 'Biasanya sama dengan iklan ringkasan suntingan di atas.',
+				adminOnly: true,
+				type: 'string'
+			},
+
+			// TwinkleConfig.protectionSummaryAd (string)
+			// Text to be appended to the edit summary of page protections made using Twinkle
+			{
+				name: 'protectionSummaryAd',
+				label: 'Iklan ringkasan yang digunakan untuk perlindungan halaman',
+				helptip: 'Biasanya sama dengan iklan ringkasan suntingan di atas.',
+				adminOnly: true,
+				type: 'string'
+			},
+
 			// TwinkleConfig.userTalkPageMode may take arguments:
 			// 'window': open a new window, remember the opened window
 			// 'tab': opens in a new tab, if possible.
 			// 'blank': force open in a new window, even if such a window exists
 			{
 				name: 'userTalkPageMode',
-				label: 'When opening a user talk page, open it',
+				label: 'Ketika membuka halaman pembicaraan pengguna, buka',
 				type: 'enum',
-				enumValues: { window: 'In a window, replacing other user talks', tab: 'In a new tab', blank: 'In a totally new window' }
+				enumValues: { window: 'Dalam sebuah jendela, mengganti pembicaraan pengguna lainnya', tab: 'Dalam tab baru', blank: 'Dalam sebuah jendela benar-benar baru' }
 			},
 
 			// TwinkleConfig.dialogLargeFont (boolean)
 			{
 				name: 'dialogLargeFont',
-				label: 'Use larger text in Twinkle dialogs',
+				label: 'Gunakan teks yang lebih besar dalam dialog Twinkle',
 				type: 'boolean'
 			},
 
 			// Twinkle.config.disabledModules (array)
 			{
 				name: 'disabledModules',
-				label: 'Turn off the selected Twinkle modules',
-				helptip: 'Anything you select here will NOT be available for use, so act with care. Uncheck to reactivate.',
+				label: 'Matikan modul Twinkle yang dipilih',
+				helptip: 'Apapun yang anda pilih disini TIDAK akan tersedia untuk digunakan. Batalkan pilihan untuk diaktifkan ulang.',
 				type: 'set',
-				setValues: { arv: 'ARV', warn: 'Warn', welcome: 'Welcome', shared: 'Shared IP', talkback: 'Talkback', speedy: 'CSD', prod: 'PROD', xfd: 'XfD', image: 'Image (DI)', protect: 'Protect (RPP)', tag: 'Tag', diff: 'Diff', unlink: 'Unlink', rollback: 'Revert and rollback' }
+				setValues: { arv: 'ARV', warn: 'Warn', welcome: 'Welcome', shared: 'Shared IP', talkback: 'Talkback', speedy: 'CSD', prod: 'PROD', xfd: 'XfD', image: 'Image (DI)', protect: 'Protect (RPP)', tag: 'Tag', diff: 'Diff', unlink: 'Unlink', 'fluff': 'Kembalikan dan balikkan' }
 			},
 
 			// Twinkle.config.disabledSysopModules (array)
 			{
 				name: 'disabledSysopModules',
-				label: 'Turn off the selected admin-only modules',
-				helptip: 'Anything you select here will NOT be available for use, so act with care. Uncheck to reactivate.',
+				label: 'Matikan modul hanya-pengurus yang dipilih',
+				helptip: 'Apapun yang anda pilih disini TIDAK akan tersedia untuk digunakan. Batalkan pilihan untuk diaktifkan ulang.',
 				adminOnly: true,
 				type: 'set',
 				setValues: { block: 'Block', deprod: 'DePROD', batchdelete: 'D-batch', batchprotect: 'P-batch', batchundelete: 'Und-batch' }
@@ -163,11 +191,10 @@ Twinkle.config.sections = [
 
 	{
 		title: 'ARV',
-		module: 'arv',
 		preferences: [
 			{
 				name: 'spiWatchReport',
-				label: 'Add sockpuppet report pages to watchlist',
+				label: 'Menambahkan halaman laporan pengguna siluman ke daftar pantauan',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			}
@@ -176,23 +203,13 @@ Twinkle.config.sections = [
 
 	{
 		title: 'Block user',
-		module: 'block',
 		adminOnly: true,
 		preferences: [
-			// TwinkleConfig.defaultToBlock64 (boolean)
-			// Whether to default to just blocking the /64 on or off
-			{
-				name: 'defaultToBlock64',
-				label: 'For IPv6 addresses, select the option to block the /64 range by default',
-				type: 'boolean'
-			},
-
 			// TwinkleConfig.defaultToPartialBlocks (boolean)
 			// Whether to default partial blocks on or off
 			{
 				name: 'defaultToPartialBlocks',
-				label: 'Select partial blocks by default when opening the block menu',
-				helptip: 'If the user is already blocked, this will be overridden in favor of defaulting to the current block type',
+				label: 'Memilih pemblokiran sebagian secara default saat membuka menu pemblokiran',
 				type: 'boolean'
 			},
 
@@ -200,8 +217,8 @@ Twinkle.config.sections = [
 			// if true, blank the talk page when issuing an indef block notice (per [[WP:UWUL#Indefinitely blocked users]])
 			{
 				name: 'blankTalkpageOnIndefBlock',
-				label: 'Blank the talk page when indefinitely blocking users',
-				helptip: 'See <a href="' + mw.util.getUrl('Wikipedia:WikiProject_User_warnings/Usage_and_layout#Indefinitely_blocked_users') + '">WP:UWUL</a> for more information.',
+				label: 'Kosongkan halaman pembicaraan saat memblokir pengguna untuk selamanya',
+				helptip: 'Lihat <a href="' + mw.util.getUrl('WP:UW#Indefinitely blocked users') + '">WP:UW</a> untuk informasi lebih lanjut.',
 				type: 'boolean'
 			}
 		]
@@ -209,30 +226,29 @@ Twinkle.config.sections = [
 
 	{
 		title: 'Image deletion (DI)',
-		module: 'image',
 		preferences: [
 			// TwinkleConfig.notifyUserOnDeli (boolean)
 			// If the user should be notified after placing a file deletion tag
 			{
 				name: 'notifyUserOnDeli',
-				label: 'Check the "notify initial uploader" box by default',
+				label: 'Pilih "beritahu pengunggah berkas" sebagai pengaturan standar',
 				type: 'boolean'
 			},
 
 			// TwinkleConfig.deliWatchPage (string)
-			// The watchlist setting of the page tagged for deletion.
+			// The watchlist setting of the page tagged for deletion. Either "yes", "no", or "default". Default is "default" (Duh).
 			{
 				name: 'deliWatchPage',
-				label: 'Add image page to watchlist when tagging',
+				label: 'Menambahkan halaman berkas ke daftar pantauan setelah ditandai',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			},
 
 			// TwinkleConfig.deliWatchUser (string)
-			// The watchlist setting of the user talk page if a notification is placed.
+			// The watchlist setting of the user talk page if a notification is placed. Either "yes", "no", or "default". Default is "default" (Duh).
 			{
 				name: 'deliWatchUser',
-				label: 'Add user talk page of initial uploader to watchlist when notifying',
+				label: 'Menambahkan halaman pembicaraan pengunggah berkas ke daftar pantauan setelah diberitahu',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			}
@@ -240,51 +256,22 @@ Twinkle.config.sections = [
 	},
 
 	{
-		title: 'Page protection ' + (Morebits.userIsSysop ? '(PP)' : '(RPP)'),
-		module: 'protect',
+		title: 'Usulan penghapusan (UP)',
 		preferences: [
-			{
-				name: 'watchRequestedPages',
-				label: 'Add page to watchlist when requesting protection',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
-			},
-			{
-				name: 'watchPPTaggedPages',
-				label: 'Add page to watchlist when tagging with protection template',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
-			},
-			{
-				name: 'watchProtectedPages',
-				label: 'Add page to watchlist when protecting',
-				helptip: 'If also tagging the page after protection, that preference will be favored.',
-				adminOnly: true,
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
-			}
-		]
-	},
-
-	{
-		title: 'Proposed deletion (PROD)',
-		module: 'prod',
-		preferences: [
-			// TwinkleConfig.watchProdPages (string)
-			// Watchlist setting when applying prod template to page
+			// TwinkleConfig.watchProdPages (boolean)
+			// If, when applying prod template to page, to watch the page
 			{
 				name: 'watchProdPages',
-				label: 'Add article to watchlist when tagging',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
+				label: 'Menambahkan artikel ke daftar pantauan setelah ditandai',
+				type: 'boolean'
 			},
 
 			// TwinkleConfig.markProdPagesAsPatrolled (boolean)
 			// If, when applying prod template to page, to mark the page as curated/patrolled (if the page was reached from NewPages)
 			{
 				name: 'markProdPagesAsPatrolled',
-				label: 'Mark page as patrolled/reviewed when tagging (if possible)',
-				helptip: 'This should probably not be checked as doing so is against best practice consensus',
+				label: 'Tandai halaman sebagai terpatroli/diulas saat menandai (jika dimungkinkan)',
+				helptip: 'Harusnya ini tidak di centang karena hal ini bertentangan dengan konsensus praktik terbaik',
 				type: 'boolean'
 			},
 
@@ -292,35 +279,34 @@ Twinkle.config.sections = [
 			// The prefilled PROD reason.
 			{
 				name: 'prodReasonDefault',
-				label: 'Prefilled PROD reason',
+				label: 'Isian awal alasan UP',
 				type: 'string'
 			},
 
 			{
 				name: 'logProdPages',
-				label: 'Keep a log in userspace of all pages you tag for PROD',
-				helptip: 'Since non-admins do not have access to their deleted contributions, the userspace log offers a good way to keep track of all pages you tag for PROD using Twinkle.',
+				label: 'Simpan log di ruang pengguna halaman yang Anda tandai UP',
+				helptip: 'Karena hanya pengurus yang memiliki akses ke kontribusi mereka yang dihapus, log ruang pengguna menawarkan cara yang baik untuk dapat melacak semua halaman yang Anda tandai UP dengan Twinkle.',
 				type: 'boolean'
 			},
 			{
 				name: 'prodLogPageName',
-				label: 'Keep the PROD userspace log at this user subpage',
-				helptip: 'Enter a subpage name in this box. You will find your PROD log at User:<i>username</i>/<i>subpage name</i>. Only works if you turn on the PROD userspace log.',
+				label: 'Simpan log ruang pengguna UP di subhalaman pengguna ini',
+				helptip: 'Masukkan nama subhalaman dalam kotak ini. Log UP Anda akan tersimpan di Pengguna:<i>nama pengguna</i>/<i>nama subhalaman</i>. Aktifkan log ruang pengguna UP untuk memanfaatkan fungsi ini.',
 				type: 'string'
 			}
 		]
 	},
 
 	{
-		title: 'Revert and rollback',
-		module: 'rollback',
+		title: 'Pengembalian dan pembatalan',  // twinklefluff module
 		preferences: [
 			// TwinkleConfig.autoMenuAfterRollback (bool)
 			// Option to automatically open the warning menu if the user talk page is opened post-reversion
 			{
 				name: 'autoMenuAfterRollback',
-				label: 'Automatically open the Twinkle warn menu on a user talk page after Twinkle rollback',
-				helptip: 'Only operates if the relevant box is checked below.',
+				label: 'Secara otomatis membuat menu peringatan Twinkle pada sebuah halaman pembicaraan pengguna setelah membalikan Twinkle',
+				helptip: 'Hanya berjalan jika kotak relevan di cek dibawah.',
 				type: 'boolean'
 			},
 
@@ -328,17 +314,17 @@ Twinkle.config.sections = [
 			// What types of actions that should result in opening of talk page
 			{
 				name: 'openTalkPage',
-				label: 'Open user talk page after these types of reversions',
+				label: 'Buka halaman pembicaraan pengguna setelah pengembalian dengan cara ini:',
 				type: 'set',
-				setValues: { agf: 'AGF rollback', norm: 'Normal rollback', vand: 'Vandalism rollback' }
+				setValues: { agf: 'Pengembalian ANB', norm: 'Pengembalian normal', vand: 'Pengembalian vandalisme', torev: '"Kembalikan revisi ini"' }
 			},
 
 			// TwinkleConfig.openTalkPageOnAutoRevert (bool)
 			// Defines if talk page should be opened when calling revert from contribs or recent changes pages. If set to true, openTalkPage defines then if talk page will be opened.
 			{
 				name: 'openTalkPageOnAutoRevert',
-				label: 'Open user talk page when invoking rollback from user contributions or recent changes',
-				helptip: 'When this is on, the desired options must be enabled in the previous setting for this to work.',
+				label: 'Buka halaman pembicaraan pengguna setelah melakukan pembatalan dari kontribusi pengguna',
+				helptip: 'Mungkin Anda sering membatalkan suntingan pada banyak halaman melalui halaman kontribusi pengguna vandal, sehingga tidaklah nyaman jika harus membuka halaman pembicaraan pengguna. Karenanya opsi ini tidak aktifkan secara bawaan. Jika ini diaktifkan, opsi-opsi yang diinginkan pada pengaturan sebelumnya perlu diaktifkan juga.',
 				type: 'boolean'
 			},
 
@@ -346,8 +332,8 @@ Twinkle.config.sections = [
 			//
 			{
 				name: 'rollbackInPlace',
-				label: "Don't reload the page when rolling back from contributions or recent changes",
-				helptip: "When this is on, Twinkle won't reload the contributions or recent changes feed after reverting, allowing you to revert more than one edit at a time.",
+				label: "Jangan memuat ulang saat membalikkan dari kontribusi sekarang atau baru-baru ini",
+				helptip: "Saat ini aktif, Twinkle tidak akan memuat ulang riwayat kontribusi atau perubahan baru-baru ini setelah membalikan, memungkinkan anda untuk membalikkan lebih dari satu suntingan di satu waktu.",
 				type: 'boolean'
 			},
 
@@ -355,48 +341,33 @@ Twinkle.config.sections = [
 			// What types of actions that should result in marking edit as minor
 			{
 				name: 'markRevertedPagesAsMinor',
-				label: 'Mark as minor edit for these types of reversions',
+				label: 'Tandai sebagai suntingan kecil pada pengembalian ini',
 				type: 'set',
-				setValues: { agf: 'AGF rollback', norm: 'Normal rollback', vand: 'Vandalism rollback', torev: '"Restore this version"' }
+				setValues: { agf: 'Pengembalian ANB', norm: 'Pengembalian normal', vand: 'Pengembalian vandalisme', torev: '"Kembalikan revisi ini"' }
 			},
 
 			// TwinkleConfig.watchRevertedPages (array)
 			// What types of actions that should result in forced addition to watchlist
 			{
 				name: 'watchRevertedPages',
-				label: 'Add pages to watchlist for these types of reversions',
+				label: 'Tambahkan halaman ke daftar pantauan pada pengembalian ini',
 				type: 'set',
-				setValues: { agf: 'AGF rollback', norm: 'Normal rollback', vand: 'Vandalism rollback', torev: '"Restore this version"' }
-			},
-			// TwinkleConfig.watchRevertedExpiry
-			// If any of the above items are selected, whether to expire the watch
-			{
-				name: 'watchRevertedExpiry',
-				label: 'When reverting a page, how long to watch it for',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
+				setValues: { agf: 'Pengembalian ANB', norm: 'Pengembalian normal', vand: 'Pengembalian vandalisme', torev: '"Kembalikan revisi ini"' }
 			},
 
 			// TwinkleConfig.offerReasonOnNormalRevert (boolean)
 			// If to offer a prompt for extra summary reason for normal reverts, default to true
 			{
 				name: 'offerReasonOnNormalRevert',
-				label: 'Prompt for reason for normal rollbacks',
-				helptip: '"Normal" rollbacks are the ones that are invoked from the middle [rollback] link.',
+				label: 'Tanyakan alasan untuk pengembalian normal',
+				helptip: 'Pengembalian "normal" adalah jenis pengembalian yang dilakukan dengan mengeklik [kembalikan] di sisi tengah.',
 				type: 'boolean'
 			},
 
 			{
-				name: 'confirmOnRollback',
-				label: 'Require confirmation before reverting (all devices)',
-				helptip: 'For users of pen or touch devices, and chronically indecisive people.',
-				type: 'boolean'
-			},
-
-			{
-				name: 'confirmOnMobileRollback',
-				label: 'Require confirmation before reverting (mobile devices only)',
-				helptip: 'Avoid accidental reversions when on mobile devices.',
+				name: 'confirmOnFluff',
+				label: 'Tampilkan pesan konfirmasi sebelum melakukan pengembalian',
+				helptip: 'Bagi pengguna perangkat sentuh atau pena, dan mereka yang sering mengalami kebimbangan.',
 				type: 'boolean'
 			},
 
@@ -406,70 +377,52 @@ Twinkle.config.sections = [
 			// Note from TTO: |contribs| seems to be equal to |others| + |mine|, i.e. redundant, so I left it out heres
 			{
 				name: 'showRollbackLinks',
-				label: 'Show rollback links on these pages',
+
+				label: 'Tampilkan tautan-tautan pengembalian pada halaman ini',
 				type: 'set',
-				setValues: { diff: 'Diff pages', others: 'Contributions pages of other users', mine: 'My contributions page', recent: 'Recent changes and related changes special pages', history: 'History pages' }
+				setValues: { diff: 'Halaman Diff', others: 'Halaman kontribusi pengguna lain', mine: 'Halaman kontribusi saya', recent: 'Perubahan baru-baru ini dan halaman istimewa perubahan terkait', history: 'Halamnan riwayat' }
 			}
 		]
 	},
 
 	{
 		title: 'Shared IP tagging',
-		module: 'shared',
 		preferences: [
 			{
 				name: 'markSharedIPAsMinor',
-				label: 'Mark shared IP tagging as a minor edit',
+				label: 'Tandai penandaan IP bersama sebagai suntingan kecil',
 				type: 'boolean'
 			}
 		]
 	},
 
 	{
-		title: 'Speedy deletion (CSD)',
-		module: 'speedy',
+		title: 'Penghapusan cepat (KPC)',
 		preferences: [
 			{
 				name: 'speedySelectionStyle',
-				label: 'When to go ahead and tag/delete the page',
+				label: 'Kapan eksekusi dilakukan dan menandai/menghapus halaman',
 				type: 'enum',
-				enumValues: { buttonClick: 'When I click "Submit"', radioClick: 'As soon as I click an option' }
+				enumValues: { 'buttonClick': 'Ketika saya mengeklik "Kirim"', 'radioClick': 'Setelah saya memilih sebuah opsi' }
 			},
 
 			// TwinkleConfig.watchSpeedyPages (array)
 			// Whether to add speedy tagged or deleted pages to watchlist
 			{
 				name: 'watchSpeedyPages',
-				label: 'Add page to watchlist when using these criteria',
+				label: 'Tambahkan halaman ke daftar pantauan setelah menandai dengan kriteria ini',
 				type: 'set',
 				setValues: Twinkle.config.commonSets.csdCriteria,
 				setDisplayOrder: Twinkle.config.commonSets.csdCriteriaDisplayOrder
-			},
-			// TwinkleConfig.watchSpeedyExpiry
-			// If any of the above items are selected, whether to expire the watch
-			{
-				name: 'watchSpeedyExpiry',
-				label: 'When tagging a page, how long to watch it for',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
 			},
 
 			// TwinkleConfig.markSpeedyPagesAsPatrolled (boolean)
 			// If, when applying speedy template to page, to mark the page as triaged/patrolled (if the page was reached from NewPages)
 			{
 				name: 'markSpeedyPagesAsPatrolled',
-				label: 'Mark page as patrolled/reviewed when tagging (if possible)',
-				helptip: 'This should probably not be checked as doing so is against best practice consensus',
+				label: 'Tandai halaman sebagai sudah dipatroli setelah dilakukan penandaan (jika memungkinkan)',
+				helptip: 'Ini harusnya tidak dicentang karena hal ini bertentangan dengan konsensus praktik terbaik',
 				type: 'boolean'
-			},
-
-			// TwinkleConfig.watchSpeedyUser (string)
-			// The watchlist setting of the user talk page if they receive a notification.
-			{
-				name: 'watchSpeedyUser',
-				label: 'Add user talk page of initial contributor to watchlist (when notifying)',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
 			},
 
 			// TwinkleConfig.welcomeUserOnSpeedyDeletionNotification (array of strings)
@@ -477,8 +430,8 @@ Twinkle.config.sections = [
 			// with a "firstarticle" notice if their talk page has not yet been created.
 			{
 				name: 'welcomeUserOnSpeedyDeletionNotification',
-				label: 'Welcome page creator when notifying with these criteria',
-				helptip: 'The welcome is issued only if the user is notified about the deletion, and only if their talk page does not already exist. The template used is {{firstarticle}}.',
+				label: 'Beritahu pembuat halaman jika menandai dengan kriteria ini',
+				helptip: 'Meskipun Anda memilih untuk memberitahukan melalui tampilan KPC, pemberitahuan tersebut hanya akan dilakukan sesuai kriteria yang dipilih di sini.',
 				type: 'set',
 				setValues: Twinkle.config.commonSets.csdCriteriaNotification,
 				setDisplayOrder: Twinkle.config.commonSets.csdCriteriaNotificationDisplayOrder
@@ -488,8 +441,8 @@ Twinkle.config.sections = [
 			// What types of actions should result in the author of the page being notified of nomination
 			{
 				name: 'notifyUserOnSpeedyDeletionNomination',
-				label: 'Notify page creator when tagging with these criteria',
-				helptip: 'Even if you choose to notify from the CSD screen, the notification will only take place for those criteria selected here.',
+				label: 'Sapa pembuat halaman bersama dengan pemberitahuan setelah menandai dengan kriteria ini',
+				helptip: 'Selamat datang hanya akan ditampilkan jika pengguna tersebut diberitahu mengenai penghapusan, dan hanya jika halaman pembicaraannya belum ada. Templat yang digunakan adalah {{Selamat datang 2}}.',
 				type: 'set',
 				setValues: Twinkle.config.commonSets.csdCriteriaNotification,
 				setDisplayOrder: Twinkle.config.commonSets.csdCriteriaNotificationDisplayOrder
@@ -500,7 +453,7 @@ Twinkle.config.sections = [
 			{
 				name: 'warnUserOnSpeedyDelete',
 				label: 'Notify page creator when deleting under these criteria',
-				helptip: 'Even if you choose to notify from the CSD screen, the notification will only take place for those criteria selected here.',
+				helptip: 'Bahkan jika anda memilih untuk memberitahu dari layar KPC, notifikasinya hanya akan muncul untuk kriteria yang dipilih disini.',
 				adminOnly: true,
 				type: 'set',
 				setValues: Twinkle.config.commonSets.csdCriteriaNotification,
@@ -510,25 +463,25 @@ Twinkle.config.sections = [
 			// TwinkleConfig.promptForSpeedyDeletionSummary (array of strings)
 			{
 				name: 'promptForSpeedyDeletionSummary',
-				label: 'Allow editing of deletion summary when deleting under these criteria',
+				label: 'Izinkan penyuntingan ringkasan penghapusan setelah menghapus dengan kriteria ini',
 				adminOnly: true,
 				type: 'set',
-				setValues: Twinkle.config.commonSets.csdAndImageDeletionCriteria,
-				setDisplayOrder: Twinkle.config.commonSets.csdAndImageDeletionCriteriaDisplayOrder
+				setValues: Twinkle.config.commonSets.csdAndDICriteria,
+				setDisplayOrder: Twinkle.config.commonSets.csdAndDICriteriaDisplayOrder
 			},
 
 			// TwinkleConfig.deleteTalkPageOnDelete (boolean)
-			// If talk page if exists should also be deleted (CSD G8) when spedying a page (admin only)
+			// If talk page if exists should also be deleted (CSD U8) when spedying a page (admin only)
 			{
 				name: 'deleteTalkPageOnDelete',
-				label: 'Check the "also delete talk page" box by default',
+				label: 'Pilih "juga hapus halaman pembicaraan" secara bawaan',
 				adminOnly: true,
 				type: 'boolean'
 			},
 
 			{
 				name: 'deleteRedirectsOnDelete',
-				label: 'Check the "also delete redirects" box by default',
+				label: 'Pilih "juga hapus pengalihan" secara bawaan',
 				adminOnly: true,
 				type: 'boolean'
 			},
@@ -537,8 +490,8 @@ Twinkle.config.sections = [
 			// Make the CSD screen default to "delete" instead of "tag" (admin only)
 			{
 				name: 'deleteSysopDefaultToDelete',
-				label: 'Default to outright deletion instead of speedy tagging',
-				helptip: 'If there is a CSD tag already present, Twinkle will always default to "delete" mode',
+				label: 'Default ke penghapusan langsung alih-alih penandaan cepat',
+				helptip: 'JIka sudah terdapat tag KPC, Twinkle akan selalu default untuk mode "hapus"',
 				adminOnly: true,
 				type: 'boolean'
 			},
@@ -547,7 +500,7 @@ Twinkle.config.sections = [
 			// Defines the width of the Twinkle SD window in pixels
 			{
 				name: 'speedyWindowWidth',
-				label: 'Width of speedy deletion window (pixels)',
+				label: 'Lebar jendela penghapusan cepat (piksel)',
 				type: 'integer'
 			},
 
@@ -555,142 +508,135 @@ Twinkle.config.sections = [
 			// Defines the width of the Twinkle SD window in pixels
 			{
 				name: 'speedyWindowHeight',
-				label: 'Height of speedy deletion window (pixels)',
-				helptip: 'If you have a big monitor, you might like to increase this.',
+				label: 'Tinggi jendela penghapusan cepat (piksel)',
+				helptip: 'Jika memiliki monitor besar, mungkin Anda ingin memperbesar jendela ini.',
 				type: 'integer'
 			},
 
 			{
 				name: 'logSpeedyNominations',
-				label: 'Keep a log in userspace of all CSD nominations',
-				helptip: 'Since non-admins do not have access to their deleted contributions, the userspace log offers a good way to keep track of all pages you nominate for CSD using Twinkle. Files tagged using DI are also added to this log.',
+				label: 'Simpan log dalam ruang pengguna nominasi KPC',
+				helptip: 'Karena selain pengurus tidak memiliki akses ke kontribusi mereka yang dihapus, log ruang pengguna menawarkan cara yang baik untuk melacak semua halaman yang Anda nominasikan KPC menggunakan Twinkle. Berkas yang ditandai menggunakan PB juga ditambahkan ke log ini.',
 				type: 'boolean'
 			},
 			{
 				name: 'speedyLogPageName',
-				label: 'Keep the CSD userspace log at this user subpage',
-				helptip: 'Enter a subpage name in this box. You will find your CSD log at User:<i>username</i>/<i>subpage name</i>. Only works if you turn on the CSD userspace log.',
+				label: 'Simpan log ruang pengguna KPC di subhalaman pengguna ini',
+				helptip: 'Masukkan nama subhalaman dalam kotak ini. Log KPC Anda akan tersimpan di Pengguna:<i>nama pengguna</i>/<i>nama subhalaman</i>. Aktifkan log ruang pengguna KPC untuk memanfaatkan fungsi ini.',
 				type: 'string'
 			},
 			{
 				name: 'noLogOnSpeedyNomination',
-				label: 'Do not create a userspace log entry when tagging with these criteria',
+				label: 'Jangan buat entri log ruang pengguna setelah menandai dengan kriteria ini',
 				type: 'set',
-				setValues: Twinkle.config.commonSets.csdAndImageDeletionCriteria,
-				setDisplayOrder: Twinkle.config.commonSets.csdAndImageDeletionCriteriaDisplayOrder
+				setValues: Twinkle.config.commonSets.csdAndDICriteria,
+				setDisplayOrder: Twinkle.config.commonSets.csdAndDICriteriaDisplayOrder
 			}
 		]
 	},
 
 	{
 		title: 'Tag',
-		module: 'tag',
 		preferences: [
 			{
-				name: 'watchTaggedVenues',
-				label: 'Add page to watchlist when tagging these type of pages',
-				type: 'set',
-				setValues: { articles: 'Articles', drafts: 'Drafts', redirects: 'Redirects', files: 'Files' }
-			},
-			{
 				name: 'watchTaggedPages',
-				label: 'When tagging a page, how long to watch it for',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
+				label: 'Tambahkan halaman ke daftar pantauan setelah penandaan',
+				type: 'boolean'
 			},
 			{
 				name: 'watchMergeDiscussions',
-				label: 'Add talk pages to watchlist when starting merge discussions',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
+				label: 'Tambahkan halaman pembicaraan ke daftar pantauan setelah memulai diskusi penggabungan',
+				type: 'boolean'
 			},
 			{
 				name: 'markTaggedPagesAsMinor',
-				label: 'Mark addition of tags as a minor edit',
+				label: 'Tandai penambahan tag sebagai suntingan kecil',
 				type: 'boolean'
 			},
 			{
 				name: 'markTaggedPagesAsPatrolled',
-				label: 'Check the "mark page as patrolled/reviewed" box by default',
+				label: 'Pilih "tandai halaman sebagai sudah dipatroli" secara bawaan',
 				type: 'boolean'
 			},
 			{
 				name: 'groupByDefault',
-				label: 'Check the "group into {{multiple issues}}" box by default',
+				label: 'Pilih "kelompokkan dalam {{artikel bermasalah}}" secara bawaan',
 				type: 'boolean'
 			},
 			{
 				name: 'tagArticleSortOrder',
-				label: 'Default view order for article tags',
+				label: 'Urutan tampilan bawaan untuk tag artikel',
 				type: 'enum',
-				enumValues: { cat: 'By categories', alpha: 'In alphabetical order' }
+				enumValues: { 'cat': 'Berdasarkan kategori', 'alpha': 'Alfabetis' }
 			},
 			{
 				name: 'customTagList',
-				label: 'Custom article/draft maintenance tags to display',
-				helptip: "These appear as additional options at the bottom of the list of tags. For example, you could add new maintenance tags which have not yet been added to Twinkle's defaults.",
+				label: 'Tampilan tag pemeliharaan artikel kustom',
+				helptip: 'Ini tampil sebagai opsi tambahan di bawah daftar tag. Misalnya, Anda dapat menambahkan tag pemeliharaan baru yang belum pernah ditambahkan ke bawaan Twinkle.',
 				type: 'customList',
-				customListValueTitle: 'Template name (no curly brackets)',
-				customListLabelTitle: 'Text to show in Tag dialog'
+				customListValueTitle: 'Nama templat (tanpa tanda kurung kurawal)',
+				customListLabelTitle: 'Teks yang ditampilkan di dialog Tag '
 			},
 			{
 				name: 'customFileTagList',
-				label: 'Custom file maintenance tags to display',
-				helptip: 'Additional tags that you wish to add for files.',
+				label: 'Tampilan tag pemeliharaan berkas kustom',
+				helptip: 'Tag tambahan untuk berkas.',
 				type: 'customList',
-				customListValueTitle: 'Template name (no curly brackets)',
-				customListLabelTitle: 'Text to show in Tag dialog'
+				customListValueTitle: 'Nama templat (tanpa tanda kurung kurawal)',
+				customListLabelTitle: 'Teks yang ditampilkan di dialog Tag '
 			},
 			{
 				name: 'customRedirectTagList',
-				label: 'Custom redirect category tags to display',
-				helptip: 'Additional tags that you wish to add for redirects.',
+				label: 'Tampilan tag pemeliharaan halaman pengalihan kustom',
+				helptip: 'Tag tambahan untuk pengalihan.',
 				type: 'customList',
-				customListValueTitle: 'Template name (no curly brackets)',
-				customListLabelTitle: 'Text to show in Tag dialog'
+				customListValueTitle: 'Nama templat (tanpa tanda kurung kurawal)',
+				customListLabelTitle: 'Teks yang ditampilkan di dialog Tag '
 			}
 		]
 	},
 
 	{
-		title: 'Talkback',
-		module: 'talkback',
+		title: 'Balasan pembicaraan',
 		preferences: [
 			{
 				name: 'markTalkbackAsMinor',
-				label: 'Mark talkbacks as minor edits',
+				label: 'Tandai balasan pembicaraan sebagai suntingan kecil',
 				type: 'boolean'
 			},
 			{
 				name: 'insertTalkbackSignature',
-				label: 'Insert signature within talkbacks',
+				label: 'Tambahkan tanda tangan di dalam balasan pembicaraan',
 				type: 'boolean'
 			},
 			{
 				name: 'talkbackHeading',
-				label: 'Section heading to use for talkback and please see',
-				tooltip: 'Should NOT include the equals signs ("==") used for wikitext formatting',
+				label: 'Judul bagian yang digunakan untuk balasan pembicaraan',
+				type: 'string'
+			},
+			{
+				name: 'adminNoticeHeading',
+				label: 'Judul bagian yang digunakan untuk pemberitahuan papan pengumuman pengurus',
+				helptip: 'Hanya relevan untuk AN dan ANI.',
 				type: 'string'
 			},
 			{
 				name: 'mailHeading',
-				label: "Section heading to use for \"you've got mail\" notices",
-				tooltip: 'Should NOT include the equals signs ("==") used for wikitext formatting',
+				label: 'Judul bagian yang digunakan untuk pemberitahuan "Anda mendapatkan pesan"',
 				type: 'string'
 			}
 		]
 	},
 
 	{
-		title: 'Unlink',
-		module: 'unlink',
+		title: 'Hapus tautan',
 		preferences: [
 			// TwinkleConfig.unlinkNamespaces (array)
 			// In what namespaces unlink should happen, default in 0 (article), 10 (template), 100 (portal), and 118 (draft)
 			{
 				name: 'unlinkNamespaces',
-				label: 'Remove links from pages in these namespaces',
-				helptip: 'Avoid selecting any talk namespaces, as Twinkle might end up unlinking on talk archives (a big no-no).',
+				label: 'Hapus tautan dari halaman dalam ruangnama ini',
+				helptip: 'Hindari memilih ruangnama pembicaraan apapun, karena Twinkle mungkin akan menghapus tautan dalam arsip pembicaraan.',
 				type: 'set',
 				setValues: Twinkle.config.commonSets.namespacesNoSpecial
 			}
@@ -698,27 +644,26 @@ Twinkle.config.sections = [
 	},
 
 	{
-		title: 'Warn user',
-		module: 'warn',
+		title: 'Memperingatkan pengguna',
 		preferences: [
 			// TwinkleConfig.defaultWarningGroup (int)
 			// Which level warning should be the default selected group, default is 1
 			{
 				name: 'defaultWarningGroup',
-				label: 'Default warning level',
+				label: 'Tingkatan peringatan bawaan',
 				type: 'enum',
 				enumValues: {
-					1: 'Level 1',
-					2: 'Level 2',
-					3: 'Level 3',
-					4: 'Level 4',
-					5: 'Level 4im',
-					6: 'Single-issue notices',
-					7: 'Single-issue warnings',
+					'1': 'Tingkat 1',
+					'2': 'Tingkat 2',
+					'3': 'Tingkat 3',
+					'4': 'Tingkat 4',
+					'5': 'Tingkat 4im',
+					'6': 'Pemberitahuan masalah tunggal',
+					'7': 'Peringatan masalah tunggal',
 					// 8 was used for block templates before #260
-					9: 'Custom warnings',
-					10: 'All warning templates',
-					11: 'Auto-select level (1-4)'
+					'9': 'Peringatan lainnya',
+					'10': 'Semua templat peringatan',
+					'11': 'Pemilihan otomatis tingkatan (1-4)'
 				}
 			},
 
@@ -726,7 +671,7 @@ Twinkle.config.sections = [
 			// if true, show one menu with both single-issue notices and warnings instead of two separately
 			{
 				name: 'combinedSingletMenus',
-				label: 'Replace the two separate single-issue menus into one combined menu',
+				label: 'Mengganti menu dua terpisah tunggal menjadi menu dikombinasikan',
 				helptip: 'Selecting either single-issue notices or single-issue warnings as your default will make this your default if enabled.',
 				type: 'boolean'
 			},
@@ -736,119 +681,116 @@ Twinkle.config.sections = [
 			// false: to not print the notice
 			{
 				name: 'showSharedIPNotice',
-				label: 'Add extra notice on shared IP talk pages',
-				helptip: 'Notice used is {{Shared IP advice}}',
+				label: 'Tambahkan pemberitahuan tambahan di halaman pembicaraan IP bersama',
+				helptip: 'Pemberitahuan yang digunakan adalah {{Shared IP advice}}',
 				type: 'boolean'
 			},
 
-			// TwinkleConfig.watchWarnings (string)
-			// Watchlist setting for the page which has been dispatched an warning or notice
+			// TwinkleConfig.watchWarnings (boolean)
+			// if true, watch the page which has been dispatched an warning or notice, if false, default applies
 			{
 				name: 'watchWarnings',
-				label: 'Add user talk page to watchlist when notifying',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
+				label: 'Tambahkan halaman pembicaraan pengguna ke daftar pantauan setelah pemberitahuan',
+				type: 'boolean'
 			},
 
 			// TwinkleConfig.oldSelect (boolean)
 			// if true, use the native select menu rather the select2-based one
 			{
 				name: 'oldSelect',
-				label: 'Use the non-searchable classic select menu',
+				label: 'Menggunakana menu pilihan klasik yang tidak dapat dicari',
 				type: 'boolean'
 			},
 
 			{
 				name: 'customWarningList',
-				label: 'Custom warning templates to display',
-				helptip: 'You can add individual templates or user subpages. Custom warnings appear in the "Custom warnings" category within the warning dialog box.',
+				label: 'Tampilan templat peringatan kustom',
+				helptip: 'Anda dapat menambahkan subhalaman pengguna atau templat pribadi. Peringatan kustom ditampilkan dalam kategori "Peringatan kustom" di dalam kotak dialog peringatan.',
 				type: 'customList',
-				customListValueTitle: 'Template name (no curly brackets)',
-				customListLabelTitle: 'Text to show in warning list (also used as edit summary)'
+				customListValueTitle: 'Nama templat (tanpa tanda kurung kurawal)',
+				customListLabelTitle: 'Teks yang ditampilkan di daftar peringatan (juga di ringkasan suntingan)'
 			}
 		]
 	},
 
 	{
-		title: 'Welcome user',
-		module: 'welcome',
+		title: 'Menyambut pengguna (selamat datang)',
 		preferences: [
 			{
 				name: 'topWelcomes',
-				label: 'Place welcomes above existing content on user talk pages',
+				label: 'Tempatkan sambutan di atas semua konten yang ada di halaman pembicaraan pengguna',
 				type: 'boolean'
 			},
 			{
 				name: 'watchWelcomes',
-				label: 'Add user talk pages to watchlist when welcoming',
-				helptip: 'Doing so adds to the personal element of welcoming a user - you will be able to see how they are coping as a newbie, and possibly help them.',
-				type: 'enum',
-				enumValues: Twinkle.config.watchlistEnums
+				label: 'Tambahkan halaman pembicaraan pengguna ke daftar pantauan setelah menyambutnya',
+				helptip: 'Melakukan hal ini merupakan penanganan pribadi dalam menyambut pengguna; Anda akan dapat memantau perkembangan mereka sebagai pemula, dan mungkin membantunya.',
+				type: 'boolean'
 			},
 			{
 				name: 'insertUsername',
-				label: 'Add your username to the template (where applicable)',
-				helptip: "Some welcome templates have an opening sentence like \"Hi, I'm &lt;username&gt;. Welcome\" etc. If you turn off this option, these templates will not display your username in that way.",
+				label: 'Tambahkan nama pengguna Anda ke templat (bila memungkinkan)',
+				helptip: 'Beberapa templat selamat datang memiliki kalimat pembuka seperti "Halo, saya &lt;nama pengguna&gt;. Selamat datang" dll. Jika Anda menonaktifkan opsi ini, templat tersebut tidak akan tampil seperti demikian.',
 				type: 'boolean'
 			},
 			{
 				name: 'quickWelcomeMode',
-				label: 'Clicking the "welcome" link on a diff page (which only appears if the editor\'s user talk page has not been created yet) will',
-				helptip: 'If you choose to welcome automatically, the template you specify below will be used.',
+				label: 'Mengeklik tautan "selamat datang" pada halaman perbedaan revisi akan',
+				helptip: 'Jika Anda memilih penyambutan otomatis, templat yang Anda pilih di bawah akan digunakan.',
 				type: 'enum',
-				enumValues: { auto: 'immediately post the welcome template specified below', norm: 'prompt you to select a template' }
+				enumValues: { auto: 'sambut secara otomatis', norm: 'tanya Anda untuk memilih sebuah templat' }
 			},
 			{
 				name: 'quickWelcomeTemplate',
-				label: 'Template to use when welcoming automatically',
-				helptip: 'Enter the name of a welcome template, without the curly brackets. A link to the given article will be added.',
+				label: 'Templat yang digunakan untuk penyambutan otomatis',
+				helptip: 'Masukkan nama templat selamat datang, tanpa kurung kurawal. Tautan ke artikel yang disuntingnya itu akan disertakan.',
 				type: 'string'
 			},
 			{
 				name: 'customWelcomeList',
-				label: 'Custom welcome templates to display',
-				helptip: "You can add other welcome templates, or user subpages that are welcome templates (prefixed with \"User:\"). Don't forget that these templates are substituted onto user talk pages.",
+				label: 'Tampilan templat selamat datang kustom',
+				helptip: 'Anda dapat menambahkan templat selamat datang lainnya, atau subhalaman pengguna yang merupakan templat selamat datang (diawali dengan "User:"). Harap diingat bahwa templat ini disubstitusi ke halaman pembicaraan pengguna.',
 				type: 'customList',
-				customListValueTitle: 'Template name (no curly brackets)',
-				customListLabelTitle: 'Text to show in Welcome dialog'
+				customListValueTitle: 'Nama templat (tanpa kurung kurawal)',
+				customListLabelTitle: 'Teks yang ditampilkan di kotak dialog Selamat datang'
 			},
 			{
 				name: 'customWelcomeSignature',
-				label: 'Automatically sign custom welcome templates',
-				helptip: 'If your custom welcome templates contain a built-in signature within the template, turn off this option.',
+				label: 'Tanda tangani templat selamat datang secara otomatis',
+				helptip: 'Jika templat selamat datang kustom Anda telah memuat tanda tangan di dalam templatnya, nonaktifkan opsi ini.',
 				type: 'boolean'
 			}
 		]
 	},
 
 	{
-		title: 'XFD (deletion discussions)',
-		module: 'xfd',
+		title: 'XFD (diskusi penghapusan)',
 		preferences: [
 			{
 				name: 'logXfdNominations',
-				label: 'Keep a log in userspace of all pages you nominate for a deletion discussion (XfD)',
-				helptip: 'The userspace log offers a good way to keep track of all pages you nominate for XfD using Twinkle.',
+				label: 'Menyimpan log ruangnama di semua halaman yang anda nominasikan untuk diskusi penghapusan (XfD)',
+				helptip: 'Log ruangnama menawarkan cara lebih baik untuk tetap mengawasi semua halaman yang anda nominasikan untuk XfD menggunakan Twinkle.',
 				type: 'boolean'
 			},
 			{
 				name: 'xfdLogPageName',
-				label: 'Keep the deletion discussion userspace log at this user subpage',
+				label: 'Menyimpan log penghapusan diskusi ruangnama di sub halmana pengguna ini',
 				helptip: 'Enter a subpage name in this box. You will find your XfD log at User:<i>username</i>/<i>subpage name</i>. Only works if you turn on the XfD userspace log.',
 				type: 'string'
 			},
 			{
 				name: 'noLogOnXfdNomination',
-				label: 'Do not create a userspace log entry when nominating at this venue',
+				label: 'Jangan membuat sebuah entri log ruangnama saat menominasikan halaman ini',
 				type: 'set',
 				setValues: { afd: 'AfD', tfd: 'TfD', ffd: 'FfD', cfd: 'CfD', cfds: 'CfD/S', mfd: 'MfD', rfd: 'RfD', rm: 'RM' }
 			},
 
 			// TwinkleConfig.xfdWatchPage (string)
-			// The watchlist setting of the page being nominated for XfD.
+			// The watchlist setting of the page being nominated for XfD. Either "yes" (add to watchlist), "no" (don't
+			// add to watchlist), or "default" (use setting from preferences). Default is "default" (duh).
 			{
 				name: 'xfdWatchPage',
-				label: 'Add the nominated page to watchlist',
+				label: 'Tambahkan halaman nominasi itu ke daftar pantauan',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			},
@@ -856,56 +798,82 @@ Twinkle.config.sections = [
 			// TwinkleConfig.xfdWatchDiscussion (string)
 			// The watchlist setting of the newly created XfD page (for those processes that create discussion pages for each nomination),
 			// or the list page for the other processes.
+			// Either "yes" (add to watchlist), "no" (don't add to watchlist), or "default" (use setting from preferences). Default is "default" (duh).
 			{
 				name: 'xfdWatchDiscussion',
-				label: 'Add the deletion discussion page to watchlist',
-				helptip: 'This refers to the discussion subpage (for AfD and MfD) or the daily log page (for TfD, CfD, RfD and FfD)',
+				label: 'Tambahkan halaman diskusi penghapusan ke daftar pantauan',
+				helptip: 'Ini merujuk ke subhalaman diskusi (untuk AfD dan MfD) atau halaman log harian (untuk TfD, CfD, RfD dan FfD)',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			},
 
 			// TwinkleConfig.xfdWatchList (string)
-			// The watchlist setting of the XfD list page, *if* the discussion is on a separate page.
+			// The watchlist setting of the XfD list page, *if* the discussion is on a separate page. Either "yes" (add to watchlist), "no" (don't
+			// add to watchlist), or "default" (use setting from preferences). Default is "no" (Hehe. Seriously though, who wants to watch it?
+			// Sorry in advance for any false positives.).
 			{
 				name: 'xfdWatchList',
-				label: 'Add the daily log/list page to the watchlist (AfD and MfD)',
-				helptip: 'This only applies for AfD and MfD, where the discussions are transcluded onto a daily log page (for AfD) or the main MfD page (for MfD).',
+				label: 'Tambahkan log harian/daftar halaman ke daftar pantauan (jika memungkinkan)',
+				helptip: 'Ini hanya berlaku untuk AfD dan MfD, di mana diskusinya ditransklusikan ke halaman log harian (untuk AfD) atau halaman utama MfD (untuk MfD).',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			},
 
 			// TwinkleConfig.xfdWatchUser (string)
-			// The watchlist setting of the user talk page if they receive a notification.
+			// The watchlist setting of the user talk page if they receive a notification. Either "yes" (add to watchlist), "no" (don't
+			// add to watchlist), or "default" (use setting from preferences). Default is "default" (duh).
 			{
 				name: 'xfdWatchUser',
-				label: 'Add user talk page of initial contributor to watchlist (when notifying)',
+				label: 'Tambahkan halaman pembicaraan pengguna ke daftar pantauan (ketika memberitahukan)',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			},
 
 			// TwinkleConfig.xfdWatchRelated (string)
-			// The watchlist setting of the target of a redirect being nominated for RfD.
+			// The watchlist setting of the target of a redirect being nominated for RfD. Either "yes" (add to watchlist), "no" (don't
+			// add to watchlist), or "default" (use setting from preferences). Default is "default" (duh).
 			{
 				name: 'xfdWatchRelated',
-				label: "Add the redirect's target page to watchlist (when notifying)",
-				helptip: 'This only applies for RfD, when leaving a notification on the talk page of the target of the redirect',
+				label: 'Tambahkan halaman target pengalihan ke daftar pantauan (ketika memberitahukan)',
+				helptip: 'Ini hanya berlaku untuk RfD, ketika memberitahukan di halaman pembicaraan target dari halaman pengalihan',
 				type: 'enum',
 				enumValues: Twinkle.config.watchlistEnums
 			},
 
 			{
 				name: 'markXfdPagesAsPatrolled',
-				label: 'Mark page as patrolled/reviewed when nominating for AFD (if possible)',
+				label: 'Tandai halaman sebagai sudah dipatroli setelah nominasi AFD (jika mungkin)',
 				type: 'boolean'
 			}
 		]
 	},
 
 	{
-		title: 'Hidden',
+		title: 'Disembunyikan',
 		hidden: true,
 		preferences: [
-			// twinklerollback.js: defines how many revision to query maximum, maximum possible is 50, default is 50
+			// twinkle.js: portlet setup
+			{
+				name: 'portletArea',
+				type: 'string'
+			},
+			{
+				name: 'portletId',
+				type: 'string'
+			},
+			{
+				name: 'portletName',
+				type: 'string'
+			},
+			{
+				name: 'portletType',
+				type: 'string'
+			},
+			{
+				name: 'portletNext',
+				type: 'string'
+			},
+			// twinklefluff.js: defines how many revision to query maximum, maximum possible is 50, default is 50
 			{
 				name: 'revertMaxRevisions',
 				type: 'integer'
@@ -917,15 +885,33 @@ Twinkle.config.sections = [
 				name: 'autolevelStaleDays',
 				type: 'integer'
 			},
-			// How many pages should be queried by deprod and batchdelete/protect/undelete
+			// twinklebatchdelete.js: How many pages should be processed maximum
 			{
 				name: 'batchMax',
 				type: 'integer',
 				adminOnly: true
 			},
-			// How many pages should be processed at a time by deprod and batchdelete/protect/undelete
+			// twinklebatchdelete.js: How many pages should be processed at a time
 			{
-				name: 'batchChunks',
+				name: 'batchdeleteChunks',
+				type: 'integer',
+				adminOnly: true
+			},
+			// twinklebatchprotect.js: How many pages should be processed at a time
+			{
+				name: 'batchProtectChunks',
+				type: 'integer',
+				adminOnly: true
+			},
+			// twinklebatchundelete.js: How many pages should be processed at a time
+			{
+				name: 'batchundeleteChunks',
+				type: 'integer',
+				adminOnly: true
+			},
+			// twinkledeprod.js: How many pages should be processed at a time
+			{
+				name: 'proddeleteChunks',
 				type: 'integer',
 				adminOnly: true
 			}
@@ -957,10 +943,10 @@ Twinkle.config.init = function twinkleconfigInit() {
 			const contentnotice = document.createElement('p');
 			contentnotice.innerHTML = '<table class="plainlinks morebits-ombox morebits-ombox-content"><tr><td class="morebits-mbox-image">' +
 				'<img alt="" src="https://upload.wikimedia.org/wikipedia/commons/3/38/Imbox_content.png" /></td>' +
-				'<td class="morebits-mbox-text"><p><big><b>Before modifying your settings here,</b> you must remove your old Twinkle and Friendly settings from your personal skin JavaScript.</big></p>' +
+				'<td class="morebits-mbox-text"><p><big><b>Sebelum memodifikasi pengatuan anda disini,</b> anda harus menghilangkan pengaturan Twinkle dan Friendly lama anda dari kulit JavaScript sendiri.</big></p>' +
 				'<p>To do this, you can <a href="' + mw.util.getUrl('User:' + mw.config.get('wgUserName') + '/' + mw.config.get('skin') +
-				'.js', { action: 'edit' }) + '" target="_blank"><b>edit your personal skin javascript file</b></a> or <a href="' +
-				mw.util.getUrl('User:' + mw.config.get('wgUserName') + '/common.js', { action: 'edit'}) + '" target="_blank"><b>your common.js file</b></a>, removing all lines of code that refer to <code>TwinkleConfig</code> and <code>FriendlyConfig</code>.</p>' +
+				'.js', { action: 'edit' }) + '" target="_blank"><b>sunting berkas kulit javascript sendiri</b></a> or <a href="' +
+				mw.util.getUrl('User:' + mw.config.get('wgUserName') + '/common.js', { action: 'edit'}) + '" target="_blank"><b>your common.js file</b></a>, menghilangkan semua baris kode yang merujuk pada <code>TwinkleConfig</code> dan <code>FriendlyConfig</code>.</p>' +
 				'</td></tr></table>';
 			contentdiv.appendChild(contentnotice);
 		}
@@ -1200,12 +1186,12 @@ Twinkle.config.init = function twinkleconfigInit() {
 							value: gotPref,
 							pref: pref
 						});
-						button.appendChild(document.createTextNode('Edit items'));
+						button.appendChild(document.createTextNode('Sunting item'));
 						cell.appendChild(button);
 						break;
 
 					default:
-						alert('twinkleconfig: unknown data type for preference ' + pref.name);
+						alert('twinkleconfig: jenis data tidak diketahui untuk preferensi ' + pref.name);
 						break;
 				}
 				row.appendChild(cell);
@@ -1243,7 +1229,7 @@ Twinkle.config.init = function twinkleconfigInit() {
 		const button = document.createElement('button');
 		button.setAttribute('id', 'twinkle-config-submit');
 		button.setAttribute('type', 'submit');
-		button.appendChild(document.createTextNode('Save changes'));
+		button.appendChild(document.createTextNode('Simpan perubahan'));
 		footerbox.appendChild(button);
 		const footerspan = document.createElement('span');
 		footerspan.className = 'plainlinks';
@@ -1253,7 +1239,7 @@ Twinkle.config.init = function twinkleconfigInit() {
 		footera.setAttribute('href', '#tw-reset-all');
 		footera.setAttribute('id', 'twinkle-config-resetall');
 		footera.addEventListener('click', Twinkle.config.resetAllPrefs, false);
-		footera.appendChild(document.createTextNode('Restore defaults'));
+		footera.appendChild(document.createTextNode('Kembalikan default'));
 		footerspan.appendChild(footera);
 		footerbox.appendChild(footerspan);
 		contentform.appendChild(footerbox);
@@ -1284,25 +1270,25 @@ Twinkle.config.init = function twinkleconfigInit() {
 			box.setAttribute('class', 'config-twopt-box');
 
 			if (mw.config.get('wgArticleId') > 0) { // page exists
-				box.appendChild(document.createTextNode('This page contains your Twinkle preferences. You can change them using the '));
+				box.appendChild(document.createTextNode('Halaman ini berisi preferensi Twinkle anda. Anda dapat mengubahnya dengan '));
 			} else { // page does not exist
-				box.appendChild(document.createTextNode('You can customize Twinkle to suit your preferences by using the '));
+				box.appendChild(document.createTextNode('Anda dapat mengkustomisasikan Twinkle untuk menyesuaikan preferensi anda dengan menggunakan '));
 			}
 			link = document.createElement('a');
 			link.setAttribute('href', mw.util.getUrl(mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceIds').project] + ':Twinkle/Preferences'));
-			link.appendChild(document.createTextNode('Twinkle preferences panel'));
+			link.appendChild(document.createTextNode('Panel Preferensi Twinkle'));
 			box.appendChild(link);
-			box.appendChild(document.createTextNode(', or by editing this page.'));
+			box.appendChild(document.createTextNode(', atau dengan menyunting halaman ini.'));
 			$(box).insertAfter($('#contentSub'));
 
 		} else if (['monobook', 'vector', 'vector-2022', 'cologneblue', 'modern', 'timeless', 'minerva', 'common'].includes(scriptPageName)) {
 			// place "Looking for Twinkle options?" notice
 			box.setAttribute('class', 'config-userskin-box');
 
-			box.appendChild(document.createTextNode('If you want to set Twinkle preferences, you can use the '));
+			box.appendChild(document.createTextNode('Jika anda ingin menetapkan preferensi Twinkle, anda dapat menggunakan '));
 			link = document.createElement('a');
 			link.setAttribute('href', mw.util.getUrl(mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceIds').project] + ':Twinkle/Preferences'));
-			link.appendChild(document.createTextNode('Twinkle preferences panel'));
+			link.appendChild(document.createTextNode('Panel Preferensi Twinkle'));
 			box.appendChild(link);
 			box.appendChild(document.createTextNode('.'));
 			$(box).insertAfter($('#contentSub'));
@@ -1358,7 +1344,7 @@ Twinkle.config.listDialog.display = function twinkleconfigListDialogDisplay(e) {
 
 	const dialog = new Morebits.SimpleWindow(720, 400);
 	dialog.setTitle(curpref.label);
-	dialog.setScriptName('Twinkle preferences');
+	dialog.setScriptName('Preferensi Twinkle');
 
 	let $dlgtbody;
 
@@ -1390,7 +1376,7 @@ Twinkle.config.listDialog.display = function twinkleconfigListDialogDisplay(e) {
 								.attr('colspan', '3')
 								.append(
 									$('<button>')
-										.text('Add')
+										.text('Tambahkan')
 										.css('min-width', '8em')
 										.attr('type', 'button')
 										.on('click', () => {
@@ -1401,7 +1387,7 @@ Twinkle.config.listDialog.display = function twinkleconfigListDialogDisplay(e) {
 					)
 				),
 			$('<button>')
-				.text('Save changes')
+				.text('Simpan perubahan')
 				.attr('type', 'submit') // so Morebits.SimpleWindow puts the button in the button pane
 				.on('click', () => {
 					Twinkle.config.listDialog.save($prefbutton, $dlgtbody);
@@ -1414,7 +1400,7 @@ Twinkle.config.listDialog.display = function twinkleconfigListDialogDisplay(e) {
 					Twinkle.config.listDialog.reset($prefbutton, $dlgtbody);
 				}),
 			$('<button>')
-				.text('Cancel')
+				.text('Batal')
 				.attr('type', 'submit')
 				.on('click', () => {
 					dialog.close();
@@ -1528,7 +1514,7 @@ Twinkle.config.resetPref = function twinkleconfigResetPref(pref) {
 			break;
 
 		default:
-			alert('twinkleconfig: unknown data type for preference ' + pref.name);
+			alert('twinkleconfig: jenis tipe data tidak diketahui untuk preferensi ' + pref.name);
 			break;
 	}
 };
@@ -1553,7 +1539,7 @@ Twinkle.config.save = function twinkleconfigSave(e) {
 	Morebits.Status.init(document.getElementById('twinkle-config-content'));
 
 	const userjs = mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceIds').user] + ':' + mw.config.get('wgUserName') + '/twinkleoptions.js';
-	const wikipedia_page = new Morebits.wiki.Page(userjs, 'Saving preferences to ' + userjs);
+	const wikipedia_page = new Morebits.wiki.Page(userjs, 'Menyimpan prefernsi ke ' + userjs);
 	wikipedia_page.setCallbackParameters(e.target);
 	wikipedia_page.load(Twinkle.config.writePrefs);
 
@@ -1618,7 +1604,7 @@ Twinkle.config.writePrefs = function twinkleconfigWritePrefs(pageobj) {
 						case 'integer': // read from the input box
 							userValue = parseInt(form[pref.name].value, 10);
 							if (isNaN(userValue)) {
-								Morebits.Status.warn('Saving', 'The value you specified for ' + pref.name + ' (' + pref.value + ') was invalid.  The save will continue, but the invalid data value will be skipped.');
+								Morebits.Status.warn('Menyimpan', 'Nilai yang ada tetapkan untuk ' + pref.name + ' (' + pref.value + ') tidak valid.  Penyimpanan akan berlanjut, namun nilai data tidak valid akan dilewati.');
 								userValue = null;
 							}
 							break;
@@ -1647,7 +1633,7 @@ Twinkle.config.writePrefs = function twinkleconfigWritePrefs(pageobj) {
 							break;
 
 						default:
-							alert('twinkleconfig: unknown data type for preference ' + pref.name);
+							alert('twinkleconfig: jenis data tidak diketahui untuk preferensi ' + pref.name);
 							break;
 					}
 				} else if (Twinkle.prefs) {
@@ -1687,19 +1673,19 @@ Twinkle.config.writePrefs = function twinkleconfigWritePrefs(pageobj) {
 		'// End of twinkleoptions.js\n';
 
 	pageobj.setPageText(text);
-	pageobj.setEditSummary('Saving Twinkle preferences: automatic edit from [[:' + Morebits.pageNameNorm + ']]');
+	pageobj.setEditSummary('Menyimpan preferensi Twinkle: suntingan otomatis dari [[:' + Morebits.pageNameNorm + ']]');
 	pageobj.setChangeTags(Twinkle.changeTags);
 	pageobj.setCreateOption('recreate');
 	pageobj.save(Twinkle.config.saveSuccess);
 };
 
 Twinkle.config.saveSuccess = function twinkleconfigSaveSuccess(pageobj) {
-	pageobj.getStatusElement().info('successful');
+	pageobj.getStatusElement().info('berhasil');
 
 	const noticebox = document.createElement('div');
 	noticebox.className = 'cdx-message cdx-message--success';
 	noticebox.style.fontSize = '100%';
-	noticebox.innerHTML = '<p><b>Your Twinkle preferences have been saved.</b> To see the changes, you will need to clear your browser cache entirely (see <a href="' + mw.util.getUrl('WP:BYPASS') + '" title="WP:BYPASS">WP:BYPASS</a> for instructions).</p>';
+	noticebox.innerHTML = '<p><b>Preferensi Twinkle anda telah disimpan.</b> Untuk melihat perubahan, anda diharuskan untuk menghapus secra menyeluruh tembolok peramban (lihat <a href="' + mw.util.getUrl('WP:BYPASS') + '" title="WP:BYPASS">WP:BYPASS</a> untuk instruksinya).</p>';
 	mw.loader.using('mediawiki.htmlform.codex.styles', () => {
 		Morebits.Status.root.appendChild(noticebox);
 	});

@@ -1,74 +1,81 @@
 // <nowiki>
 
-
-(function($) { // eslint-disable-line no-unused-vars
-
+(function() {
 
 /*
  ****************************************
- *** friendlyshared.js: Shared IP tagging module
+ *** twinkleshared.js: Shared IP tagging module
  ****************************************
  * Mode of invocation:     Tab ("Shared")
- * Active on:              Existing IP user talk pages
+ * Active on:              IP user talk pages
  */
 
-Twinkle.shared = function friendlyshared() {
+Twinkle.shared = function twinkleshared() {
 	if (mw.config.get('wgNamespaceNumber') === 3 && mw.util.isIPAddress(mw.config.get('wgTitle'))) {
-		var username = mw.config.get('wgRelevantUserName');
-		Twinkle.addPortletLink(function() {
+		const username = mw.config.get('wgRelevantUserName');
+		Twinkle.addPortletLink(() => {
 			Twinkle.shared.callback(username);
-		}, 'Shared IP', 'friendly-shared', 'Shared IP tagging');
+		}, 'Shared IP', 'twinkle-shared', 'Shared IP tagging');
 	}
 };
 
-Twinkle.shared.callback = function friendlysharedCallback() {
-	var Window = new Morebits.simpleWindow(600, 420);
+Twinkle.shared.callback = function twinklesharedCallback() {
+	const Window = new Morebits.SimpleWindow(600, 450);
 	Window.setTitle('Shared IP address tagging');
 	Window.setScriptName('Twinkle');
+	Window.addFooterLink('preferensi berbagi', 'WP:TW/PREF#shared');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#shared');
+	Window.addFooterLink('Berikan ulasan', 'WT:TW');
 
-	var form = new Morebits.quickForm(Twinkle.shared.callback.evaluate);
+	const form = new Morebits.QuickForm(Twinkle.shared.callback.evaluate);
 
-	var div = form.append({
+	const div = form.append({
 		type: 'div',
 		id: 'sharedip-templatelist',
 		className: 'morebits-scrollbox'
 	}
 	);
-	div.append({ type: 'header', label: 'Shared IP address templates' });
-	div.append({ type: 'radio', name: 'shared', list: Twinkle.shared.standardList,
+	div.append({ type: 'header', label: 'Templat IP berbagi' });
+	div.append({ type: 'radio', name: 'template', list: Twinkle.shared.standardList,
 		event: function(e) {
 			Twinkle.shared.callback.change_shared(e);
 			e.stopPropagation();
 		}
 	});
 
-	var org = form.append({ type: 'field', label: 'Fill in other details (optional) and click "Submit"' });
+	const org = form.append({ type: 'field', label: 'Isi di detail lainnya (opsional) dan klik "Kirim"' });
 	org.append({
 		type: 'input',
 		name: 'organization',
-		label: 'IP address owner/operator',
+		label: 'Operator/pemilik alamat ip',
 		disabled: true,
-		tooltip: 'You can optionally enter the name of the organization that owns/operates the IP address.  You can use wikimarkup if necessary.'
+		tooltip: 'Anda secara opsional dapat memasukan nama dari organisasi yang memiliki/mengendalikkan alamat ip tersebut. Anda dapat markah wiki jika dibutuhkan.'
 	}
 	);
 	org.append({
 		type: 'input',
 		name: 'host',
-		label: 'Host name (optional)',
+		label: 'Nama hos (opsional)',
 		disabled: true,
-		tooltip: 'The host name (for example, proxy.example.com) can be optionally entered here and will be linked by the template.'
+		tooltip: 'Nama hos (sebagai contoh, proxy.example.com) dapat secara opsional dimasukan disini dan ditautkan dengan templatnya.'
 	}
 	);
 	org.append({
 		type: 'input',
 		name: 'contact',
-		label: 'Contact information (only if requested)',
+		label: 'Informasi kontak (hanya jika )',
 		disabled: true,
-		tooltip: 'You can optionally enter some contact details for the organization.  Use this parameter only if the organization has specifically requested that it be added.  You can use wikimarkup if necessary.'
+		tooltip: 'Anda dapat memasukan secara opsional beberapa detail kontak untuk organisasi. Gunakan parameter ini hanya jika organisasi telah meminta hal tersebut untuk ditambakan. Anda dapat menambahkan markah wiki jika dibutuhkan.'
 	}
 	);
 
+	const previewlink = document.createElement('a');
+	$(previewlink).on('click', () => {
+		Twinkle.shared.preview(result);
+	});
+	previewlink.style.cursor = 'pointer';
+	previewlink.textContent = 'Preview';
+	form.append({ type: 'div', id: 'sharedpreview', label: [ previewlink ] });
 	form.append({ type: 'submit' });
 
 	var result = form.render();
@@ -78,65 +85,64 @@ Twinkle.shared.callback = function friendlysharedCallback() {
 
 Twinkle.shared.standardList = [
 	{
-		label: '{{Shared IP}}: standard shared IP address template',
+		label: '{{Shared IP}}: templat alamat IP berbagi',
 		value: 'Shared IP',
-		tooltip: 'IP user talk page template that shows helpful information to IP users and those wishing to warn, block or ban them'
+		tooltip: 'Templat halaman pembicaraan pengguna IP yang memberikan informasi berguna kepada pengguna IP dan bagi yang ingin memperingati, memblokir, atau mencegah mereka'
 	},
 	{
-		label: '{{Shared IP edu}}: shared IP address template modified for educational institutions',
+		label: '{{Shared IP edu}}: Templat alamat IP yang dimodifikasi untuk institusi edukasi',
 		value: 'Shared IP edu'
 	},
 	{
-		label: '{{Shared IP corp}}: shared IP address template modified for businesses',
+		label: '{{Shared IP corp}}: Templat alamat IP yang dimodifikasi untuk bisnis',
 		value: 'Shared IP corp'
 	},
 	{
-		label: '{{Shared IP public}}: shared IP address template modified for public terminals',
+		label: '{{Shared IP public}}: Templat alamat IP yang dimodifikasi untuk terminal publik',
 		value: 'Shared IP public'
 	},
 	{
-		label: '{{Shared IP gov}}: shared IP address template modified for government agencies or facilities',
+		label: '{{Shared IP gov}}: Templat alamat IP yang dimodifikasi untuk fasilitas pemerintahan atau agensi',
 		value: 'Shared IP gov'
 	},
 	{
-		label: '{{Dynamic IP}}: shared IP address template modified for organizations with dynamic addressing',
+		label: '{{Dynamic IP}}: Templat alamat IP yang dimodifikasi untuk organisasi dengan pengalamatan dinamis with dynamic addressing',
 		value: 'Dynamic IP'
 	},
 	{
-		label: '{{Static IP}}: shared IP address template modified for static IP addresses',
+		label: '{{Static IP}}: templat alamat IP berbagi untuk alamat IP statis',
 		value: 'Static IP'
 	},
 	{
-		label: '{{ISP}}: shared IP address template modified for ISP organizations (specifically proxies)',
+		label: '{{ISP}}: templat alamat IP berbagi dimodifikasi untuk organisasi ISP (spesifik proksi)',
 		value: 'ISP'
 	},
 	{
-		label: '{{Mobile IP}}: shared IP address template modified for mobile phone companies and their customers',
+		label: '{{Mobile IP}}: templat alamat IP berbagi dimodifikasi untuk perusahaan telepon seluler dan pelanggan mereka',
 		value: 'Mobile IP'
 	},
 	{
-		label: '{{Whois}}: template for IP addresses in need of monitoring, but unknown whether static, dynamic or shared',
+		label: '{{Whois}}: templat untuk alamat IP yang diawasi, tetapi tidak diketahui apakah statis, dinamis atau berbagi',
 		value: 'Whois'
 	}
 ];
 
-Twinkle.shared.callback.change_shared = function friendlysharedCallbackChangeShared(e) {
-	e.target.form.contact.disabled = e.target.value !== 'Shared IP edu';  // only supported by {{Shared IP edu}}
+Twinkle.shared.callback.change_shared = function twinklesharedCallbackChangeShared(e) {
+	e.target.form.contact.disabled = e.target.value !== 'Ip berbagi instansi pendidikan'; // only supported by {{Shared IP edu}}
 	e.target.form.organization.disabled = false;
-	e.target.form.host.disabled = e.target.value === 'Whois';  // host= not supported by {{Whois}}
+	e.target.form.host.disabled = e.target.value === 'Whois'; // host= not supported by {{Whois}}
 };
 
 Twinkle.shared.callbacks = {
 	main: function(pageobj) {
-		var params = pageobj.getCallbackParameters();
-		var pageText = pageobj.getPageText();
-		var found = false;
-		var text = '{{';
+		const params = pageobj.getCallbackParameters();
+		const pageText = pageobj.getPageText();
+		let found = false;
 
-		for (var i = 0; i < Twinkle.shared.standardList.length; i++) {
-			var tagRe = new RegExp('(\\{\\{' + Twinkle.shared.standardList[i].value + '(\\||\\}\\}))', 'im');
+		for (let i = 0; i < Twinkle.shared.standardList.length; i++) {
+			const tagRe = new RegExp('(\\{\\{' + Twinkle.shared.standardList[i].value + '(\\||\\}\\}))', 'im');
 			if (tagRe.exec(pageText)) {
-				Morebits.status.warn('Info', 'Found {{' + Twinkle.shared.standardList[i].value + '}} on the user\'s talk page already...aborting');
+				Morebits.Status.warn('Info', 'Telah menemukan {{' + Twinkle.shared.standardList[i].value + '}} di halaman pembicaraan pengguna...membatalkan');
 				found = true;
 			}
 		}
@@ -145,58 +151,84 @@ Twinkle.shared.callbacks = {
 			return;
 		}
 
-		Morebits.status.info('Info', 'Will add the shared IP address template to the top of the user\'s talk page.');
-		text += params.value + '|' + params.organization;
-		if (params.value === 'Shared IP edu' && params.contact !== '') {
-			text += '|' + params.contact;
-		}
-		if (params.value !== 'Whois' && params.host !== '') {
-			text += '|host=' + params.host;
-		}
-		text += '}}\n\n';
+		Morebits.Status.info('Info', 'Akan menambahkan templat alamat ip berbagi di atas halaman pembicaraan pengguna.');
+		const text = Twinkle.shared.getTemplateWikitext(params);
 
-		var summaryText = 'Added {{[[Template:' + params.value + '|' + params.value + ']]}} template.';
+		const summaryText = 'Ditambahkan templat {{[[Templat:' + params.template + '|' + params.template + ']]}}.';
 		pageobj.setPageText(text + pageText);
-		pageobj.setEditSummary(summaryText + Twinkle.getPref('summaryAd'));
+		pageobj.setEditSummary(summaryText);
+		pageobj.setChangeTags(Twinkle.changeTags);
 		pageobj.setMinorEdit(Twinkle.getPref('markSharedIPAsMinor'));
 		pageobj.setCreateOption('recreate');
 		pageobj.save();
 	}
 };
 
-Twinkle.shared.callback.evaluate = function friendlysharedCallbackEvaluate(e) {
-	var shared = e.target.getChecked('shared');
-	if (!shared || shared.length <= 0) {
-		alert('You must select a shared IP address template to use!');
+Twinkle.shared.preview = function(form) {
+	const input = Morebits.QuickForm.getInputData(form);
+	if (input.template) {
+		const previewDialog = new Morebits.SimpleWindow(700, 500);
+		previewDialog.setTitle('Pratinjau templat IP berbagi');
+		previewDialog.setScriptName('Tambahkan templat IP berbagi');
+		previewDialog.setModality(true);
+
+		const previewdiv = document.createElement('div');
+		previewdiv.style.marginLeft = previewdiv.style.marginRight = '0.5em';
+		previewdiv.style.fontSize = 'small';
+		previewDialog.setContent(previewdiv);
+
+		const previewer = new Morebits.wiki.Preview(previewdiv);
+		previewer.beginRender(Twinkle.shared.getTemplateWikitext(input), mw.config.get('wgPageName'));
+
+		const submit = document.createElement('input');
+		submit.setAttribute('type', 'kirim');
+		submit.setAttribute('value', 'Tutup');
+		previewDialog.addContent(submit);
+
+		previewDialog.display();
+
+		$(submit).on('click', () => {
+			previewDialog.close();
+		});
+	}
+};
+
+Twinkle.shared.getTemplateWikitext = function(input) {
+	let text = '{{' + input.template + '|' + input.organization;
+	if (input.contact) {
+		text += '|' + input.contact;
+	}
+	if (input.host) {
+		text += '|host=' + input.host;
+	}
+	text += '}}\n\n';
+	return text;
+};
+
+Twinkle.shared.callback.evaluate = function twinklesharedCallbackEvaluate(e) {
+	const params = Morebits.QuickForm.getInputData(e.target);
+	if (!params.template) {
+		alert('Anda harus memilih sebuah alaman IP berbagi untuk menggunakan!');
+		return;
+	}
+	if (!params.organization) {
+		alert('Anda harus memasukan sebuah organisasi untuk templat {{' + params.template + '}}');
 		return;
 	}
 
-	var value = shared[0];
-
-	if (e.target.organization.value === '') {
-		alert('You must input an organization for the {{' + value + '}} template!');
-		return;
-	}
-
-	var params = {
-		value: value,
-		organization: e.target.organization.value,
-		host: e.target.host.value,
-		contact: e.target.contact.value
-	};
-
-	Morebits.simpleWindow.setButtonsEnabled(false);
-	Morebits.status.init(e.target);
+	Morebits.SimpleWindow.setButtonsEnabled(false);
+	Morebits.Status.init(e.target);
 
 	Morebits.wiki.actionCompleted.redirect = mw.config.get('wgPageName');
-	Morebits.wiki.actionCompleted.notice = 'Tagging complete, reloading talk page in a few seconds';
+	Morebits.wiki.actionCompleted.notice = 'Memberi tag selesai, memuat ulang halaman pembicaraan';
 
-	var wikipedia_page = new Morebits.wiki.page(mw.config.get('wgPageName'), 'User talk page modification');
+	const wikipedia_page = new Morebits.wiki.Page(mw.config.get('wgPageName'), 'Perubahan halaman pembicaraan pengguna');
 	wikipedia_page.setFollowRedirect(true);
 	wikipedia_page.setCallbackParameters(params);
 	wikipedia_page.load(Twinkle.shared.callbacks.main);
 };
-})(jQuery);
 
+Twinkle.addInitCallback(Twinkle.shared, 'shared');
+}());
 
 // </nowiki>

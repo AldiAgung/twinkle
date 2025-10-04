@@ -31,7 +31,7 @@ Twinkle.warn = function twinklewarn() {
 		const $vandalTalkLink = $('#mw-rollback-success').find('.mw-usertoollinks a').first();
 		if ($vandalTalkLink.length) {
 			$vandalTalkLink.css('font-weight', 'bold');
-			$vandalTalkLink.wrapInner($('<span>').attr('title', 'If appropriate, you can use Twinkle to warn the user about their edits to this page.'));
+			$vandalTalkLink.wrapInner($('<span>').attr('title', 'Jika memungkinkan, anda dapat menggunakan Twinkle untuk memperingati suntingan mereka di halaman pembicaraan.'));
 
 			// Can't provide vanarticlerevid as only wgCurRevisionId is provided
 			const extraParam = 'vanarticle=' + mw.util.rawurlencode(Morebits.pageNameNorm);
@@ -50,7 +50,7 @@ Twinkle.warn.dialog = null;
 
 Twinkle.warn.callback = function twinklewarnCallback() {
 	if (mw.config.get('wgRelevantUserName') === mw.config.get('wgUserName') &&
-		!confirm('You are about to warn yourself! Are you sure you want to proceed?')) {
+		!confirm('Anda akan memperingatkan diri sendiri! Apakah Anda yakin ingin melanjutkan??')) {
 		return;
 	}
 
@@ -58,51 +58,51 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 	const dialog = Twinkle.warn.dialog;
 	dialog.setTitle('Warn/notify user');
 	dialog.setScriptName('Twinkle');
-	dialog.addFooterLink('Choosing a warning level', 'WP:UWUL#Levels');
-	dialog.addFooterLink('Warn prefs', 'WP:TW/PREF#warn');
-	dialog.addFooterLink('Twinkle help', 'WP:TW/DOC#warn');
-	dialog.addFooterLink('Give feedback', 'WT:TW');
+	dialog.addFooterLink('Memlilih sebuah tingkat peringatan', 'WP:UWUL#Levels');
+	dialog.addFooterLink('Preferensi peringatan', 'WP:TW/PREF#warn');
+	dialog.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#warn');
+	dialog.addFooterLink('Berikan ulasan', 'WT:TW');
 
 	const form = new Morebits.QuickForm(Twinkle.warn.callback.evaluate);
 	const main_select = form.append({
 		type: 'field',
-		label: 'Choose type of warning/notice to issue',
-		tooltip: 'First choose a main warning group, then the specific warning to issue.'
+		label: 'Pilih jenis peringatan/pemberitahuan untuk ditampilkan',
+		tooltip: 'Pilih dahulu kelompok peringatan utama, lalu peringatan spesifik untuk ditampilkan.'
 	});
 
 	const main_group = main_select.append({
 		type: 'select',
 		name: 'main_group',
-		tooltip: 'You can customize the default selection in your Twinkle preferences',
+		tooltip: 'Anda dapat mengkostumisasi pilihan default di preferensi Twinkle anda',
 		event: Twinkle.warn.callback.change_category
 	});
 
 	const defaultGroup = parseInt(Twinkle.getPref('defaultWarningGroup'), 10);
-	main_group.append({ type: 'option', label: 'Auto-select level (1-4)', value: 'autolevel', selected: defaultGroup === 11 });
-	main_group.append({ type: 'option', label: '1: General note', value: 'level1', selected: defaultGroup === 1 });
-	main_group.append({ type: 'option', label: '2: Caution', value: 'level2', selected: defaultGroup === 2 });
-	main_group.append({ type: 'option', label: '3: Warning', value: 'level3', selected: defaultGroup === 3 });
-	main_group.append({ type: 'option', label: '4: Final warning', value: 'level4', selected: defaultGroup === 4 });
-	main_group.append({ type: 'option', label: '4im: Only warning', value: 'level4im', selected: defaultGroup === 5 });
+	main_group.append({ type: 'option', label: 'Pemilihan tingkat otomatis (1-4)', value: 'autolevel', selected: defaultGroup === 11 });
+	main_group.append({ type: 'option', label: '1: Catatan umum', value: 'level1', selected: defaultGroup === 1 });
+	main_group.append({ type: 'option', label: '2: Pemberitahuan', value: 'level2', selected: defaultGroup === 2 });
+	main_group.append({ type: 'option', label: '3: Peringatan', value: 'level3', selected: defaultGroup === 3 });
+	main_group.append({ type: 'option', label: '4: Peringatan terakhir', value: 'level4', selected: defaultGroup === 4 });
+	main_group.append({ type: 'option', label: '4im: Sekadar peringatan', value: 'level4im', selected: defaultGroup === 5 });
 	if (Twinkle.getPref('combinedSingletMenus')) {
-		main_group.append({ type: 'option', label: 'Single-issue messages', value: 'singlecombined', selected: defaultGroup === 6 || defaultGroup === 7 });
+		main_group.append({ type: 'option', label: 'Pesan isu tunggal', value: 'singlecombined', selected: defaultGroup === 6 || defaultGroup === 7 });
 	} else {
-		main_group.append({ type: 'option', label: 'Single-issue notices', value: 'singlenotice', selected: defaultGroup === 6 });
-		main_group.append({ type: 'option', label: 'Single-issue warnings', value: 'singlewarn', selected: defaultGroup === 7 });
+		main_group.append({ type: 'option', label: 'Pemberitahuan isu tunggal', value: 'singlenotice', selected: defaultGroup === 6 });
+		main_group.append({ type: 'option', label: 'Peringatan isu tunggal', value: 'singlewarn', selected: defaultGroup === 7 });
 	}
 	if (Twinkle.getPref('customWarningList').length) {
-		main_group.append({ type: 'option', label: 'Custom warnings', value: 'custom', selected: defaultGroup === 9 });
+		main_group.append({ type: 'option', label: 'Peringatan kustom', value: 'custom', selected: defaultGroup === 9 });
 	}
-	main_group.append({ type: 'option', label: 'All warning templates', value: 'kitchensink', selected: defaultGroup === 10 });
+	main_group.append({ type: 'option', label: 'Semua templat peringatan', value: 'kitchensink', selected: defaultGroup === 10 });
 
-	main_select.append({ type: 'select', name: 'sub_group', event: Twinkle.warn.callback.change_subcategory }); // Will be empty to begin with.
+	main_select.append({ type: 'select', name: 'sub_grup', event: Twinkle.warn.callback.change_subcategory });
 
 	form.append({
 		type: 'input',
 		name: 'article',
 		label: 'Linked page',
 		value: Twinkle.getPrefill('vanarticle') || '',
-		tooltip: 'A page can be linked within the notice, perhaps because it was a revert to said page that dispatched this notice. Leave empty for no page to be linked.'
+		tooltip: 'Sebuah halaman dapat ditautkan di dalam pemberitahuan, mungkin karena halaman tersebut merupakan halaman yang dikembalikan ke halaman tersebut yang mengirimkan pemberitahuan ini. Kosongkan jika tidak ada halaman yang akan ditautkan.'
 	});
 
 	form.append({
@@ -112,8 +112,8 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 		id: 'twinkle-warn-warning-messages'
 	});
 
-	const more = form.append({ type: 'field', name: 'reasonGroup', label: 'Warning information' });
-	more.append({ type: 'textarea', label: 'Optional message:', name: 'reason', tooltip: 'Perhaps a reason, or that a more detailed notice must be appended' });
+	const more = form.append({ type: 'field', name: 'reasonGroup', label: 'Informasi peringatan' });
+	more.append({ type: 'textarea', label: 'Optional message:', name: 'reason', tooltip: 'Mungkin sebuah alasan, atau sebuah pembertiahuan detil harus ditambahkan' });
 
 	const previewlink = document.createElement('a');
 	$(previewlink).on('click', () => {
@@ -151,11 +151,11 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 				format: 'json'
 			};
 
-			new Morebits.wiki.Api('Checking if you successfully reverted the page', query, ((apiobj) => {
+			new Morebits.wiki.Api('Memeriksa jika anda berhasil membalikkan halamnnya', query, ((apiobj) => {
 				const rev = apiobj.getResponse().query.pages[0].revisions;
 				const revertUser = rev && rev[1].user;
 				if (revertUser && revertUser !== mw.config.get('wgUserName')) {
-					message += ' Someone else reverted the page and may have already warned the user.';
+					message += ' Seseorang telah membalikan halaman dan telah memperingati penggunanya.';
 					$('#twinkle-warn-warning-messages').text('Note:' + message);
 				}
 			})).post();
@@ -166,7 +166,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 			const revDate = new Morebits.Date(vantimestamp);
 			if (vantimestamp && revDate.isValid()) {
 				if (revDate.add(24, 'hours').isBefore(new Date())) {
-					message += ' This edit was made more than 24 hours ago so a warning may be stale.';
+					message += ' Suntingan ini dibuat lebih dari 24 jam yang lalu jadi peringatannya mungkin sudah basi.';
 					$('#twinkle-warn-warning-messages').text('Note:' + message);
 				}
 			}
@@ -184,7 +184,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 				revids: vanrevid,
 				format: 'json'
 			};
-			new Morebits.wiki.Api('Grabbing the revision timestamps', query, ((apiobj) => {
+			new Morebits.wiki.Api('Mengambil stempel waktu revisi', query, ((apiobj) => {
 				const rev = apiobj.getResponse().query.pages[0].revisions;
 				vantimestamp = rev && rev[0].timestamp;
 				checkStale(vantimestamp);
@@ -207,1149 +207,984 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 //   hideReason (optional): Set to true to hide the "Optional message" text box. Some warning templates do not have a reason parameter.
 Twinkle.warn.messages = {
 	levels: {
-		'Common warnings': {
+		'Peringatan umum': {
 			'uw-vandalism': {
 				level1: {
-					label: 'Vandalism',
-					summary: 'General note: Unconstructive editing'
+					label: 'Vandalisme',
+					summary: 'Catatan: Suntingan tidak membangun'
 				},
 				level2: {
-					label: 'Vandalism',
-					summary: 'Caution: Unconstructive editing'
+					label: 'Vandalisme',
+					summary: 'Pemberitahuan: Suntingan tidak membangun'
 				},
 				level3: {
-					label: 'Vandalism',
-					summary: 'Warning: Vandalism'
+					label: 'Vandalisme',
+					summary: 'Warning: Vandalisme'
 				},
 				level4: {
-					label: 'Vandalism',
-					summary: 'Final warning: Vandalism'
+					label: 'Vandalisme',
+					summary: 'Pengatan terakhir: Vandalisme'
 				},
 				level4im: {
-					label: 'Vandalism',
-					summary: 'Only warning: Vandalism'
+					label: 'Vandalisme',
+					summary: 'Sekadar peringatan: Vandalisme'
 				}
 			},
 			'uw-disruptive': {
 				level1: {
-					label: 'Disruptive editing',
-					summary: 'General note: Unconstructive editing'
+					label: 'Suntingan tidak membangun',
+					summary: 'Catatan: Suntingan tidak membangun'
 				},
 				level2: {
-					label: 'Disruptive editing',
-					summary: 'Caution: Unconstructive editing'
+					label: 'Suntingan tidak membangun',
+					summary: 'Pemberitahuan: Suntingan tidak membangun'
 				},
 				level3: {
-					label: 'Disruptive editing',
-					summary: 'Warning: Disruptive editing'
+					label: 'Suntingan tidak membangun',
+					summary: 'Warning: Suntingan tidak membangun'
+				},
+				level4: {
+					label: 'Suntingan tidak membangun',
+					summary: 'Peringatan terakhir: Suntingan tidak membangun'
+				},
+				level4im: {
+					label: 'Suntingan tidak membangun',
+					summary: 'Peringatan terakhir: Suntingan tidak membangun'
 				}
 			},
 			'uw-test': {
 				level1: {
-					label: 'Editing tests',
-					summary: 'General note: Editing tests'
+					label: 'Suntingan uji coba',
+					summary: 'Catatan: Suntingan uji coba'
 				},
 				level2: {
-					label: 'Editing tests',
-					summary: 'Caution: Editing tests'
+					label: 'Suntingan uji coba',
+					summary: 'Pemberitahuan: Suntingan uji coba'
 				},
 				level3: {
-					label: 'Editing tests',
-					summary: 'Warning: Editing tests'
+					label: 'Suntingan uji coba',
+					summary: 'Peringatan: Suntingan uji coba'
+				},
+				level4: {
+					label: 'Suntingan uji coba',
+					summary: 'Peringatan terakhir: Suntingan uji coba'
+				},
+				level4im: {
+					label: 'Suntingan uji coba',
+					summary: 'Peringatan terakhir: Suntingan uji coba'
 				}
 			},
 			'uw-delete': {
 				level1: {
-					label: 'Removal of content, blanking',
-					summary: 'General note: Removal of content, blanking'
+					label: 'Menghapus konten, mengosongkan halaman',
+					summary: 'Catatan: Menghapus konten, mengosongkan halaman'
 				},
 				level2: {
-					label: 'Removal of content, blanking',
-					summary: 'Caution: Removal of content, blanking'
+					label: 'Menghapus konten, mengosongkan halaman',
+					summary: 'Pemberitahuan: Menghapus konten, mengosongkan halaman'
 				},
 				level3: {
-					label: 'Removal of content, blanking',
-					summary: 'Warning: Removal of content, blanking'
+					label: 'Menghapus konten, mengosongkan halaman',
+					summary: 'Warning: Menghapus konten, mengosongkan halaman'
 				},
 				level4: {
-					label: 'Removal of content, blanking',
-					summary: 'Final warning: Removal of content, blanking'
+					label: 'Menghapus konten, mengosongkan halaman',
+					summary: 'Peringatan terakhir: Menghapus konten, mengosongkan halaman'
 				},
 				level4im: {
-					label: 'Removal of content, blanking',
-					summary: 'Only warning: Removal of content, blanking'
+					label: 'Menghapus konten, mengosongkan halaman',
+					summary: 'Sekadar peringatan: Menghapus konten, mengosongkan halaman'
 				}
 			},
 			'uw-generic': {
 				level4: {
-					label: 'Generic warning (for template series missing level 4)',
-					summary: 'Final warning notice'
+					label: 'Peringatan umum (untuk templat yang tidak ada di tingkat 4)',
+					summary: 'Pemberitahuan peringatan terakhir'
 				}
 			}
 		},
-		'Behavior in articles': {
-			'uw-ai': {
-				level1: {
-					label: 'Using a large language model',
-					summary: 'General note: Using a large language model'
-				},
-				level2: {
-					label: 'Using a large language model',
-					summary: 'Caution: Using a large language model'
-				},
-				level3: {
-					label: 'Using a large language model',
-					summary: 'Warning: Using a large language model'
-				},
-				level4: {
-					label: 'Using a large language model',
-					summary: 'Final warning: Using a large language model'
-				}
-			},
+		'Perilaku dalam artikel': {
 			'uw-biog': {
 				level1: {
-					label: 'Adding unreferenced controversial information about living persons',
-					summary: 'General note: Adding unreferenced controversial information about living persons'
+					label: 'Menambahkan informasi kontroversial tanpa rujukan tentang orang yang masih hidup',
+					summary: 'Catatan: Menambahkan informasi kontroversial tanpa rujukan tentang orang yang masih hidup'
 				},
 				level2: {
-					label: 'Adding unreferenced controversial information about living persons',
-					summary: 'Caution: Adding unreferenced controversial information about living persons'
+					label: 'Menambahkan informasi kontroversial tanpa rujukan tentang orang yang masih hidup',
+					summary: 'Pemberitahuan: Menambahkan informasi kontroversial tanpa rujukan tentang orang yang masih hidup'
 				},
 				level3: {
-					label: 'Adding unreferenced controversial/defamatory information about living persons',
-					summary: 'Warning: Adding unreferenced controversial information about living persons'
+					label: 'Menambahkan informasi fitnah/kontroversial tanpa rujukan tentang orang yang masih hidup',
+					summary: 'Peringatan: Menambahkan informasi kontroversial tanpa rujukan tentang orang yang masih hidup'
 				},
 				level4: {
-					label: 'Adding unreferenced defamatory information about living persons',
-					summary: 'Final warning: Adding unreferenced controversial information about living persons'
+					label: 'Menambahkan informasi fitnah tanpa rujukan tentang orang yang masih hidup',
+					summary: 'Peringatan terakhir: Menambahkan informasi kontroversial tanpa rujukan tentang orang yang masih hidup'
 				},
 				level4im: {
-					label: 'Adding unreferenced defamatory information about living persons',
-					summary: 'Only warning: Adding unreferenced controversial information about living persons'
+					label: 'Menambahkan informasi fitnah tanpa rujukan tentang orang yang masih hidup',
+					summary: 'Sekadar peringatan: Menambahkan informasi kontroversial tanpa rujukan tentang orang yang masih hidup'
 				}
 			},
 			'uw-defamatory': {
 				level1: {
-					label: 'Addition of defamatory content',
-					summary: 'General note: Addition of defamatory content'
+					label: 'Menambahkan konten yang memfitnah',
+					summary: 'Catatan: Menambahkan konten yang memfitnah'
 				},
 				level2: {
-					label: 'Addition of defamatory content',
-					summary: 'Caution: Addition of defamatory content'
+					label: 'Menambahkan konten yang memfitnah',
+					summary: 'Pemberitahuan: Menambahkan konten yang memfitnah'
 				},
 				level3: {
-					label: 'Addition of defamatory content',
-					summary: 'Warning: Addition of defamatory content'
+					label: 'Menambahkan konten yang memfitnah',
+					summary: 'Peringatan: Menambahkan konten yang memfitnah'
 				},
 				level4: {
-					label: 'Addition of defamatory content',
-					summary: 'Final warning: Addition of defamatory content'
+					label: 'Menambahkan konten yang memfitnah',
+					summary: 'Peringatan terakhir: Menambahkan konten yang memfitnah'
 				},
 				level4im: {
-					label: 'Addition of defamatory content',
-					summary: 'Only warning: Addition of defamatory content'
+					label: 'Menambahkan konten yang memfitnah',
+					summary: 'Sekadar peringatan: Menambahkan konten yang memfitnah'
 				}
 			},
 			'uw-error': {
 				level1: {
-					label: 'Introducing deliberate factual errors',
-					summary: 'General note: Introducing factual errors'
+					label: 'Menambahkan kesalahan faktual secara sengaja',
+					summary: 'Catatan: Penambahan kesalahan faktual secara sengaja'
 				},
 				level2: {
-					label: 'Introducing deliberate factual errors',
-					summary: 'Caution: Introducing factual errors'
+					label: 'Menambahkan kesalahan faktual secara sengaja',
+					summary: 'Pemberitahuan: Penambahan kesalahan faktual secara sengaja'
 				},
 				level3: {
-					label: 'Introducing deliberate factual errors',
-					summary: 'Warning: Introducing deliberate factual errors'
+					label: 'Menambahkan kesalahan faktual secara sengaja',
+					summary: 'Peringatan: Menambahkan kesalahan faktual secara sengaja'
 				},
 				level4: {
-					label: 'Introducing deliberate factual errors',
-					summary: 'Final warning: Introducing deliberate factual errors'
-				}
-			},
-			'uw-fringe': {
-				level1: {
-					label: 'Introducing fringe theories',
-					summary: 'General note: Introducing fringe theories'
-				},
-				level2: {
-					label: 'Introducing fringe theories',
-					summary: 'Caution: Introducing fringe theories'
-				},
-				level3: {
-					label: 'Introducing fringe theories',
-					summary: 'Warning: Introducing fringe theories'
+					label: 'Menambahkan kesalahan faktual secara sengaja',
+					summary: 'Peringatan terakhir: Menambahkan kesalahan faktual secara sengaja'
 				}
 			},
 			'uw-genre': {
 				level1: {
-					label: 'Frequent or mass changes to genres without consensus or references',
-					summary: 'General note: Frequent or mass changes to genres without consensus or references'
+					label: 'Mengubah secara massal atau sering tanpa konsensus atau rujukan',
+					summary: 'Catatan: Mengubah secara massal atau sering tanpa konsensus atau rujukan'
 				},
 				level2: {
-					label: 'Frequent or mass changes to genres without consensus or references',
-					summary: 'Caution: Frequent or mass changes to genres without consensus or references'
+					label: 'Mengubah secara massal atau sering tanpa konsensus atau rujukan',
+					summary: 'Pemberitahuan: Mengubah secara massal atau sering tanpa konsensus atau rujukan'
 				},
 				level3: {
-					label: 'Frequent or mass changes to genres without consensus or reference',
-					summary: 'Warning: Frequent or mass changes to genres without consensus or reference'
+					label: 'Mengubah secara massal atau sering tanpa konsensus atau rujukan',
+					summary: 'Peringatan: Mengubah secara massal atau sering tanpa konsensus atau rujukan'
 				},
 				level4: {
-					label: 'Frequent or mass changes to genres without consensus or reference',
-					summary: 'Final warning: Frequent or mass changes to genres without consensus or reference'
+					label: 'Mengubah secara massal atau sering tanpa konsensus atau rujukan',
+					summary: 'Peringatan terakhir: Mengubah secara massal atau sering tanpa konsensus atau rujukan'
 				}
 			},
 			'uw-image': {
 				level1: {
-					label: 'Image-related vandalism in articles',
-					summary: 'General note: Image-related vandalism in articles'
+					label: 'Vandalisme terkait berkas dalam artikel',
+					summary: 'Catatan: Vandalisme terkait berkas dalam artikel'
 				},
 				level2: {
-					label: 'Image-related vandalism in articles',
-					summary: 'Caution: Image-related vandalism in articles'
+					label: 'Vandalisme terkait berkas dalam artikel',
+					summary: 'Pemberitahuan: Vandalisme terkait berkas dalam artikel'
 				},
 				level3: {
-					label: 'Image-related vandalism in articles',
-					summary: 'Warning: Image-related vandalism in articles'
+					label: 'Vandalisme terkait berkas dalam artikel',
+					summary: 'Peringatan: Vandalisme terkait berkas dalam artikel'
 				},
 				level4: {
-					label: 'Image-related vandalism in articles',
-					summary: 'Final warning: Image-related vandalism in articles'
+					label: 'Vandalisme terkait berkas dalam artikel',
+					summary: 'Peringatan terakhir: Vandalisme terkait berkas dalam artikel'
 				},
 				level4im: {
-					label: 'Image-related vandalism',
-					summary: 'Only warning: Image-related vandalism'
+					label: 'Vandalisme terkait berkas',
+					summary: 'Sekadar peringatan: Vandalisme terkait berkas'
 				}
 			},
 			'uw-joke': {
 				level1: {
-					label: 'Using improper humor in articles',
-					summary: 'General note: Using improper humor in articles'
+					label: 'Menggunakan lelucon yang tidak pantas dalam artikel',
+					summary: 'Catatan: Menggunakan lelucon yang tidak pantas dalam artikel'
 				},
 				level2: {
-					label: 'Using improper humor in articles',
-					summary: 'Caution: Using improper humor in articles'
+					label: 'Menggunakan lelucon yang tidak pantas dalam artikel',
+					summary: 'Pemberitahuan: Menggunakan lelucon yang tidak pantas dalam artikel'
 				},
 				level3: {
-					label: 'Using improper humor in articles',
-					summary: 'Warning: Using improper humor in articles'
+					label: 'Menggunakan lelucon yang tidak pantas dalam artikel',
+					summary: 'Peringatan: Menggunakan lelucon yang tidak pantas dalam artikel'
 				},
 				level4: {
-					label: 'Using improper humor in articles',
-					summary: 'Final warning: Using improper humor in articles'
+					label: 'Menggunakan lelucon yang tidak pantas dalam artikel',
+					summary: 'Peringatan terakhir: Menggunakan lelucon yang tidak pantas dalam artikel'
 				},
 				level4im: {
-					label: 'Using improper humor',
-					summary: 'Only warning: Using improper humor'
+					label: 'Menggunakan lelucon yang tidak pantas',
+					summary: 'Sekadar peringatan: Menggunakan lelucon yang tidak pantas'
 				}
 			},
 			'uw-nor': {
 				level1: {
-					label: 'Adding original research',
-					summary: 'General note: Adding original research'
+					label: 'Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan',
+					summary: 'Catatan: Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan'
 				},
 				level2: {
-					label: 'Adding original research',
-					summary: 'Caution: Adding original research'
+					label: 'Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan',
+					summary: 'Pemberitahuan: Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan'
 				},
 				level3: {
-					label: 'Adding original research',
-					summary: 'Warning: Adding original research'
+					label: 'Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan',
+					summary: 'Peringatan: Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan'
 				},
 				level4: {
-					label: 'Adding original research',
-					summary: 'Final warning: Adding original research'
+					label: 'Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan',
+					summary: 'Peringatan terakhir: Menambahkan riset asli, misalnya kumpulan rujukan yang belum dipublikasikan'
 				}
 			},
 			'uw-notcensored': {
 				level1: {
-					label: 'Censorship of material',
-					summary: 'General note: Censorship of material'
+					label: 'Menyensor materi',
+					summary: 'Catatan: Menyensor materi'
 				},
 				level2: {
-					label: 'Censorship of material',
-					summary: 'Caution: Censorship of material'
+					label: 'Menyensor materi',
+					summary: 'Pemberitahuan: Menyensor materi'
 				},
 				level3: {
-					label: 'Censorship of material',
-					summary: 'Warning: Censorship of material'
+					label: 'Menyensor materi',
+					summary: 'Peringatan: Menyensor materi'
 				}
 			},
 			'uw-own': {
 				level1: {
-					label: 'Ownership of articles',
-					summary: 'General note: Ownership of articles'
+					label: 'Mengklaim kepemilikan artikel',
+					summary: 'Catatan: Mengklaim kepemilikan artikel'
 				},
 				level2: {
-					label: 'Ownership of articles',
-					summary: 'Caution: Ownership of articles'
+					label: 'Mengklaim kepemilikan artikel',
+					summary: 'Pemberitahuan: Mengklaim kepemilikan artikel'
 				},
 				level3: {
-					label: 'Ownership of articles',
-					summary: 'Warning: Ownership of articles'
-				},
-				level4: {
-					label: 'Ownership of articles',
-					summary: 'Final warning: Ownership of articles'
+					label: 'Mengklaim kepemilikan artikel',
+					summary: 'Peringatan: Mengklaim kepemilikan artikel'
 				},
 				level4im: {
-					label: 'Ownership of articles',
-					summary: 'Only warning: Ownership of articles'
-				}
-			},
-			'uw-pronouns': {
-				level1: {
-					label: 'Introducing incorrect pronouns',
-					summary: 'General note: Introducing incorrect pronouns'
-				},
-				level2: {
-					label: 'Introducing incorrect pronouns',
-					summary: 'Caution: Introducing incorrect pronouns'
-				},
-				level3: {
-					label: 'Introducing incorrect pronouns',
-					summary: 'Warning: Introducing incorrect pronouns'
-				}
-			},
-			'uw-subtle': {
-				level1: {
-					label: 'Subtle vandalism',
-					summary: 'General note: Possible unconstructive editing'
-				},
-				level2: {
-					label: 'Subtle vandalism',
-					summary: 'Caution: Likely unconstructive editing'
-				},
-				level3: {
-					label: 'Subtle vandalism',
-					summary: 'Warning: Subtle vandalism'
-				},
-				level4: {
-					label: 'Subtle vandalism',
-					summary: 'Final warning: Subtle vandalism'
-				}
-			},
-			'uw-talkinarticle': {
-				level1: {
-					label: 'Adding commentary to an article',
-					summary: 'General note: Adding commentary to an article'
-				},
-				level2: {
-					label: 'Adding commentary to an article',
-					summary: 'Caution: Adding commentary to an article'
-				},
-				level3: {
-					label: 'Adding commentary to an article',
-					summary: 'Warning: Adding commentary to an article'
+					label: 'Mengklaim kepemilikan artikel',
+					summary: 'Sekadar peringatan: Mengklaim kepemilikan artikel'
 				}
 			},
 			'uw-tdel': {
 				level1: {
-					label: 'Removal of maintenance templates',
-					summary: 'General note: Removal of maintenance templates'
+					label: 'Menghapus templat pemeliharaan',
+					summary: 'Catatan: Menghapus templat pemeliharaan'
 				},
 				level2: {
-					label: 'Removal of maintenance templates',
-					summary: 'Caution: Removal of maintenance templates'
+					label: 'Menghapus templat pemeliharaan',
+					summary: 'Pemberitahuan: Menghapus templat pemeliharaan'
 				},
 				level3: {
-					label: 'Removal of maintenance templates',
-					summary: 'Warning: Removal of maintenance templates'
+					label: 'Menghapus templat pemeliharaan',
+					summary: 'Peringatan: Menghapus templat pemeliharaan'
 				},
 				level4: {
-					label: 'Removal of maintenance templates',
-					summary: 'Final warning: Removal of maintenance templates'
+					label: 'Menghapus templat pemeliharaan',
+					summary: 'Peringatan terakhir: Menghapus templat pemeliharaan'
 				}
 			},
 			'uw-unsourced': {
 				level1: {
-					label: 'Addition of unsourced or improperly cited material',
-					summary: 'General note: Addition of unsourced or improperly cited material'
+					label: 'Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan',
+					summary: 'Catatan: Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan'
 				},
 				level2: {
-					label: 'Addition of unsourced or improperly cited material',
-					summary: 'Caution: Addition of unsourced or improperly cited material'
+					label: 'Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan',
+					summary: 'Pemberitahuan: Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan'
 				},
 				level3: {
-					label: 'Addition of unsourced or improperly cited material',
-					summary: 'Warning: Addition of unsourced or improperly cited material'
+					label: 'Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan',
+					summary: 'Peringatan: Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan'
 				},
 				level4: {
-					label: 'Addition of unsourced or improperly cited material',
-					summary: 'Final warning: Addition of unsourced or improperly cited material'
+					label: 'Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan',
+					summary: 'Peringatan terakhir: Menambahkan materi tanpa dikutip dengan semestinya atau tanpa rujukan'
 				}
 			}
 		},
-		'Promotions and spam': {
+		'Promosi dan spam': {
 			'uw-advert': {
 				level1: {
-					label: 'Using Wikipedia for advertising or promotion',
-					summary: 'General note: Using Wikipedia for advertising or promotion'
+					label: 'Menggunakan Wikipedia untuk beriklan atau promosi',
+					summary: 'Catatan: Menggunakan Wikipedia untuk beriklan atau promosi'
 				},
 				level2: {
-					label: 'Using Wikipedia for advertising or promotion',
-					summary: 'Caution: Using Wikipedia for advertising or promotion'
+					label: 'Menggunakan Wikipedia untuk beriklan atau promosi',
+					summary: 'Pemberitahuan: Menggunakan Wikipedia untuk beriklan atau promosi'
 				},
 				level3: {
-					label: 'Using Wikipedia for advertising or promotion',
-					summary: 'Warning: Using Wikipedia for advertising or promotion'
+					label: 'Menggunakan Wikipedia untuk beriklan atau promosi',
+					summary: 'Peringatan: Menggunakan Wikipedia untuk beriklan atau promosi'
 				},
 				level4: {
-					label: 'Using Wikipedia for advertising or promotion',
-					summary: 'Final warning: Using Wikipedia for advertising or promotion'
+					label: 'Menggunakan Wikipedia untuk beriklan atau promosi',
+					summary: 'Peringatan terakhir: Menggunakan Wikipedia untuk beriklan atau promosi'
 				},
 				level4im: {
-					label: 'Using Wikipedia for advertising or promotion',
-					summary: 'Only warning: Using Wikipedia for advertising or promotion'
+					label: 'Menggunakan Wikipedia untuk beriklan atau promosi',
+					summary: 'Sekadar peringatan: Menggunakan Wikipedia untuk beriklan atau promosi'
 				}
 			},
 			'uw-npov': {
 				level1: {
-					label: 'Not adhering to neutral point of view',
-					summary: 'General note: Not adhering to neutral point of view'
+					label: 'Tidak berpegang pada sudut pandang netral',
+					summary: 'Catatan: Tidak berpegang pada sudut pandang netral'
 				},
 				level2: {
-					label: 'Not adhering to neutral point of view',
-					summary: 'Caution: Not adhering to neutral point of view'
+					label: 'Tidak berpegang pada sudut pandang netral',
+					summary: 'Pemberitahuan: Tidak berpegang pada sudut pandang netral'
 				},
 				level3: {
-					label: 'Not adhering to neutral point of view',
-					summary: 'Warning: Not adhering to neutral point of view'
+					label: 'Tidak berpegang pada sudut pandang netral',
+					summary: 'Peringatan: Tidak berpegang pada sudut pandang netral'
 				},
 				level4: {
-					label: 'Not adhering to neutral point of view',
-					summary: 'Final warning: Not adhering to neutral point of view'
+					label: 'Tidak berpegang pada sudut pandang netral',
+					summary: 'Peringatan terakhir: Tidak berpegang pada sudut pandang netral'
+				}
+			},
+			'uw-username|promosi': {
+				level1: {
+					label: 'Menggunakan nama pengguna sebagai alat promosi',
+					summary: 'Catatan: Menggunakan nama pengguna sebagai alat promosi'
+				},
+				level2: {
+					label: 'Menggunakan nama pengguna sebagai alat promosi',
+					summary: 'Pemberitahuan: Menggunakan nama pengguna sebagai alat promosi'
+				},
+				level3: {
+					label: 'Menggunakan nama pengguna sebagai alat promosi',
+					summary: 'Peringatan: Menggunakan nama pengguna sebagai alat promosi'
+				},
+				level4: {
+					label: 'Menggunakan nama pengguna sebagai alat promosi',
+					summary: 'Peringatan terakhir: Menggunakan nama pengguna sebagai alat promosi'
+				}
+			},
+			'uw-username|organisasi': {
+				level1: {
+					label: 'Nama pengguna organisasi',
+					summary: 'Catatan: Nama pengguna sebagai alat promosi organisasi'
+				},
+				level2: {
+					label: 'Nama pengguna organisasi',
+					summary: 'Pemberitahuan: Nama pengguna sebagai alat promosi organisasi'
+				},
+				level3: {
+					label: 'Nama pengguna organisasi',
+					summary: 'Peringatan: Nama pengguna sebagai alat promosi organisasi'
+				},
+				level4: {
+					label: 'Nama pengguna organisasi',
+					summary: 'Peringatan terakhir: Nama pengguna sebagai alat promosi organisasi'
 				}
 			},
 			'uw-paid': {
 				level1: {
-					label: 'Paid editing without disclosure under the Wikimedia Terms of Use',
-					summary: 'General note: Disclosure requirements for paid editing under the Wikimedia Terms of Use'
+					label: 'Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia',
+					summary: 'Catatan: Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia'
 				},
 				level2: {
-					label: 'Paid editing without disclosure under the Wikimedia Terms of Use',
-					summary: 'Caution: Disclosure requirements for paid editing under the Wikimedia Terms of Use'
+					label: 'Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia',
+					summary: 'Pemberitahuan: Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia'
 				},
 				level3: {
-					label: 'Paid editing without disclosure under the Wikimedia Terms of Use',
-					summary: 'Warning: Disclosure requirements for paid editing under the Wikimedia Terms of Use'
+					label: 'Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia',
+					summary: 'Peringatan: Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia'
 				},
 				level4: {
-					label: 'Paid editing without disclosure under the Wikimedia Terms of Use',
-					summary: 'Final warning: Disclosure requirements for paid editing under the Wikimedia Terms of Use'
+					label: 'Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia',
+					summary: 'Peringatan terakhir: Suntingan berbayar tanpa penyingkapan di bawah Ketentuan Pengunaan Wikimedia'
 				}
 			},
 			'uw-spam': {
 				level1: {
-					label: 'Adding inappropriate external links',
-					summary: 'General note: Adding inappropriate external links'
+					label: 'Menambahkan pranala luar yang tak pantas',
+					summary: 'Catatan: Menambahkan pranala luar yang tak pantas'
 				},
 				level2: {
-					label: 'Adding spam links',
-					summary: 'Caution: Adding spam links'
+					label: 'Menambahkan pranala luar spam',
+					summary: 'Pemberitahuan: Menambahkan pranala luar spam'
 				},
 				level3: {
-					label: 'Adding spam links',
-					summary: 'Warning: Adding spam links'
+					label: 'Menambahkan pranala luar spam',
+					summary: 'Peringatan: Menambahkan pranala luar spam'
 				},
 				level4: {
-					label: 'Adding spam links',
-					summary: 'Final warning: Adding spam links'
+					label: 'Menambahkan pranala luar spam',
+					summary: 'Peringatan terakhir: Menambahkan pranala luar spam'
 				},
 				level4im: {
-					label: 'Adding spam links',
-					summary: 'Only warning: Adding spam links'
+					label: 'Menambahkan pranala luar spam',
+					summary: 'Sekadar peringatan: Menambahkan pranala luar spam'
 				}
 			}
 		},
-		'Behavior towards other editors': {
+		'Perilaku terhadap pengguna lain': {
 			'uw-agf': {
 				level1: {
-					label: 'Not assuming good faith',
-					summary: 'General note: Not assuming good faith'
+					label: 'Tidak mengasumsikan niat baik',
+					summary: 'Catatan: Tidak mengasumsikan niat baik'
 				},
 				level2: {
-					label: 'Not assuming good faith',
-					summary: 'Caution: Not assuming good faith'
+					label: 'Tidak mengasumsikan niat baik',
+					summary: 'Pemberitahuan: Tidak mengasumsikan niat baik'
 				},
 				level3: {
-					label: 'Not assuming good faith',
-					summary: 'Warning: Not assuming good faith'
+					label: 'Tidak mengasumsikan niat baik',
+					summary: 'Peringatan: Tidak mengasumsikan niat baik'
 				}
 			},
 			'uw-harass': {
 				level1: {
-					label: 'Harassment of other users',
-					summary: 'General note: Harassment of other users'
+					label: 'Penyerangan terhadap pengguna lain',
+					summary: 'Catatan: Penyerangan terhadap pengguna lain'
 				},
 				level2: {
-					label: 'Harassment of other users',
-					summary: 'Caution: Harassment of other users'
+					label: 'Penyerangan terhadap pengguna lain',
+					summary: 'Pemberitahuan: Penyerangan terhadap pengguna lain'
 				},
 				level3: {
-					label: 'Harassment of other users',
-					summary: 'Warning: Harassment of other users'
+					label: 'Penyerangan terhadap pengguna lain',
+					summary: 'Peringatan: Penyerangan terhadap pengguna lain'
 				},
 				level4: {
-					label: 'Harassment of other users',
-					summary: 'Final warning: Harassment of other users'
+					label: 'Penyerangan terhadap pengguna lain',
+					summary: 'Peringatan terakhir: Penyerangan terhadap pengguna lain'
 				},
 				level4im: {
-					label: 'Harassment of other users',
-					summary: 'Only warning: Harassment of other users'
+					label: 'Penyerangan terhadap pengguna lain',
+					summary: 'Sekadar peringatan: Penyerangan terhadap pengguna lain'
 				}
 			},
 			'uw-npa': {
 				level1: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'General note: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Catatan: Serangan pribadi kepada penyunting spesifik'
 				},
 				level2: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Caution: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Pemberitahuan: Serangan pribadi kepada penyunting spesifik'
 				},
 				level3: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Warning: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Peringatan: Serangan pribadi kepada penyunting spesifik'
 				},
 				level4: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Final warning: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Peringatan terakhir: Serangan pribadi kepada penyunting spesifik'
 				},
 				level4im: {
-					label: 'Personal attack directed at a specific editor',
-					summary: 'Only warning: Personal attack directed at a specific editor'
+					label: 'Serangan pribadi kepada penyunting spesifik',
+					summary: 'Sekadar peringatan: Serangan pribadi kepada penyunting spesifik'
 				}
 			},
 			'uw-tempabuse': {
 				level1: {
-					label: 'Improper use of warning or blocking template',
-					summary: 'General note: Improper use of warning or blocking template'
+					label: 'Penggunaan templat dan pemblokiran tidak wajar',
+					summary: 'Catatan: Penggunaan templat dan pemblokiran tidak wajar'
 				},
 				level2: {
-					label: 'Improper use of warning or blocking template',
-					summary: 'Caution: Improper use of warning or blocking template'
+					label: 'Penggunaan templat dan pemblokiran tidak wajar',
+					summary: 'Pemberitahuan: Penggunaan templat dan pemblokiran tidak wajar'
 				}
 			}
 		},
-		'Removal of deletion tags': {
+		'Penghilangan tag penghapusan': {
 			'uw-afd': {
 				level1: {
-					label: 'Removing {{afd}} templates',
-					summary: 'General note: Removing {{afd}} templates'
+					label: 'Menghilangkan templat {{Afd}}',
+					summary: 'Catatan: Menghilangkan templat {{Afd}}'
 				},
 				level2: {
-					label: 'Removing {{afd}} templates',
-					summary: 'Caution: Removing {{afd}} templates'
+					label: 'Menghilangkan templat {{Afd}}',
+					summary: 'Pemberitahuan: Menghilangkan templat {{Afd}}'
 				},
 				level3: {
-					label: 'Removing {{afd}} templates',
-					summary: 'Warning: Removing {{afd}} templates'
+					label: 'Menghilangkan templat {{Afd}}',
+					summary: 'Peringatan: Menghilangkan templat {{Afd}}'
 				},
 				level4: {
-					label: 'Removing {{afd}} templates',
-					summary: 'Final warning: Removing {{afd}} templates'
+					label: 'Menghilangkan templat {{Afd}}',
+					summary: 'Peringatan terakhir: Menghilangkan templat {{Afd}}'
 				}
 			},
 			'uw-blpprod': {
 				level1: {
-					label: 'Removing {{blp prod}} templates',
-					summary: 'General note: Removing {{blp prod}} templates'
+					label: 'Menghilangkan templat {{Prod blp}}',
+					summary: 'Catatan: Menghilangkan templat {{Prod blp}}'
 				},
 				level2: {
-					label: 'Removing {{blp prod}} templates',
-					summary: 'Caution: Removing {{blp prod}} templates'
+					label: 'Menghilangkan templat {{Prod blp}}',
+					summary: 'Pemberitahuan: Menghilangkan templat {{Prod blp}}'
 				},
 				level3: {
-					label: 'Removing {{blp prod}} templates',
-					summary: 'Warning: Removing {{blp prod}} templates'
+					label: 'Menghilangkan templat {{Prod blp}}',
+					summary: 'Peringatan: Menghilangkan templat {{Prod blp}}'
 				},
 				level4: {
-					label: 'Removing {{blp prod}} templates',
-					summary: 'Final warning: Removing {{blp prod}} templates'
+					label: 'Menghilangkan templat {{Prod blp}}',
+					summary: 'Peringatan terakhir: Menghilangkan templat {{Prod blp}}'
 				}
 			},
 			'uw-idt': {
 				level1: {
-					label: 'Removing file deletion tags',
-					summary: 'General note: Removing file deletion tags'
+					label: 'Menghilangkan tag penghapusan berkas',
+					summary: 'Catatan: Menghilangkan tag penghapusan berkas'
 				},
 				level2: {
-					label: 'Removing file deletion tags',
-					summary: 'Caution: Removing file deletion tags'
+					label: 'Menghilangkan tag penghapusan berkas',
+					summary: 'Pemberitahuan: Menghilangkan tag penghapusan berkas'
 				},
 				level3: {
-					label: 'Removing file deletion tags',
-					summary: 'Warning: Removing file deletion tags'
+					label: 'Menghilangkan tag penghapusan berkas',
+					summary: 'Peringatan: Menghilangkan tag penghapusan berkas'
 				},
 				level4: {
-					label: 'Removing file deletion tags',
-					summary: 'Final warning: Removing file deletion tags'
-				}
-			},
-			'uw-tfd': {
-				level1: {
-					label: 'Removing {{tfd}} templates',
-					summary: 'General note: Removing {{tfd}} templates'
-				},
-				level2: {
-					label: 'Removing {{tfd}} templates',
-					summary: 'Caution: Removing {{tfd}} templates'
-				},
-				level3: {
-					label: 'Removing {{tfd}} templates',
-					summary: 'Warning: Removing {{tfd}} templates'
-				},
-				level4: {
-					label: 'Removing {{tfd}} templates',
-					summary: 'Final warning: Removing {{tfd}} templates'
+					label: 'Menghilangkan tag penghapusan berkas',
+					summary: 'Peringatan terakhir: Menghilangkan tag penghapusan berkas'
 				}
 			},
 			'uw-speedy': {
 				level1: {
-					label: 'Removing speedy deletion tags',
-					summary: 'General note: Removing speedy deletion tags'
+					label: 'Menghilangkan tag penghapusan cepat',
+					summary: 'Catatan: Menghilangkan tag penghapusan cepat'
 				},
 				level2: {
-					label: 'Removing speedy deletion tags',
-					summary: 'Caution: Removing speedy deletion tags'
+					label: 'Menghilangkan tag penghapusan cepat',
+					summary: 'Pemberitahuan: Menghilangkan tag penghapusan cepat'
 				},
 				level3: {
-					label: 'Removing speedy deletion tags',
-					summary: 'Warning: Removing speedy deletion tags'
+					label: 'Menghilangkan tag penghapusan cepat',
+					summary: 'Peringatan: Menghilangkan tag penghapusan cepat'
 				},
 				level4: {
-					label: 'Removing speedy deletion tags',
-					summary: 'Final warning: Removing speedy deletion tags'
+					label: 'Menghilangkan tag penghapusan cepat',
+					summary: 'Peringatan terakhir: Menghilangkan tag penghapusan cepat'
 				}
 			}
 		},
-		Other: {
+		'Lain-lain': {
 			'uw-attempt': {
 				level1: {
-					label: 'Triggering the edit filter',
-					summary: 'General note: Triggering the edit filter'
+					label: 'Memicu filter penyuntingan',
+					summary: 'Catatan: Memicu filter penyuntingan'
 				},
 				level2: {
-					label: 'Triggering the edit filter',
-					summary: 'Caution: Triggering the edit filter'
+					label: 'Memicu filter penyuntingan',
+					summary: 'Pemberitahuan: Memicu filter penyuntingan'
 				},
 				level3: {
-					label: 'Triggering the edit filter',
-					summary: 'Warning: Triggering the edit filter'
+					label: 'Memicu filter penyuntingan',
+					summary: 'Peringatan: Memicu filter penyuntingan'
 				},
 				level4: {
-					label: 'Triggering the edit filter',
-					summary: 'Final warning: Triggering the edit filter'
-				},
-				level4im: {
-					label: 'Triggering the edit filter',
-					summary: 'Only warning: Triggering the edit filter'
+					label: 'Memicu filter penyuntingan',
+					summary: 'Peringatan terakhir: Memicu filter penyuntingan'
 				}
 			},
 			'uw-chat': {
 				level1: {
-					label: 'Using talk page as forum',
-					summary: 'General note: Using talk page as forum'
+					label: 'Menggunakan halaman pembicaraan sebagai forum',
+					summary: 'Catatan: Menggunakan halaman pembicaraan sebagai forum'
 				},
 				level2: {
-					label: 'Using talk page as forum',
-					summary: 'Caution: Using talk page as forum'
+					label: 'Menggunakan halaman pembicaraan sebagai forum',
+					summary: 'Pemberitahuan: Menggunakan halaman pembicaraan sebagai forum'
 				},
 				level3: {
-					label: 'Using talk page as forum',
-					summary: 'Warning: Using talk page as forum'
+					label: 'Menggunakan halaman pembicaraan sebagai forum',
+					summary: 'Peringatan: Menggunakan halaman pembicaraan sebagai forum'
 				},
 				level4: {
-					label: 'Using talk page as forum',
-					summary: 'Final warning: Using talk page as forum'
+					label: 'Menggunakan halaman pembicaraan sebagai forum',
+					summary: 'Peringatan terakhir: Menggunakan halaman pembicaraan sebagai forum'
 				}
 			},
 			'uw-create': {
 				level1: {
-					label: 'Creating inappropriate pages',
-					summary: 'General note: Creating inappropriate pages'
+					label: 'Membuat halaman yang tidak pantas',
+					summary: 'Catatan: Membuat halaman yang tidak pantas'
 				},
 				level2: {
-					label: 'Creating inappropriate pages',
-					summary: 'Caution: Creating inappropriate pages'
+					label: 'Membuat halaman yang tidak pantas',
+					summary: 'Pemberitahuan: Membuat halaman yang tidak pantas'
 				},
 				level3: {
-					label: 'Creating inappropriate pages',
-					summary: 'Warning: Creating inappropriate pages'
+					label: 'Membuat halaman yang tidak pantas',
+					summary: 'Peringatan: Membuat halaman yang tidak pantas'
 				},
 				level4: {
-					label: 'Creating inappropriate pages',
-					summary: 'Final warning: Creating inappropriate pages'
+					label: 'Membuat halaman yang tidak pantas',
+					summary: 'Peringatan terakhir: Membuat halaman yang tidak pantas'
 				},
 				level4im: {
-					label: 'Creating inappropriate pages',
-					summary: 'Only warning: Creating inappropriate pages'
-				}
-			},
-			'uw-fv': {
-				level1: {
-					label: 'Added statement had source, but it did not verify content',
-					summary: 'General note: Added statement had source, but it did not verify content'
-				}
-			},
-			'uw-mislead': {
-				level1: {
-					label: 'Using misleading edit summaries',
-					summary: 'General note: Using misleading edit summaries'
-				},
-				level2: {
-					label: 'Using misleading edit summaries',
-					summary: 'Caution: Using misleading edit summaries'
-				},
-				level3: {
-					label: 'Using misleading edit summaries',
-					summary: 'Warning: Using misleading edit summaries'
+					label: 'Membuat halaman yang tidak pantas',
+					summary: 'Sekadar peringatan: Membuat halaman yang tidak pantas'
 				}
 			},
 			'uw-mos': {
 				level1: {
-					label: 'Manual of style',
-					summary: 'General note: Formatting, date, language, etc (Manual of style)'
+					label: 'Pedoman gaya',
+					summary: 'Catatan: Format, tanggal, bahasa, dll. (Pedoman gaya)'
 				},
 				level2: {
-					label: 'Manual of style',
-					summary: 'Caution: Formatting, date, language, etc (Manual of style)'
+					label: 'Pedoman gaya',
+					summary: 'Pemberitahuan: Format, tanggal, bahasa, dll. (Pedoman gaya)'
 				},
 				level3: {
-					label: 'Manual of style',
-					summary: 'Warning: Formatting, date, language, etc (Manual of style)'
+					label: 'Pedoman gaya',
+					summary: 'Peringatan: Format, tanggal, bahasa, dll. (Pedoman gaya)'
 				},
 				level4: {
-					label: 'Manual of style',
-					summary: 'Final warning: Formatting, date, language, etc (Manual of style)'
+					label: 'Pedoman gaya',
+					summary: 'Peringatan terakhir: Format, tanggal, bahasa, dll. (Pedoman gaya)'
 				}
 			},
 			'uw-move': {
 				level1: {
-					label: 'Page moves against naming conventions or consensus',
-					summary: 'General note: Page moves against naming conventions or consensus'
+					label: 'Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus',
+					summary: 'Catatan: Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus'
 				},
 				level2: {
-					label: 'Page moves against naming conventions or consensus',
-					summary: 'Caution: Page moves against naming conventions or consensus'
+					label: 'Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus',
+					summary: 'Pemberitahuan: Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus'
 				},
 				level3: {
-					label: 'Page moves against naming conventions or consensus',
-					summary: 'Warning: Page moves against naming conventions or consensus'
+					label: 'Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus',
+					summary: 'Peringatan: Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus'
 				},
 				level4: {
-					label: 'Page moves against naming conventions or consensus',
-					summary: 'Final warning: Page moves against naming conventions or consensus'
+					label: 'Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus',
+					summary: 'Peringatan terakhir: Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus'
 				},
 				level4im: {
-					label: 'Page moves against naming conventions or consensus',
-					summary: 'Only warning: Page moves against naming conventions or consensus'
-				}
-			},
-			'uw-redirect': {
-				level1: {
-					label: 'Creating inappropriate redirects',
-					summary: 'General note: Creating inappropriate redirects'
-				},
-				level2: {
-					label: 'Creating inappropriate redirects',
-					summary: 'Caution: Creating inappropriate redirects'
-				},
-				level3: {
-					label: 'Creating inappropriate redirects',
-					summary: 'Warning: Creating inappropriate redirects'
-				},
-				level4: {
-					label: 'Creating inappropriate redirects',
-					summary: 'Final warning: Creating inappropriate redirects'
-				},
-				level4im: {
-					label: 'Creating inappropriate redirects',
-					summary: 'Only warning: Creating inappropriate redirects'
+					label: 'Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus',
+					summary: 'Sekadar peringatan: Memindahkan halaman bertentangan dengan konvensi penamaan atau konsensus'
 				}
 			},
 			'uw-tpv': {
 				level1: {
-					label: "Refactoring others' talk page comments",
-					summary: "General note: Refactoring others' talk page comments"
+					label: 'Menyunting komentar pengguna lain di halaman pembicaraan',
+					summary: 'Catatan: Menyunting komentar pengguna lain di halaman pembicaraan'
 				},
 				level2: {
-					label: "Refactoring others' talk page comments",
-					summary: "Caution: Refactoring others' talk page comments"
+					label: 'Menyunting komentar pengguna lain di halaman pembicaraan',
+					summary: 'Pemberitahuan: Menyunting komentar pengguna lain di halaman pembicaraan'
 				},
 				level3: {
-					label: "Refactoring others' talk page comments",
-					summary: "Warning: Refactoring others' talk page comments"
+					label: 'Menyunting komentar pengguna lain di halaman pembicaraan',
+					summary: 'Peringatan: Menyunting komentar pengguna lain di halaman pembicaraan'
 				},
 				level4: {
-					label: "Refactoring others' talk page comments",
-					summary: "Final warning: Refactoring others' talk page comments"
+					label: 'Menyunting komentar pengguna lain di halaman pembicaraan',
+					summary: 'Peringatan terakhir: Menyunting komentar pengguna lain di halaman pembicaraan'
 				},
 				level4im: {
-					label: "Refactoring others' talk page comments",
-					summary: "Only warning: Refactoring others' talk page comments"
+					label: 'Menyunting komentar pengguna lain di halaman pembicaraan',
+					summary: 'Sekadar peringatan: Menyunting komentar pengguna lain di halaman pembicaraan'
 				}
 			},
 			'uw-upload': {
 				level1: {
-					label: 'Uploading unencyclopedic images',
-					summary: 'General note: Uploading unencyclopedic images'
+					label: 'Menggunggah berkas nonensiklopedis',
+					summary: 'Catatan: Menggunggah berkas nonensiklopedis'
 				},
 				level2: {
-					label: 'Uploading unencyclopedic images',
-					summary: 'Caution: Uploading unencyclopedic images'
+					label: 'Menggunggah berkas nonensiklopedis',
+					summary: 'Pemberitahuan: Menggunggah berkas nonensiklopedis'
 				},
 				level3: {
-					label: 'Uploading unencyclopedic images',
-					summary: 'Warning: Uploading unencyclopedic images'
+					label: 'Menggunggah berkas nonensiklopedis',
+					summary: 'Peringatan: Menggunggah berkas nonensiklopedis'
 				},
 				level4: {
-					label: 'Uploading unencyclopedic images',
-					summary: 'Final warning: Uploading unencyclopedic images'
+					label: 'Menggunggah berkas nonensiklopedis',
+					summary: 'Peringatan terakhir: Menggunggah berkas nonensiklopedis'
 				},
 				level4im: {
-					label: 'Uploading unencyclopedic images',
-					summary: 'Only warning: Uploading unencyclopedic images'
+					label: 'Menggunggah berkas nonensiklopedis',
+					summary: 'Sekadar peringatan: Menggunggah berkas nonensiklopedis'
 				}
 			}
 		}
 	},
 
 	singlenotice: {
-		'uw-agf-sock': {
-			label: 'Use of multiple accounts (assuming good faith)',
-			summary: 'Notice: Using multiple accounts'
-		},
 		'uw-aiv': {
-			label: 'Bad AIV report',
-			summary: 'Notice: Bad AIV report'
-		},
-		'uw-articletodraft': {
-			label: 'Article moved to draftspace',
-			summary: 'Notice: Article moved to draftspace',
-			hideReason: true
+			label: 'Laporan AIV tidak benar',
+			summary: 'Pemberitahuan: Laporan AIV tidak benar'
 		},
 		'uw-autobiography': {
-			label: 'Creating autobiographies',
-			summary: 'Notice: Creating autobiographies'
+			label: 'Membuat otobiografi',
+			summary: 'Pemberitahuan: Pembuatan otobiografi'
 		},
 		'uw-badcat': {
-			label: 'Adding incorrect categories',
-			summary: 'Notice: Adding incorrect categories'
+			label: 'Menambahkan kategori yang salah',
+			summary: 'Pemberitahuan: Penambahan kategori yang salah'
 		},
 		'uw-badlistentry': {
-			label: 'Adding inappropriate entries to lists',
-			summary: 'Notice: Adding inappropriate entries to lists'
-		},
-		'uw-bareurl': {
-			label: 'Adding a bare URL',
-			summary: 'Notice: Adding a bare URL'
+			label: 'Menambahkan entri yang tidak sepatutnya pada daftar',
+			summary: 'Pemberitahuan: Penambahan entri yang tidak sepatutnya pada daftar'
 		},
 		'uw-bite': {
-			label: '"Biting" newcomers',
-			summary: 'Notice: "Biting" newcomers',
-			suppressArticleInSummary: true // non-standard (user name, not article), and not necessary
-		},
-		'uw-blar': {
-			label: 'Article blanked and redirected',
-			summary: 'Notice: Article blanked and redirected',
-			hideReason: true
-		},
-		'uw-circular': {
-			label: 'Using circular sources',
-			summary: 'Notice: Using circular sources'
+			label: '"Menggigit" pendatang baru',
+			summary: 'Pemberitahuan: "Menggigit" pendatang baru',
+			suppressArticleInSummary: true  // non-standard (user name, not article), and not necessary
 		},
 		'uw-coi': {
-			label: 'Conflict of interest',
-			summary: 'Notice: Conflict of interest',
+			label: 'Konflik kepentingan',
+			summary: 'Pemberitahuan: Konflik kepentingan',
 			heading: 'Managing a conflict of interest'
 		},
 		'uw-controversial': {
-			label: 'Introducing controversial material',
-			summary: 'Notice: Introducing controversial material'
+			label: 'Memasukkan materi kontroversial',
+			summary: 'Pemberitahuan: Pemasukan materi kontroversial'
 		},
 		'uw-copying': {
-			label: 'Copying text to another page',
-			summary: 'Notice: Copying text to another page'
+			label: 'Menyalin teks ke halaman lain',
+			summary: 'Pemberitahuan: Penyalinan teks ke halaman lain'
 		},
 		'uw-crystal': {
-			label: 'Adding speculative or unconfirmed information',
-			summary: 'Notice: Adding speculative or unconfirmed information'
+			label: 'Menambahkan informasi spekulatif atau belum dikonfirmasi',
+			summary: 'Pemberitahuan: Penambahan informasi spekulatif atau belum dikonfirmasi'
 		},
 		'uw-c&pmove': {
-			label: 'Cut and paste moves',
-			summary: 'Notice: Cut and paste moves'
+			label: 'Pemindahan potong dan tempel',
+			summary: 'Pemberitahuan: Pemindahan potong dan tempel'
 		},
 		'uw-dab': {
-			label: 'Incorrect edit to a disambiguation page',
-			summary: 'Notice: Incorrect edit to a disambiguation page'
+			label: 'Suntingan tidak benar pada halaman disambiguasi',
+			summary: 'Pemberitahuan: Suntingan tidak benar pada halaman disambiguasi'
 		},
 		'uw-date': {
-			label: 'Unnecessarily changing date formats',
-			summary: 'Notice: Unnecessarily changing date formats'
+			label: 'Mengubah format tanggal secara tidak perlu',
+			summary: 'Pemberitahuan: Pengubahan format tanggal secara tidak perlu'
 		},
 		'uw-deadlink': {
-			label: 'Removing proper sources containing dead links',
-			summary: 'Notice: Removing proper sources containing dead links'
-		},
-		'uw-displaytitle': {
-			label: 'Incorrect use of DISPLAYTITLE',
-			summary: 'Notice: Incorrect use of DISPLAYTITLE'
+			label: 'Menghapus rujukan layak yang mengandung pranala mati',
+			summary: 'Pemberitahuan: Penghapusan rujukan layak yang mengandung pranala mati'
 		},
 		'uw-draftfirst': {
-			label: 'User should draft in userspace without the risk of speedy deletion',
-			summary: 'Notice: Consider drafting your article in [[Help:Userspace draft|userspace]]'
+			label: 'Merancang dalam ruang pengguna tanpa risiko penghapusan cepat',
+			summary: 'Pemberitahuan: Pertimbangkan merancang artikel Anda dalam [[Bantuan:Draf ruang pengguna|ruang pengguna]]'
 		},
 		'uw-editsummary': {
-			label: 'New user not using edit summary',
-			summary: 'Notice: Not using edit summary'
-		},
-		'uw-editsummary2': {
-			label: 'Experienced user not using edit summary',
-			summary: 'Notice: Not using edit summary',
-			hideLinkedPage: true,
-			hideReason: true
+			label: 'Tidak menggunakan ringkasan suntingan',
+			summary: 'Pemberitahuan: Tidak menggunakan ringkasan suntingan'
 		},
 		'uw-elinbody': {
-			label: 'Adding external links to the body of an article',
-			summary: 'Notice: Keep external links to External links sections at the bottom of an article'
+			label: 'Menambahkan pranala luar ke bagian isi artikel',
+			summary: 'Pemberitahuan: Letakkan pranala pada bagian Pranala luar di akhir artikel'
 		},
 		'uw-english': {
-			label: 'Not communicating in English',
-			summary: 'Notice: Not communicating in English'
+			label: 'Tidak berkomunikasi dalam bahasa Indonesia',
+			summary: 'Pemberitahuan: Tidak berkomunikasi dalam bahasa Indonesia'
 		},
 		'uw-hasty': {
-			label: 'Hasty addition of speedy deletion tags',
-			summary: 'Notice: Allow creators time to improve their articles before tagging them for deletion'
-		},
-		'uw-islamhon': {
-			label: 'Use of Islamic honorifics',
-			summary: 'Notice: Use of Islamic honorifics'
+			label: 'Menambahkan tag penghapusan cepat secara gegabah',
+			summary: 'Pemberitahuan: Izinkan pembuat artikel memperbaikinya sebelum diberi tag hapus'
 		},
 		'uw-italicize': {
-			label: 'Italicize books, films, albums, magazines, TV series, etc within articles',
-			summary: 'Notice: Italicize books, films, albums, magazines, TV series, etc within articles'
+			label: 'Cetak miring judul buku, film, album, majalah, serial TV, dll.',
+			summary: 'Pemberitahuan: Cetak miring judul buku, film, album, majalah, serial TV, dll.'
 		},
 		'uw-lang': {
-			label: 'Unnecessarily changing between British and American English',
-			summary: 'Notice: Unnecessarily changing between British and American English',
+			label: 'Pengubahan yang tidak perlu antara bahasa Inggris Amerika dan Britania',
+			summary: 'Pemberitahuan: Pengubahan yang tidak perlu antara bahasa Inggris Amerika dan Britania',
 			heading: 'National varieties of English'
 		},
 		'uw-linking': {
-			label: 'Excessive addition of redlinks or repeated blue links',
-			summary: 'Notice: Excessive addition of redlinks or repeated blue links'
-		},
-		'uw-longsd': {
-			label: 'Insertion of long short description',
-			summary: 'Notice: Insertion of long short description'
+			label: 'Menambahkan pranala merah atau pengulangan pranala biru secara berlebihan',
+			summary: 'Pemberitahuan: Penambahan pranala merah atau pengulangan pranala biru secara berlebihan'
 		},
 		'uw-minor': {
-			label: 'Incorrect use of minor edits check box',
-			summary: 'Notice: Incorrect use of minor edits check box'
-		},
-		'uw-multiple-accts': {
-			label: 'Inappropriate use of alternative accounts',
-			summary: 'Notice: Inappropriate use of alternative accounts'
+			label: 'Menandai suntingan kecil secara tidak benar',
+			summary: 'Pemberitahuan: Penandaan suntingan kecil secara tidak benar'
 		},
 		'uw-notenglish': {
-			label: 'Creating non-English articles',
-			summary: 'Notice: Creating non-English articles'
-		},
-		'uw-notenglishedit': {
-			label: 'Adding non-English content to articles',
-			summary: 'Notice: Adding non-English content to articles'
+			label: 'Membuat artikel bukan dalam bahasa Indonesia',
+			summary: 'Pemberitahuan: Pembuatan artikel bukan dalam bahasa Indonesia'
 		},
 		'uw-notvote': {
-			label: 'We use consensus, not voting',
-			summary: 'Notice: We use consensus, not voting'
+			label: 'Kita menggunakan konsensus, bukan pemungutan suara',
+			summary: 'Pemberitahuan: Kita menggunakan konsensus, bukan pemungutan suara'
 		},
 		'uw-plagiarism': {
-			label: 'Copying from public domain sources without attribution',
-			summary: 'Notice: Copying from public domain sources without attribution'
+			label: 'Menyalin dari sumber domain publik tanpa atribusi',
+			summary: 'Pemberitahuan: Penyalinan dari sumber domain publik tanpa atribusi'
 		},
 		'uw-preview': {
-			label: 'Use preview button to avoid mistakes',
-			summary: 'Notice: Use preview button to avoid mistakes'
+			label: 'Menggunakan tombol Lihat pratayang untuk menghindari kesalahan',
+			summary: 'Pemberitahuan: Penggunaan tombol Lihat pratayang untuk menghindari kesalahan'
 		},
 		'uw-redlink': {
-			label: 'Indiscriminate removal of redlinks',
-			summary: 'Notice: Be careful when removing redlinks'
-		},
-		'uw-refspam': {
-			label: 'Adding citations to research published by a small group of researchers',
-			summary: 'Notice: Adding citations to research published by a small group of researchers',
-			hideLinkedPage: true,
-			hideReason: true
+			label: 'Penghapusan pranala merah secara sembarangan',
+			summary: 'Pemberitahuan: Hati-hati saat menghapus pranala merah'
 		},
 		'uw-selfrevert': {
-			label: 'Self-reverted editing tests',
-			summary: 'Notice: Self-reverted editing tests'
+			label: 'Mengembalikan uji coba sendiri',
+			summary: 'Pemberitahuan: Pengembalian uji coba sendiri'
 		},
 		'uw-socialnetwork': {
-			label: 'Wikipedia is not a social network',
-			summary: 'Notice: Wikipedia is not a social network'
+			label: 'Wikipedia bukanlah jejaring sosial',
+			summary: 'Pemberitahuan: Wikipedia bukanlah jejaring sosial'
 		},
 		'uw-sofixit': {
-			label: 'Be bold and fix things yourself',
-			summary: 'Notice: You can be bold and fix things yourself'
+			label: 'Jangan ragu, Anda dapat memperbaikinya',
+			summary: 'Pemberitahuan: Jangan ragu, Anda dapat memperbaikinya'
 		},
 		'uw-spoiler': {
-			label: 'Adding spoiler alerts or removing spoilers from appropriate sections',
-			summary: "Notice: Don't delete or flag potential 'spoilers' in Wikipedia articles"
+			label: 'Menambahkan peringatan beberan atau menghapus beberan dari bagian terkait',
+			summary: "Pemberitahuan: Jangan menghapus atau menandai kemungkinan 'beberan'"
 		},
 		'uw-talkinarticle': {
-			label: 'Talk in article',
-			summary: 'Notice: Talk in article'
+			label: 'Pembicaraan dalam artikel',
+			summary: 'Pemberitahuan: Pembicaraan dalam artikel'
 		},
 		'uw-tilde': {
-			label: 'Not signing posts',
-			summary: 'Notice: Not signing posts'
+			label: 'Tidak menandatangani pesan',
+			summary: 'Pemberitahuan: Tidak menandatangani pesan'
 		},
 		'uw-toppost': {
-			label: 'Posting at the top of talk pages',
-			summary: 'Notice: Posting at the top of talk pages'
-		},
-		'uw-translation': {
-			label: 'Adding translations without proper attribution',
-			summary: 'Notice: Attribution required when translating articles'
-		},
-		'uw-unattribcc': {
-			label: 'Copying from compatibly-licensed sources without attribution',
-			summary: 'Notice: Copying from compatibly-licensed sources without attribution'
+			label: 'Menulis pesan di bagian atas halaman pembicaraan',
+			summary: 'Pemberitahuan: Penulisan pesan di bagian atas halaman pembicaraan'
 		},
 		'uw-userspace draft finish': {
-			label: 'Stale userspace draft',
-			summary: 'Notice: Stale userspace draft'
-		},
-		'uw-usertalk': {
-			label: 'Misuse of user talk page',
-			summary: 'Notice: Misuse of user talk page',
-			hideLinkedPage: true
+			label: 'Draf ruang pengguna yang terbengkalai',
+			summary: 'Pemberitahuan: Draf ruang pengguna yang terbengkalai'
 		},
 		'uw-vgscope': {
-			label: 'Adding video game walkthroughs, cheats or instructions',
-			summary: 'Notice: Adding video game walkthroughs, cheats or instructions'
+			label: 'Menambahkan instruksi, cara curang, atau penelusuran permainan video',
+			summary: 'Pemberitahuan: Penambahan instruksi, cara curang, atau penelusuran permainan video'
 		},
 		'uw-warn': {
-			label: 'Place user warning templates when reverting vandalism',
-			summary: 'Notice: You can use user warning templates when reverting vandalism'
+			label: 'Menggunakan templat peringatan pengguna setelah mengembalikan vandalisme',
+			summary: 'Pemberitahuan: Penggunaan templat peringatan pengguna setelah mengembalikan vandalisme'
 		},
 		'uw-wrongsummary': {
-			label: 'Using inaccurate or inappropriate edit summaries',
-			summary: 'Notice: Using inaccurate or inappropriate edit summaries'
+			label: 'Ketidaksesuaian atau ketidakakuratan penggunaan ringkasan suntingan',
+			summary: 'Pemberitahuan: Ketidaksesuaian atau ketidakakuratan penggunaan ringkasan suntingan'
 		}
 	},
 
 	singlewarn: {
 		'uw-3rr': {
-			label: 'Potential three-revert rule violation; see also uw-ew',
-			summary: 'Warning: Three-revert rule'
+			label: 'Melanggar aturan tiga kali pengembalian; lihat pula uw-ew',
+			summary: 'Peringatan: Pelanggaran aturan tiga kali pengembalian'
 		},
 		'uw-affiliate': {
-			label: 'Affiliate marketing',
-			summary: 'Warning: Affiliate marketing'
+			label: 'Pemasaran afiliasi',
+			summary: 'Peringatan: Pemasaran afiliasi'
+		},
+		'uw-agf-sock': {
+			label: 'Menggunakan lebih dari satu akun (asumsikan niat baik)',
+			summary: 'Peringatan: Penggunaan lebih dari satu akun'
 		},
 		'uw-attack': {
-			label: 'Creating attack pages',
-			summary: 'Warning: Creating attack pages',
+			label: 'Membuat halaman serangan',
+			summary: 'Peringatan: Pembuatan halaman serangan',
 			suppressArticleInSummary: true
 		},
 		'uw-botun': {
-			label: 'Bot username',
-			summary: 'Warning: Bot username'
+			label: 'Nama pengguna bot',
+			summary: 'Peringatan: Nama pengguna bot'
 		},
 		'uw-canvass': {
-			label: 'Canvassing',
-			summary: 'Warning: Canvassing'
+			label: 'Penganvasan',
+			summary: 'Peringatan: Penganvasan'
 		},
 		'uw-copyright': {
-			label: 'Copyright violation',
-			summary: 'Warning: Copyright violation'
+			label: 'Pelanggaran hak cipta',
+			summary: 'Peringatan: Pelanggaran hak cipta'
 		},
 		'uw-copyright-link': {
-			label: 'Linking to copyrighted works violation',
-			summary: 'Warning: Linking to copyrighted works violation'
+			label: 'Pelanggaran hak cipta pranala',
+			summary: 'Peringatan: Pelanggaran hak cipta pranala'
 		},
 		'uw-copyright-new': {
-			label: 'Copyright violation (with explanation for new users)',
-			summary: 'Notice: Avoiding copyright problems',
-			heading: 'Wikipedia and copyright'
+			label: 'Menautkan ke pelanggaran karya berhak cipta',
+			summary: 'Peringatan: Tautan ke pelanggaran karya berhak cipta',
+			heading: 'Wikipedia dan hak cipta'
 		},
 		'uw-copyright-remove': {
-			label: 'Removing {{copyvio}} template from articles',
-			summary: 'Warning: Removing {{copyvio}} templates'
-		},
-		'uw-derogatory': {
-			label: 'Addition of derogatory/hateful content',
-			summary: 'Warning: Addition of derogatory content'
+			label: 'Menghapus templat {{copyvio}} dari artikel',
+			summary: 'Peringatan: Penghapusan templat {{copyvio}}'
 		},
 		'uw-efsummary': {
-			label: 'Edit summary triggering the edit filter',
-			summary: 'Warning: Edit summary triggering the edit filter'
+			label: 'Ringkasan suntingan memicu filter penyuntingan',
+			summary: 'Pemberitahuan: Ringkasan suntingan memicu filter penyuntingan'
 		},
 		'uw-ew': {
-			label: 'Edit warring (stronger wording)',
-			summary: 'Warning: Edit warring'
+			label: 'Perang suntingan (teguran keras)',
+			summary: 'Peringatan: Perang suntingan'
 		},
 		'uw-ewsoft': {
-			label: 'Edit warring (softer wording for newcomers)',
-			summary: 'Warning: Edit warring'
+			label: 'Perang suntingan (teguran lunak bagi pengguna baru)',
+			summary: 'Pemberitahuan: Perang suntingan'
 		},
 		'uw-hijacking': {
-			label: 'Hijacking articles',
-			summary: 'Warning: Hijacking articles'
+			label: 'Membajak artikel',
+			summary: 'Peringatan: Membajak artikel'
 		},
 		'uw-hoax': {
-			label: 'Creating hoaxes',
-			summary: 'Warning: Creating hoaxes'
+			label: 'Membuat cerita/kabar bohong',
+			summary: 'Peringatan: Pembuatan cerita bohong'
 		},
 		'uw-legal': {
-			label: 'Making legal threats',
-			summary: 'Warning: Making legal threats'
+			label: 'Membuat ancaman hukum',
+			summary: 'Peringatan: Pembuatan ancaman hukum'
 		},
 		'uw-login': {
-			label: 'Editing while logged out',
-			summary: 'Warning: Editing while logged out'
+			label: 'Menyunting setelah keluar log',
+			summary: 'Pemberitahuan: Penyuntingan setelah keluar log'
 		},
 		'uw-multipleIPs': {
-			label: 'Usage of multiple IPs',
-			summary: 'Warning: Vandalism using multiple IPs'
-		},
-		'uw-paraphrase': {
-			label: 'Close paraphrasing',
-			summary: 'Warning: Close paraphrasing'
+			label: 'Menggunakan lebih dari satu alamat IP',
+			summary: 'Peringatan: Penggunaan lebih dari satu alamat IP'
 		},
 		'uw-pinfo': {
-			label: 'Personal info (outing)',
-			summary: 'Warning: Personal info'
+			label: 'Menambahkan info pribadi pengguna lain',
+			summary: 'Peringatan: Penambahan info pribadi pengguna lain'
 		},
 		'uw-salt': {
-			label: 'Recreating salted articles under a different title',
-			summary: 'Notice: Recreating creation-protected articles under a different title'
+			label: 'Membuat kembali artikel dalam daftar hitam judul dengan judul berbeda',
+			summary: 'Peringatan: Pembuatan kembali artikel yang tidak diperkenankan dengan judul berbeda'
 		},
 		'uw-socksuspect': {
-			label: 'Sockpuppetry',
-			summary: 'Warning: You are a suspected [[WP:SOCK|sockpuppet]]' // of User:...
+			label: 'Dugaan pengguna siluman',
+			summary: 'Peringatan: Dugaan [[WP:SILUMAN|pengguna siluman]]'  // of User:...
 		},
 		'uw-upv': {
-			label: 'Userpage vandalism',
-			summary: 'Warning: Userpage vandalism'
+			label: 'Vandalisme halaman pengguna',
+			summary: 'Peringatan: Vandalisme halaman pengguna'
 		},
 		'uw-username': {
-			label: 'Username is against policy',
-			summary: 'Warning: Your username might be against policy',
-			suppressArticleInSummary: true // not relevant for this template
+			label: 'Nama pengguna tidak sesuai kebijakan',
+			summary: 'Pemberitahuan: Nama pengguna tidak sesuai kebijakan',
+			suppressArticleInSummary: true  // not relevant for this template
 		},
 		'uw-coi-username': {
-			label: 'Username is against policy, and conflict of interest',
-			summary: 'Warning: Username and conflict of interest',
+			label: 'Nama pengguna tidak sesuai kebijakan, dan konflik kepentingan',
+			summary: 'Pemberitahuan: Kebijakan konflik kepentingan dan nama pengguna',
 			heading: 'Your username'
 		},
 		'uw-userpage': {
-			label: 'Userpage or subpage is against policy',
-			summary: 'Warning: Userpage or subpage is against policy'
+			label: 'Subhalaman atau halaman pengguna tidak sesuai kebijakan',
+			summary: 'Pemberitahuan: Subhalaman atau halaman pengguna tidak sesuai kebijakan'
 		}
 	}
 };
@@ -1426,7 +1261,7 @@ Twinkle.warn.callback.change_category = function twinklewarnCallbackChangeCatego
 		if (wrapInOptgroup && $.client.profile().platform === 'iphone') {
 			let wrapperOptgroup = new Morebits.QuickForm.Element({
 				type: 'optgroup',
-				label: 'Available templates'
+				label: 'Templat tersedia'
 			});
 			wrapperOptgroup = wrapperOptgroup.render();
 			container.appendChild(wrapperOptgroup);
@@ -1488,9 +1323,9 @@ Twinkle.warn.callback.change_category = function twinklewarnCallbackChangeCatego
 					createGroup(levelGroup, 'Level ' + lvl.slice(5) + ': ' + levelGroupLabel, true, lvl);
 				});
 			});
-			createGroup(Twinkle.warn.messages.singlenotice, 'Single-issue notices');
-			createGroup(Twinkle.warn.messages.singlewarn, 'Single-issue warnings');
-			createGroup(Twinkle.getPref('customWarningList'), 'Custom warnings');
+			createGroup(Twinkle.warn.messages.singlenotice, 'Pemberitahuan isu tunggal');
+			createGroup(Twinkle.warn.messages.singlewarn, 'Peringatan isu tunggal');
+			createGroup(Twinkle.getPref('customWarningList'), 'Peringatan kustom');
 			break;
 		case 'level1':
 		case 'level2':
@@ -1661,7 +1496,7 @@ Twinkle.warn.callback.change_subcategory = function twinklewarnCallbackChangeSub
 	$('#tw-warn-red-notice').remove();
 	let $redWarning;
 	if (selected_template === 'uw-username') {
-		$redWarning = $("<div style='color: red;' id='tw-warn-red-notice'>{{uw-username}} should <b>not</b> be used for <b>blatant</b> username policy violations. " +
+		$redWarning = $("<div style='color: red;' id='tw-warn-red-notice'>harusnya{{uw-username}} <b>tidak</b> digunakan untuk pelanggaran kebijakan nama pengguna <b>menyolok</b>. " +
 			"Blatant violations should be reported directly to UAA (via Twinkle's ARV tab). " +
 			'{{uw-username}} should only be used in edge cases in order to engage in discussion with the user.</div>');
 		$redWarning.insertAfter(Morebits.QuickForm.getElementLabelObject(e.target.form.reasonGroup));
@@ -1712,13 +1547,13 @@ Twinkle.warn.callbacks = {
 		const templatetext = Twinkle.warn.callbacks.getWarningWikitext(templatename, linkedarticle,
 			input.reason, input.main_group === 'custom');
 
-		form.previewer.beginRender(templatetext, 'User_talk:' + mw.config.get('wgRelevantUserName')); // Force wikitext/correct username
+		form.previewer.beginRender(templatetext, 'Pembicaraan pengguna:' + mw.config.get('wgRelevantUserName')); // Force wikitext/correct username
 	},
 	// Just a pass-through unless the autolevel option was selected
 	preview: function(form) {
 		if (form.main_group.value === 'autolevel') {
 			// Always get a new, updated talkpage for autolevel processing
-			const usertalk_page = new Morebits.wiki.Page('User_talk:' + mw.config.get('wgRelevantUserName'), 'Loading previous warnings');
+			const usertalk_page = new Morebits.wiki.Page('Pembicaraan pengguna:' + mw.config.get('wgRelevantUserName'), 'Memuat peringatan sebelumnya');
 			usertalk_page.setFollowRedirect(true, false);
 			// Will fail silently if the talk page is a cross-ns redirect,
 			// removal of the preview box handled when loading the menu
@@ -1814,7 +1649,7 @@ Twinkle.warn.callbacks = {
 		if (isNaN(level)) { // No prior warnings found, this is the first
 			level = 1;
 		} else if (level > 4 || level < 1) { // Shouldn't happen
-			const message = 'Unable to parse previous warning level, please manually select a warning level.';
+			const message = 'Tidak dapat mengambil tingkat peringatan sebelumnya, tolong secara manual untuk memilih sebuah tingkat peringatan.';
 			if (statelem) {
 				statelem.error(message);
 			} else {
@@ -1832,7 +1667,7 @@ Twinkle.warn.callbacks = {
 					if (!statelem) {
 						const $link = $('<a>', {
 							href: '#',
-							text: 'click here to open the ARV tool.',
+							text: 'tekan disini untuk membuka alat ARV.',
 							css: { fontWeight: 'bold' },
 							click: function() {
 								Morebits.wiki.actionCompleted.redirect = null;
@@ -1843,7 +1678,7 @@ Twinkle.warn.callbacks = {
 							}
 						});
 						const $statusNode = $('<div>', {
-							text: mw.config.get('wgRelevantUserName') + ' recently received a level 4 warning (' + latest.type + ') so it might be better to report them instead; ',
+							text: mw.config.get('wgRelevantUserName') + ' baru saja mendapat peringatan tingkat 4 (' + latest.type + ') jadi lebih baik melaporkannya saja; ',
 							css: {color: 'red' }
 						});
 						$statusNode.append($link[0]);
@@ -1857,7 +1692,7 @@ Twinkle.warn.callbacks = {
 			}
 		}
 
-		$autolevelMessage.prepend($('<div>Will issue a <span style="font-weight: bold;">level ' + level + '</span> template.</div>'));
+		$autolevelMessage.prepend($('<div>Akan memberikan <span style="font-weight: bold;">templat ' + level + '</span> tingkat.</div>'));
 		// Place after the stale and other-user-reverted (text-only) messages
 		$('#twinkle-warn-autolevel-message').remove(); // clean slate
 		$autolevelMessage.insertAfter($('#twinkle-warn-warning-messages'));
@@ -1889,8 +1724,8 @@ Twinkle.warn.callbacks = {
 			const templateAndLevel = Twinkle.warn.callbacks.autolevelParseWikitext(text, params, latest, now, statelem);
 
 			// Only if there's a change from the prior display/load
-			if (params.sub_group !== templateAndLevel[0] && !confirm('Will issue a {{' + templateAndLevel[0] + '}} template to the user, okay?')) {
-				statelem.error('aborted per user request');
+			if (params.sub_group !== templateAndLevel[0] && !confirm('Akan memberikan templat {{' + templateAndLevel[0] + '}} ke pengguna?')) {
+				statelem.error('dibatalkan atas permintaan pengguna');
 				return;
 			}
 			// Update params now that we've selected a warning
@@ -1898,8 +1733,8 @@ Twinkle.warn.callbacks = {
 			messageData = params.messageData['level' + templateAndLevel[1]];
 		} else if (params.sub_group in history) {
 			if (new Morebits.Date(history[params.sub_group]).add(1, 'day').isAfter(now)) {
-				if (!confirm('An identical ' + params.sub_group + ' has been issued in the last 24 hours.  \nWould you still like to add this warning/notice?')) {
-					statelem.error('aborted per user request');
+				if (!confirm('Sebuah' + params.sub_group + ' sama telah diberika baru-baru ini  \nAnda ingin tetap memberikan peringatan/pemberitahuan ini?')) {
+					statelem.error('dibatalkan atas permintaan pengguna');
 					return;
 				}
 			}
@@ -1908,8 +1743,8 @@ Twinkle.warn.callbacks = {
 		latest.date.add(1, 'minute'); // after long debate, one minute is max
 
 		if (latest.date.isAfter(now)) {
-			if (!confirm('A ' + latest.type + ' has been issued in the last minute.  \nWould you still like to add this warning/notice?')) {
-				statelem.error('aborted per user request');
+			if (!confirm('Sebuah ' + latest.type + ' telah diberikan di beberapa menit ini.  \nAnda ingin tetap memberikan peringatan/pemberitahuan ini?')) {
+				statelem.error('dibatalkan atas permintaan pengguna');
 				return;
 			}
 		}
@@ -1985,7 +1820,7 @@ Twinkle.warn.callbacks = {
 		let warningText = Twinkle.warn.callbacks.getWarningWikitext(params.sub_group, params.article,
 			params.reason, params.main_group === 'custom');
 		if (Twinkle.getPref('showSharedIPNotice') && mw.util.isIPAddress(mw.config.get('wgTitle'))) {
-			Morebits.Status.info('Info', 'Adding a shared IP notice');
+			Morebits.Status.info('Info', 'Menambahkan sebuah pemberitahuan IP berbagi');
 			warningText += '\n{{subst:Shared IP advice}}';
 		}
 
@@ -2011,7 +1846,7 @@ Twinkle.warn.callbacks = {
 			if (messageData.heading) { // create new section
 				pageobj.setNewSectionTitle(messageData.heading);
 			} else {
-				Morebits.Status.info('Info', 'Will create a new talk page section for this month, as none was found');
+				Morebits.Status.info('Info', 'Akan membuat sebuah bagian halaman pembicaraan baru untuk bulan ini karena baru tidak ada sebelumnya');
 				pageobj.setNewSectionTitle(now.monthHeader(0));
 			}
 			pageobj.setNewSectionText(warningText);
@@ -2021,14 +1856,14 @@ Twinkle.warn.callbacks = {
 };
 
 Twinkle.warn.callback.evaluate = function twinklewarnCallbackEvaluate(e) {
-	const userTalkPage = 'User_talk:' + mw.config.get('wgRelevantUserName');
+	const userTalkPage = 'Pembicaraan pengguna:' + mw.config.get('wgRelevantUserName');
 
 	// reason, main_group, sub_group, article
 	const params = Morebits.QuickForm.getInputData(e.target);
 
 	// Check that a reason was filled in if uw-username was selected
 	if (params.sub_group === 'uw-username' && !params.article) {
-		alert('You must supply a reason for the {{uw-username}} template.');
+		alert('Anda harus menyediakan sebuah alasan untuk templat {{uw-username}}.');
 		return;
 	}
 
@@ -2047,9 +1882,9 @@ Twinkle.warn.callback.evaluate = function twinklewarnCallbackEvaluate(e) {
 	Morebits.Status.init(e.target);
 
 	Morebits.wiki.actionCompleted.redirect = userTalkPage;
-	Morebits.wiki.actionCompleted.notice = 'Warning complete, reloading talk page in a few seconds';
+	Morebits.wiki.actionCompleted.notice = 'Peringatan selesai, memuat kembali halaman pembicaraan segera';
 
-	const wikipedia_page = new Morebits.wiki.Page(userTalkPage, 'User talk page modification');
+	const wikipedia_page = new Morebits.wiki.Page(userTalkPage, 'Modifikasi halaman pembicaraan pengguna');
 	wikipedia_page.setCallbackParameters(params);
 	wikipedia_page.setFollowRedirect(true, false);
 	wikipedia_page.load(Twinkle.warn.callbacks.main);
