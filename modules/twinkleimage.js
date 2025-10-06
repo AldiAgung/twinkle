@@ -49,43 +49,43 @@ Twinkle.image.callback = function twinkleimageCallback() {
 		event: Twinkle.image.callback.choice,
 		list: [
 			{
-				label: 'Tidak ada sumber (KPC B4)',
+				label: 'Tanpa sumber (KPC B4)',
 				value: 'no source',
 				checked: true,
 				tooltip: 'Gambar atau media tidak memiliki informasi'
 			},
 			{
-				label: 'Tidak ada lisensi (KPC B4)',
+				label: 'Tanpa lisensi (KPC B4)',
 				value: 'no license',
 				tooltip: 'Gambar atau media tidak memilki informasi di status hak ciptanya'
 			},
 			{
-				label: 'Tidak ada sumber dan lisensi (KPC B4)',
+				label: 'Tanpa sumber dan lisensi (KPC B4)',
 				value: 'no source no license',
 				tooltip: 'Gambar atau media tidak memilki informasi serta status hak ciptanya'
 			},
 			{
-				label: 'Penggunaan berkas yatim tidak bebas digunakan (KPC B5)',
+				label: 'Berkas nonbebas yang tak digunakan (KPC B5)',
 				value: 'orphaned non-free use',
 				tooltip: 'Gambar atau media tidak dilisensikan untuk penggunaan pada Wikipedia dan hanya diizinkan dibawah klaim penggunaan wajar per Wikipedia:Konten tak bebas, tetapi tidak digunakan di artikel manapun'
 			},
 			{
-				label: 'Tidak penggunaan wajar tidak bebas (KPC B6)',
+				label: 'Tidak memiliki alasan penggunaan nonbebas (KPC B6)',
 				value: 'no non-free use rationale',
-				tooltip: 'Gambar atau media diklaim untuk digunakan dibawah kebijakan penggunaan bebas Wiki, tetapi tidak ada penjelasan mengapa berkas tersebut diizinkan dibawah kebijakan tersebut.'
+				tooltip: 'Gambar atau media diklaim untuk digunakan dibawah kebijakan penggunaan bebas Wiki, tetapi Tanpa penjelasan mengapa berkas tersebut diizinkan dibawah kebijakan tersebut.'
 			},
 			{
-				label: 'Alasan penggunaan non-bebas yang disengketakan (KPC B7)',
+				label: 'Berkas penggunaan wajar yang dipertentangkan (KPC B7)',
 				value: 'disputed non-free use rationale',
-				tooltip: 'Gambar atau media mempunyai sebuah hak penggunaan wajar yang dipertentangkan atau tidak sah, seperti tag {{Non-free logo}} pada sebuah fotografi dari sebuah maskot'
+				tooltip: 'Gambar atau media yang diklaim perlu digunakan sejalan dengan kebijakan berkas non-bebas, tetapi tidak memiliki alasan mengapa hal ini dapat diizinkan untuk berkas ini'
 			},
 			{
-				label: 'Penggantian tidak bebas yang dapat diganti (KPC B7)',
+				label: 'Berkas penggunaan wajar yang dapat digantikan (KPC B7)',
 				value: 'replaceable non-free use',
-				tooltip: 'Image or media may fail Wikipedia\'s first non-free content criterion ([[WP:NFCC#1]]) in that it illustrates a subject for which a free image might reasonably be found or created that adequately provides the same information'
+				tooltip: 'Gambar atau media mungkin tidak memnuhi kriteria konten non bebas ([[WP:NFCC#1]]) karena menggambarkan suatu subjek yang mana gambar bebasnya dapat ditemukan atau dibuat yang secara memadai memberikan informasi yang sama'
 			},
 			{
-				label: 'Tidak ada bukti untuk perizinan (KPC B11)',
+				label: 'Tanpa bukti untuk perizinan (KPC B11)',
 				value: 'no permission',
 				tooltip: 'Gambar atau media tidak mempunyai bukti bahwa pengunggah setuju untuk melisensikan berkasnya'
 			}
@@ -161,7 +161,7 @@ Twinkle.image.callback.choice = function twinkleimageCallbackChoose(event) {
 				type: 'input',
 				name: 'replacement',
 				label: 'Penggantian:',
-				tooltip: 'Berkas opsional yang mengganti berkas lama.   Prefix "Berkas:" opsional.'
+				tooltip: 'Berkas opsional yang mengganti berkas lama. Prefix "Berkas:" opsional.'
 			});
 			break;
 		case 'replaceable non-free use':
@@ -182,7 +182,7 @@ Twinkle.image.callback.evaluate = function twinkleimageCallbackEvaluate(event) {
 
 	const input = Morebits.QuickForm.getInputData(event.target);
 	if (input.replacement) {
-		input.replacement = (new RegExp('^' + Morebits.namespaceRegex(6) + ':', 'i').test(input.replacement) ? '' : 'File:') + input.replacement;
+		input.replacement = (new RegExp('^' + Morebits.namespaceRegex(6) + ':', 'i').test(input.replacement) ? '' : 'Berkas:') + input.replacement;
 	}
 
 	let csdcrit;
