@@ -1,10 +1,10 @@
 // <nowiki>
 
+(function() {
 
-(function($) {
-
-var api = new mw.Api(), relevantUserName;
-var menuFormattedNamespaces = $.extend({}, mw.config.get('wgFormattedNamespaces'));
+const api = new mw.Api();
+let relevantUserName, blockedUserName, blockWindow;
+const menuFormattedNamespaces = $.extend({}, mw.config.get('wgFormattedNamespaces'));
 menuFormattedNamespaces[0] = '(Article)';
 
 /*
@@ -16,15 +16,17 @@ menuFormattedNamespaces[0] = '(Article)';
  */
 
 Twinkle.block = function twinkleblock() {
+	relevantUserName = mw.config.get('wgRelevantUserName');
 	// should show on Contributions or Block pages, anywhere there's a relevant user
-	if (Morebits.userIsSysop && mw.config.get('wgRelevantUserName')) {
-		Twinkle.addPortletLink(Twinkle.block.callback, 'Blokir', 'tw-block', 'Blokir pengguna');
+	// Ignore ranges wider than the CIDR limit
+	if (Morebits.userIsSysop && relevantUserName && (!Morebits.ip.isRange(relevantUserName) || Morebits.ip.validCIDR(relevantUserName))) {
+		Twinkle.addPortletLink(Twinkle.block.callback, 'Block', 'tw-block', 'Blokir pengguna terkait');
 	}
 };
 
 Twinkle.block.callback = function twinkleblockCallback() {
-	if (mw.config.get('wgRelevantUserName') === mw.config.get('wgUserName') &&
-			!confirm('Anda akan memblokir diri sendiri. Apakah Anda yakin ingin melanjutkan?')) {
+	if (relevantUserName === mw.config.get('wgUserName') &&
+			!confirm('Anda ingin memblokir diri sendiri! Apakah anda yakin untuk melanjutkan?')) {
 		return;
 	}
 
@@ -32,16 +34,21 @@ Twinkle.block.callback = function twinkleblockCallback() {
 	Twinkle.block.field_block_options = {};
 	Twinkle.block.field_template_options = {};
 
-	var Window = new Morebits.simpleWindow(650, 530);
+	blockWindow = new Morebits.SimpleWindow(650, 530);
 	// need to be verbose about who we're blocking
-	Window.setTitle('Blokir atau berikan templat blokir kepada ' + mw.config.get('wgRelevantUserName'));
-	Window.setScriptName('Twinkle');
-	Window.addFooterLink('Templat pemblokiran', 'Template:Uw-block/doc/Block_templates');
-	Window.addFooterLink('Kebijakan pemblokiran', 'WP:BLOCK');
-	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#block');
+	blockWindow.setTitle('Blokir atau berikan templat blokir kepada ' + relevantUserName);
+	blockWindow.setScriptName('Twinkle');
+	blockWindow.addFooterLink('Templat blokir', 'Templat:Uw-block/doc/Templat_blokir');
+	blockWindow.addFooterLink('Kebijakan blokir', 'WP:BLOKIR');
+	blockWindow.addFooterLink('Preferensi blokir', 'WP:TW/PREF#blokir');
+	blockWindow.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#blokir');
+	blockWindow.addFooterLink('Berikan umpan balik', 'WT:TW');
 
-	var form = new Morebits.quickForm(Twinkle.block.callback.evaluate);
-	var actionfield = form.append({
+	// Always added, hidden later if actual user not blocked
+	blockWindow.addFooterLink('Buka pemblokiran pengguna ini', 'Istimewa:Unblock/' + relevantUserName, true);
+
+	const form = new Morebits.QuickForm(Twinkle.block.callback.evaluate);
+	const actionfield = form.append({
 		type: 'field',
 		label: 'Type of action'
 	});
@@ -71,105 +78,293 @@ Twinkle.block.callback = function twinkleblockCallback() {
 		]
 	});
 
-	form.append({ type: 'field', label: 'Opsi', name: 'field_preset' });
-	form.append({ type: 'field', label: 'Opsi templat', name: 'field_template_options' });
-	form.append({ type: 'field', label: 'Opsi pemblokiran', name: 'field_block_options' });
+	/*
+	  Add option for IPv6 ranges smaller than /64 to upgrade to the 64
+	  CIDR ([[WP:/64]]).  This is one of the few places where we want
+	  wgRelevantUserName since this depends entirely on the original user.
+	  In theory, we shouldn't use Morebits.ip.get64 here since since we want
+	  to exclude functionally-equivalent /64s.  That'd be:
+	  // if (mw.util.isIPv6Address(mw.config.get('wgRelevantUserName'), true) &&
+	  // (mw.util.isIPv6Address(mw.config.get('wgRelevantUserName')) || parseInt(mw.config.get('wgRelevantUserName').replace(/^(.+?)\/?(\d{1,3})?$/, '$2'), 10) > 64)) {
+	  In practice, though, since functionally-equivalent ranges are
+	  (mis)treated as separate by MediaWiki's logging ([[phab:T146628]]),
+	  using Morebits.ip.get64 provides a modicum of relief in thise case.
+	*/
+	const sixtyFour = Morebits.ip.get64(mw.config.get('wgRelevantUserName'));
+	if (sixtyFour && sixtyFour !== mw.config.get('wgRelevantUserName')) {
+		const block64field = form.append({
+			type: 'field',
+			label: 'Konversi ke pemblokiran jarak /64',
+			name: 'field_64'
+		});
+		block64field.append({
+			type: 'div',
+			style: 'margin-bottom: 0.5em',
+			label: ['Biasanya baik-baik saja, jika tidak lebih baik, untuk ', $.parseHTML('<a target="_blank" href="' + mw.util.getUrl('WP:/64') + '">blokir saja /64</a>')[0], ' range (',
+				$.parseHTML('<a target="_blank" href="' + mw.util.getUrl('Istimewa:Kontribusi/' + sixtyFour) + '">' + sixtyFour + '</a>)')[0], ').']
+		});
+		block64field.append({
+			type: 'checkbox',
+			name: 'block64',
+			event: Twinkle.block.callback.change_block64,
+			list: [{
+				checked: Twinkle.getPref('defaultToBlock64'),
+				label: 'Blokir /64 saja',
+				value: 'block64',
+				tooltip: Morebits.ip.isRange(mw.config.get('wgRelevantUserName')) ? 'Will eschew leaving a template.' : 'Templat apapun akan diberikan ke alamat IP asli: ' + mw.config.get('wgRelevantUserName')
+			}]
+		});
+	}
+
+	form.append({ type: 'field', label: 'Preset', name: 'field_preset' });
+	form.append({ type: 'field', label: 'Pilihan templat', name: 'field_template_options' });
+	form.append({ type: 'field', label: 'Pilihan blokir', name: 'field_block_options' });
 
 	form.append({ type: 'submit' });
 
-	var result = form.render();
-	Window.setContent(result);
-	Window.display();
+	const result = form.render();
+	blockWindow.setContent(result);
+	blockWindow.display();
 	result.root = result;
 
-	Twinkle.block.fetchUserInfo(function() {
-		// clean up preset data (defaults, etc.), done exactly once, must be before Twinkle.block.callback.change_action is called
-		Twinkle.block.transformBlockPresets();
-		if (Twinkle.block.currentBlockInfo) {
-			Window.addFooterLink('Cabut pemblokiran', 'Special:Unblock/' + mw.config.get('wgRelevantUserName'), true);
+	Twinkle.block.fetchUserInfo(() => {
+		// Toggle initial partial state depending on prior block type,
+		// will override the defaultToPartialBlocks pref
+		if (blockedUserName === relevantUserName) {
+			$(result).find('[name=actiontype][value=partial]').prop('checked', Twinkle.block.currentBlockInfo.partial === '');
 		}
 
+		// clean up preset data (defaults, etc.), done exactly once, must be before Twinkle.block.callback.change_action is called
+		Twinkle.block.transformBlockPresets();
+
 		// init the controls after user and block info have been fetched
-		var evt = document.createEvent('Event');
+		const evt = document.createEvent('Event');
 		evt.initEvent('change', true, true);
-		result.actiontype[0].dispatchEvent(evt);
+
+		if (result.block64 && result.block64.checked) {
+			// Calls the same change_action event once finished
+			result.block64.dispatchEvent(evt);
+		} else {
+			result.actiontype[0].dispatchEvent(evt);
+		}
 	});
 };
 
+// Store fetched user data, only relevant if switching IPv6 to a /64
+Twinkle.block.fetchedData = {};
+// Processes the data from a query response, separated from
+// Twinkle.block.fetchUserInfo to allow reprocessing of already-fetched data
+Twinkle.block.processUserInfo = function twinkleblockProcessUserInfo(data, fn) {
+	let blockinfo = data.query.blocks[0];
+	// Soft redirect to Special:Block if the user is multi-blocked (#2178)
+	if (blockinfo && data.query.blocks.length > 1) {
+		// Remove submission buttons.
+		$(blockWindow.content).dialog('widget').find('.morebits-dialog-buttons').empty();
+		Morebits.Status.init(blockWindow.content.querySelector('form'));
+		Morebits.Status.warn(
+			`This target has ${data.query.blocks.length} active blocks`,
+			`Multiblocks tidak didukung oleh Twinkle. Gunakan [[Istimewa:Blokir pengguna/${relevantUserName}]].`
+		);
+		return;
+	}
+	const userinfo = data.query.users[0];
+	// If an IP is blocked *and* rangeblocked, the above finds
+	// whichever block is more recent, not necessarily correct.
+	// Three seems... unlikely
+	if (data.query.blocks.length > 1 && blockinfo.user !== relevantUserName) {
+		blockinfo = data.query.blocks[1];
+	}
+	// Cache response, used when toggling /64 blocks
+	Twinkle.block.fetchedData[userinfo.name] = data;
+
+	Twinkle.block.isRegistered = !!userinfo.userid;
+	if (Twinkle.block.isRegistered) {
+		Twinkle.block.userIsBot = !!userinfo.groupmemberships && userinfo.groupmemberships.map((e) => e.group).includes('bot');
+	} else {
+		Twinkle.block.userIsBot = false;
+	}
+
+	if (blockinfo) {
+		// handle frustrating system of inverted boolean values
+		blockinfo.disabletalk = blockinfo.allowusertalk === undefined;
+		blockinfo.hardblock = blockinfo.anononly === undefined;
+	}
+	// will undefine if no blocks present
+	Twinkle.block.currentBlockInfo = blockinfo;
+	blockedUserName = Twinkle.block.currentBlockInfo && Twinkle.block.currentBlockInfo.user;
+
+	// Toggle unblock link if not the user in question; always first
+	const unblockLink = document.querySelector('.morebits-dialog-footerlinks a');
+	if (blockedUserName !== relevantUserName) {
+		unblockLink.hidden = true;
+		unblockLink.nextSibling.hidden = true; // link+trailing bullet
+	} else {
+		unblockLink.hidden = false;
+		unblockLink.nextSibling.hidden = false; // link+trailing bullet
+	}
+
+	// Semi-busted on ranges, see [[phab:T270737]] and [[phab:T146628]].
+	// Basically, logevents doesn't treat functionally-equivalent ranges
+	// as equivalent, meaning any functionally-equivalent IP range is
+	// misinterpreted by the log throughout.  Without logevents
+	// redirecting (like Special:Block does) we would need a function to
+	// parse ranges, which is a pain.  IPUtils has the code, but it'd be a
+	// lot of cruft for one purpose.
+	Twinkle.block.hasBlockLog = !!data.query.logevents.length;
+	Twinkle.block.blockLog = Twinkle.block.hasBlockLog && data.query.logevents;
+	// Used later to check if block status changed while filling out the form
+	Twinkle.block.blockLogId = Twinkle.block.hasBlockLog ? data.query.logevents[0].logid : false;
+
+	if (typeof fn === 'function') {
+		return fn();
+	}
+};
+
 Twinkle.block.fetchUserInfo = function twinkleblockFetchUserInfo(fn) {
-	api.get({
+	const query = {
 		format: 'json',
 		action: 'query',
 		list: 'blocks|users|logevents',
 		letype: 'block',
 		lelimit: 1,
-		bkusers: mw.config.get('wgRelevantUserName'),
-		ususers: mw.config.get('wgRelevantUserName'),
-		letitle: 'User:' + mw.config.get('wgRelevantUserName')
-	})
-		.then(function(data) {
-			var blockinfo = data.query.blocks[0],
-				userinfo = data.query.users[0];
+		letitle: 'User:' + relevantUserName,
+		bkprop: 'expiry|reason|flags|restrictions|range|user',
+		ususers: relevantUserName
+	};
 
-			Twinkle.block.isRegistered = !!userinfo.userid;
-			relevantUserName = Twinkle.block.isRegistered ? 'User:' + mw.config.get('wgRelevantUserName') : mw.config.get('wgRelevantUserName');
+	// bkusers doesn't catch single IPs blocked as part of a range block
+	if (mw.util.isIPAddress(relevantUserName, true)) {
+		query.bkip = relevantUserName;
+	} else {
+		query.bkusers = relevantUserName;
+		// groupmemberships only relevant for registered users
+		query.usprop = 'groupmemberships';
+	}
 
-			if (blockinfo) {
-			// handle frustrating system of inverted boolean values
-				blockinfo.disabletalk = blockinfo.allowusertalk === undefined;
-				blockinfo.hardblock = blockinfo.anononly === undefined;
-				Twinkle.block.currentBlockInfo = blockinfo;
-			}
-
-			Twinkle.block.hasBlockLog = !!data.query.logevents.length;
-			// Used later to check if block status changed while filling out the form
-			Twinkle.block.blockLogId = Twinkle.block.hasBlockLog ? data.query.logevents[0].logid : false;
-
-			if (typeof fn === 'function') {
-				return fn();
-			}
-		}, function(msg) {
-			Morebits.status.init($('div[name="currentblock"] span').last()[0]);
-			Morebits.status.warn('Galat ketika mencari informasi pengguna', msg);
-		});
+	api.get(query).then((data) => {
+		Twinkle.block.processUserInfo(data, fn);
+	}, (msg) => {
+		Morebits.Status.init($('div[name="currentblock"] span').last()[0]);
+		Morebits.Status.warn('Galat ketika mencari informasi pengguna', msg);
+	});
 };
 
 Twinkle.block.callback.saveFieldset = function twinkleblockCallbacksaveFieldset(fieldset) {
 	Twinkle.block[$(fieldset).prop('name')] = {};
-	$(fieldset).serializeArray().forEach(function(el) {
+	$(fieldset).serializeArray().forEach((el) => {
 		// namespaces and pages for partial blocks are overwritten
 		// here, but we're handling them elsewhere so that's fine
 		Twinkle.block[$(fieldset).prop('name')][el.name] = el.value;
 	});
 };
 
-Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction(e) {
-	var field_preset, field_template_options, field_block_options, $form = $(e.target.form);
-	// Make ifs shorter
-	var blockBox = $form.find('[name=actiontype][value=block]').is(':checked');
-	var templateBox = $form.find('[name=actiontype][value=template]').is(':checked');
-	var partial = $form.find('[name=actiontype][value=partial]');
-	var partialBox = partial.is(':checked');
-	var blockGroup = partialBox ? Twinkle.block.blockGroupsPartial : Twinkle.block.blockGroups;
+Twinkle.block.callback.change_block64 = function twinkleblockCallbackChangeBlock64(e) {
+	const $form = $(e.target.form), $block64 = $form.find('[name=block64]');
 
-	partial.prop('disabled', !blockBox && !templateBox);
+	// Show/hide block64 button
+	// Single IPv6, or IPv6 range smaller than a /64
+	const priorName = relevantUserName;
+	if ($block64.is(':checked')) {
+		relevantUserName = Morebits.ip.get64(mw.config.get('wgRelevantUserName'));
+	} else {
+		relevantUserName = mw.config.get('wgRelevantUserName');
+	}
+	// No templates for ranges, but if the original user is a single IP, offer the option
+	// (done separately in Twinkle.block.callback.issue_template)
+	const originalIsRange = Morebits.ip.isRange(mw.config.get('wgRelevantUserName'));
+	$form.find('[name=actiontype][value=template]').prop('disabled', originalIsRange).prop('checked', !originalIsRange);
+
+	// Refetch/reprocess user info then regenerate the main content
+	const regenerateForm = function() {
+		// Tweak titlebar text.  In theory, we could save the dialog
+		// at initialization and then use `.setTitle` or
+		// `dialog('option', 'title')`, but in practice that swallows
+		// the scriptName and requires `.display`ing, which jumps the
+		// window.  It's just a line of text, so this is fine.
+		const titleBar = document.querySelector('.ui-dialog-title').firstChild.nextSibling;
+		titleBar.nodeValue = titleBar.nodeValue.replace(priorName, relevantUserName);
+		// Tweak unblock link
+		const unblockLink = document.querySelector('.morebits-dialog-footerlinks a');
+		unblockLink.href = unblockLink.href.replace(priorName, relevantUserName);
+		unblockLink.title = unblockLink.title.replace(priorName, relevantUserName);
+
+		// Correct partial state
+		$form.find('[name=actiontype][value=partial]').prop('checked', Twinkle.getPref('defaultToPartialBlocks'));
+		if (blockedUserName === relevantUserName) {
+			$form.find('[name=actiontype][value=partial]').prop('checked', Twinkle.block.currentBlockInfo.partial === '');
+		}
+
+		// Set content appropriately
+		Twinkle.block.callback.change_action(e);
+	};
+
+	if (Twinkle.block.fetchedData[relevantUserName]) {
+		Twinkle.block.processUserInfo(Twinkle.block.fetchedData[relevantUserName], regenerateForm);
+	} else {
+		Twinkle.block.fetchUserInfo(regenerateForm);
+	}
+};
+
+Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction(e) {
+	let field_preset, field_template_options, field_block_options;
+	const $form = $(e.target.form);
+	// Make ifs shorter
+	const blockBox = $form.find('[name=actiontype][value=block]').is(':checked');
+	const templateBox = $form.find('[name=actiontype][value=template]').is(':checked');
+	const $partial = $form.find('[name=actiontype][value=partial]');
+	const partialBox = $partial.is(':checked');
+	let blockGroup = partialBox ? Twinkle.block.blockGroupsPartial : Twinkle.block.blockGroups;
+
+	$partial.prop('disabled', !blockBox && !templateBox);
+
+	// Add current block parameters as default preset
+	const prior = { label: 'Pemblokiran sebelumnya' };
+	if (blockedUserName === relevantUserName) {
+		Twinkle.block.blockPresetsInfo.prior = Twinkle.block.currentBlockInfo;
+		// value not a valid template selection, chosen below by setting templateName
+		prior.list = [{ label: 'Pengaturan pemblokiran sebelumnya', value: 'prior', selected: true }];
+
+		// Arrays of objects are annoying to check
+		if (!blockGroup.some((bg) => bg.label === prior.label)) {
+			blockGroup.push(prior);
+		}
+
+		// Always ensure proper template exists/is selected when switching modes
+		if (partialBox) {
+			Twinkle.block.blockPresetsInfo.prior.templateName = Morebits.string.isInfinity(Twinkle.block.currentBlockInfo.expiry) ? 'uw-pblockindef' : 'uw-pblock';
+		} else {
+			if (!Twinkle.block.isRegistered) {
+				Twinkle.block.blockPresetsInfo.prior.templateName = 'uw-ablock';
+			} else {
+				Twinkle.block.blockPresetsInfo.prior.templateName = Morebits.string.isInfinity(Twinkle.block.currentBlockInfo.expiry) ? 'uw-blockindef' : 'uw-block';
+			}
+		}
+	} else {
+		// But first remove any prior prior
+		blockGroup = blockGroup.filter((bg) => bg.label !== prior.label);
+	}
+
+	// Can be in preset or template field, so the old one in the template
+	// field will linger. No need to keep the old value around, so just
+	// remove it; saves trouble when hiding/evaluating
+	$form.find('[name=dstopic]').parent().remove();
 
 	Twinkle.block.callback.saveFieldset($('[name=field_block_options]'));
 	Twinkle.block.callback.saveFieldset($('[name=field_template_options]'));
 
 	if (blockBox) {
-		field_preset = new Morebits.quickForm.element({ type: 'field', label: 'Opsi', name: 'field_preset' });
+		field_preset = new Morebits.QuickForm.Element({ type: 'field', label: 'Preset', name: 'field_preset' });
 		field_preset.append({
 			type: 'select',
 			name: 'preset',
-			label: 'Pilih salah satu opsi:',
+			label: 'Berikan preset:',
 			event: Twinkle.block.callback.change_preset,
 			list: Twinkle.block.callback.filtered_block_groups(blockGroup)
 		});
 
-		field_block_options = new Morebits.quickForm.element({ type: 'field', label: 'Opsi pemblokiran', name: 'field_block_options' });
-		field_block_options.append({ type: 'div', name: 'hasblocklog', label: ' ' });
+		field_block_options = new Morebits.QuickForm.Element({ type: 'field', label: 'Block options', name: 'field_block_options' });
 		field_block_options.append({ type: 'div', name: 'currentblock', label: ' ' });
+		field_block_options.append({ type: 'div', name: 'hasblocklog', label: ' ' });
 		field_block_options.append({
 			type: 'select',
 			name: 'expiry_preset',
@@ -200,7 +395,7 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			type: 'input',
 			name: 'expiry',
 			label: 'Waktu kedaluwarsa lainnya',
-			tooltip: 'Anda dapat menggunakan waktu relatif, seperti "1 menit" atau "19 hari", atau dengan stempel waktu "yyyymmddhhmm", seperti 201601010300 untuk 1 Januari 2016 pukul 3.00 GMT.',
+			tooltip: 'Anda dapat menggunakan waktu relatif, seperti "1 menit" atau "19 hari", atau dengan stempel waktu "yyyymmddhhmm", seperti 201601010300 untuk 1 Januari 2016 pukul 3.00 GMT).',
 			value: Twinkle.block.field_block_options.expiry || Twinkle.block.field_template_options.template_expiry
 		});
 
@@ -213,7 +408,7 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 				value: '',
 				tooltip: 'Maksimal 10 halaman'
 			});
-			var ns = field_block_options.append({
+			const ns = field_block_options.append({
 				type: 'select',
 				multiple: true,
 				name: 'namespacerestrictions',
@@ -221,7 +416,7 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 				value: '',
 				tooltip: 'Blokir dari penyuntingan ruangnama ini.'
 			});
-			$.each(menuFormattedNamespaces, function(number, name) {
+			$.each(menuFormattedNamespaces, (number, name) => {
 				// Ignore -1: Special; -2: Media; and 2300-2303: Gadget (talk) and Gadget definition (talk)
 				if (number >= 0 && number < 830) {
 					ns.append({ type: 'option', label: name, value: number });
@@ -229,7 +424,7 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			});
 		}
 
-		var blockoptions = [
+		const blockoptions = [
 			{
 				checked: Twinkle.block.field_block_options.nocreate,
 				label: 'Matikan pembuatan akun',
@@ -321,25 +516,48 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			]
 		});
 
-		if (Twinkle.block.currentBlockInfo) {
+		// Yet-another-logevents-doesn't-handle-ranges-well
+		if (blockedUserName === relevantUserName) {
 			field_block_options.append({ type: 'hidden', name: 'reblock', value: '1' });
 		}
 	}
 
+	// grab discretionary sanctions list from en-wiki
+	Twinkle.block.dsinfo = Morebits.wiki.getCachedJson('Template:Ds/topics.json');
+
+	Twinkle.block.dsinfo.then((dsinfo) => {
+		const $select = $('[name="dstopic"]');
+		const $options = $.map(dsinfo, (value, key) => $('<option>').val(value.code).text(key).prop('label', key));
+		$select.append($options);
+	});
+
+	// DS selection visible in either the template field set or preset,
+	// joint settings saved here
+	const dsSelectSettings = {
+		type: 'select',
+		name: 'dstopic',
+		label: 'DS topic',
+		value: '',
+		tooltip: 'Jika dipilih, akan diinformasikan templat dan akan ditambahkan ke pesan pemblokiran',
+		event: Twinkle.block.callback.toggle_ds_reason
+	};
 	if (templateBox) {
-		field_template_options = new Morebits.quickForm.element({ type: 'field', label: 'Opsi templat', name: 'field_template_options' });
+		field_template_options = new Morebits.QuickForm.Element({ type: 'field', label: 'Pilihan templat', name: 'field_template_options' });
 		field_template_options.append({
 			type: 'select',
 			name: 'template',
-			label: 'Pilih templat halaman pembicaraan:',
+			label: 'Berikat templat halaman pembicaraan:',
 			event: Twinkle.block.callback.change_template,
 			list: Twinkle.block.callback.filtered_block_groups(blockGroup, true),
 			value: Twinkle.block.field_template_options.template
 		});
+
+		// Only visible for aeblock and aepblock, toggled in change_template
+		field_template_options.append(dsSelectSettings);
+
 		field_template_options.append({
 			type: 'input',
 			name: 'article',
-			display: 'none',
 			label: 'Halaman yang berkaitan',
 			value: '',
 			tooltip: 'Suatu halaman dapat ditautkan dengan pemberitahuan, yang mungkin yang menjadi sasaran perusakan. Kosongkan jika tidak ada.'
@@ -349,7 +567,6 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 		field_template_options.append({
 			type: 'input',
 			name: 'area',
-			display: 'none',
 			label: 'Wilayah pemblokiran dari',
 			value: '',
 			tooltip: 'Penjelasan lanjutan halaman atau ruangnama yang tidak diizinkan untuk disunting.'
@@ -359,7 +576,6 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			field_template_options.append({
 				type: 'input',
 				name: 'template_expiry',
-				display: 'none',
 				label: 'Periode pemblokiran: ',
 				value: '',
 				tooltip: 'Periode pemblokiran, seperti 24 jam, dua minggu, dsb.'
@@ -369,7 +585,6 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			type: 'input',
 			name: 'block_reason',
 			label: '"Anda telah diblokir karena ..." ',
-			display: 'none',
 			tooltip: 'Alasan opsional, untuk mengganti alasan baku dasar. Hanya tersedia untuk templat baku dasar.',
 			value: Twinkle.block.field_template_options.block_reason
 		});
@@ -412,16 +627,19 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			});
 		}
 
-		var $previewlink = $('<a id="twinkleblock-preivew-link">Preview</a>');
-		$previewlink.off('click').on('click', function() {
+		const $previewlink = $('<a id="twinkleblock-preview-link">Preview</a>');
+		$previewlink.off('click').on('click', () => {
 			Twinkle.block.callback.preview($form[0]);
 		});
 		$previewlink.css({cursor: 'pointer'});
 		field_template_options.append({ type: 'div', id: 'blockpreview', label: [ $previewlink[0] ] });
 		field_template_options.append({ type: 'div', id: 'twinkleblock-previewbox', style: 'display: none' });
+	} else if (field_preset) {
+		// Only visible for arbitration enforcement, toggled in change_preset
+		field_preset.append(dsSelectSettings);
 	}
 
-	var oldfield;
+	let oldfield;
 	if (field_preset) {
 		oldfield = $form.find('fieldset[name="field_preset"]')[0];
 		oldfield.parentNode.replaceChild(field_preset.render(), oldfield);
@@ -431,14 +649,15 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 	if (field_block_options) {
 		oldfield = $form.find('fieldset[name="field_block_options"]')[0];
 		oldfield.parentNode.replaceChild(field_block_options.render(), oldfield);
-
+		$form.find('fieldset[name="field_64"]').show();
 
 		$form.find('[name=pagerestrictions]').select2({
+			theme: 'default select2-morebits',
 			width: '100%',
-			placeholder: 'Pilih halaman untuk diblokir',
+			placeholder: 'Pilih halaman untuk mencegah pengguna tertentu',
 			language: {
 				errorLoading: function() {
-					return 'Kata kunci pencarian tidak lengkap/valid';
+					return 'Kata kunci pencarian tidak lengkap atau tidak valid';
 				}
 			},
 			maximumSelectionLength: 10, // Software limitation [[phab:T202776]]
@@ -448,23 +667,23 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 				dataType: 'json',
 				delay: 100,
 				data: function(params) {
-					var title = mw.Title.newFromText(params.term);
+					const title = mw.Title.newFromText(params.term);
 					if (!title) {
 						return;
 					}
 					return {
-						'action': 'query',
-						'format': 'json',
-						'list': 'allpages',
-						'apfrom': title.title,
-						'apnamespace': title.namespace,
-						'aplimit': '10'
+						action: 'query',
+						format: 'json',
+						list: 'allpages',
+						apfrom: title.title,
+						apnamespace: title.namespace,
+						aplimit: '10'
 					};
 				},
 				processResults: function(data) {
 					return {
-						results: data.query.allpages.map(function(page) {
-							var title = mw.Title.newFromText(page.title, page.ns).toText();
+						results: data.query.allpages.map((page) => {
+							const title = mw.Title.newFromText(page.title, page.ns).toText();
 							return {
 								id: title,
 								text: title
@@ -481,20 +700,18 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			}
 		});
 
-
 		$form.find('[name=namespacerestrictions]').select2({
+			theme: 'default select2-morebits',
 			width: '100%',
 			matcher: Morebits.select2.matchers.wordBeginning,
 			language: {
 				searching: Morebits.select2.queryInterceptor
 			},
 			templateResult: Morebits.select2.highlightSearchMatches,
-			placeholder: 'Pilih ruangnama untuk diblokir'
+			placeholder: 'Piih ruangnama untuk mencegah pengguna tertentu'
 		});
 
 		mw.util.addCSS(
-			// prevent dropdown from appearing behind the dialog, just in case
-			'.select2-container { z-index: 10000; }' +
 			// Reduce padding
 			'.select2-results .select2-results__option { padding-top: 1px; padding-bottom: 1px; }' +
 			// Adjust font size
@@ -507,51 +724,89 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 		);
 	} else {
 		$form.find('fieldset[name="field_block_options"]').hide();
+		$form.find('fieldset[name="field_64"]').hide();
 		// Clear select2 options
 		$form.find('[name=pagerestrictions]').val(null).trigger('change');
 		$form.find('[name=namespacerestrictions]').val(null).trigger('change');
 	}
+
 	if (field_template_options) {
 		oldfield = $form.find('fieldset[name="field_template_options"]')[0];
 		oldfield.parentNode.replaceChild(field_template_options.render(), oldfield);
-		e.target.form.root.previewer = new Morebits.wiki.preview($(e.target.form.root).find('#twinkleblock-previewbox').last()[0]);
+		e.target.form.root.previewer = new Morebits.wiki.Preview($(e.target.form.root).find('#twinkleblock-previewbox').last()[0]);
 	} else {
 		$form.find('fieldset[name="field_template_options"]').hide();
 	}
 
-	if (Twinkle.block.hasBlockLog) {
-		var $blockloglink = $('<a target="_blank" href="' + mw.util.getUrl('Special:Log', {action: 'view', page: mw.config.get('wgRelevantUserName'), type: 'block'}) + '">block log</a>)');
-
-		Morebits.status.init($('div[name="hasblocklog"] span').last()[0]);
-		Morebits.status.warn('Pengguna ini pernah diblokir sebelumnya', $blockloglink[0]);
-	}
-
+	// Any block, including ranges
 	if (Twinkle.block.currentBlockInfo) {
-		Morebits.status.init($('div[name="currentblock"] span').last()[0]);
-		// list=blocks without bkprops (as we do in fetchUerInfo)
-		// returns partial: '' if the user is partially blocked
-		var statusStr = relevantUserName + ' telah ' + (Twinkle.block.currentBlockInfo.partial === '' ? 'diblokir parsial' : 'diblokir penuh');
+		// false for an ip covered by a range or a smaller range within a larger range;
+		// true for a user, single ip block, or the exact range for a range block
+		const sameUser = blockedUserName === relevantUserName;
+
+		Morebits.Status.init($('div[name="currentblock"] span').last()[0]);
+		let statusStr = relevantUserName + ' sedang ' + (Twinkle.block.currentBlockInfo.partial === '' ? 'diblokir parsial' : 'diblokir penuh');
+
+		// Range blocked
+		if (Twinkle.block.currentBlockInfo.rangestart !== Twinkle.block.currentBlockInfo.rangeend) {
+			if (sameUser) {
+				statusStr += ' sebagai jarak pemblokiran';
+			} else {
+				statusStr += ' dengan' + (Morebits.ip.get64(relevantUserName) === blockedUserName ? ' /64' : '') + ' jarak pemblokiran';
+				// Link to the full range
+				const $rangeblockloglink = $('<span>').append($('<a target="_blank" href="' + mw.util.getUrl('Istimewa:Log', {action: 'view', page: blockedUserName, type: 'block'}) + '">' + blockedUserName + '</a>)'));
+				statusStr += ' (' + $rangeblockloglink.html() + ')';
+			}
+		}
+
 		if (Twinkle.block.currentBlockInfo.expiry === 'infinity') {
-			statusStr += ' (selamanya)';
-		} else if (new Morebits.date(Twinkle.block.currentBlockInfo.expiry).isValid()) {
-			statusStr += ' (kedaluwarsa ' + new Morebits.date(Twinkle.block.currentBlockInfo.expiry).calendar('utc') + ')';
+			statusStr += ' (indefinite)';
+		} else if (new Morebits.Date(Twinkle.block.currentBlockInfo.expiry).isValid()) {
+			statusStr += ' (kadaluwarsa ' + new Morebits.Date(Twinkle.block.currentBlockInfo.expiry).calendar('utc') + ')';
 		}
-		var infoStr = 'Kirim permintaan untuk memblokir ulang dengan opsi yang diberikan';
-		if (Twinkle.block.currentBlockInfo.partial === undefined && partialBox) {
-			infoStr += ', mengubah menjadi blokir sebagian';
-		} else if (Twinkle.block.currentBlockInfo.partial === '' && !partialBox) {
-			infoStr += ', mengubah menjadi blokir penuh';
+
+		let infoStr = 'This form will';
+		if (sameUser) {
+			infoStr += ' change that block';
+			if (Twinkle.block.currentBlockInfo.partial === undefined && partialBox) {
+				infoStr += ', converting it to a partial block';
+			} else if (Twinkle.block.currentBlockInfo.partial === '' && !partialBox) {
+				infoStr += ', converting it to a sitewide block';
+			}
+			infoStr += '.';
+		} else {
+			infoStr += ' add an additional ' + (partialBox ? 'partial ' : '') + 'block.';
 		}
-		Morebits.status.warn(statusStr, infoStr);
+
+		Morebits.Status.warn(statusStr, infoStr);
+
+		// Default to the current block conditions on intial form generation
 		Twinkle.block.callback.update_form(e, Twinkle.block.currentBlockInfo);
 	}
-	if (templateBox) {
-		// make sure all the fields are correct based on defaults
-		if (blockBox) {
-			Twinkle.block.callback.change_preset(e);
-		} else {
-			Twinkle.block.callback.change_template(e);
+
+	// This is where T146628 really comes into play: a rangeblock will
+	// only return the correct block log if wgRelevantUserName is the
+	// exact range, not merely a funtional equivalent
+	if (Twinkle.block.hasBlockLog) {
+		const $blockloglink = $('<span>').append($('<a target="_blank" href="' + mw.util.getUrl('Special:Log', {action: 'view', page: relevantUserName, type: 'block'}) + '">block log</a>)'));
+		if (!Twinkle.block.currentBlockInfo) {
+			const lastBlockAction = Twinkle.block.blockLog[0];
+			if (lastBlockAction.action === 'unblock') {
+				$blockloglink.append(' (unblocked ' + new Morebits.Date(lastBlockAction.timestamp).calendar('utc') + ')');
+			} else { // block or reblock
+				$blockloglink.append(' (' + lastBlockAction.params.duration + ', expired ' + new Morebits.Date(lastBlockAction.params.expiry).calendar('utc') + ')');
+			}
 		}
+
+		Morebits.Status.init($('div[name="hasblocklog"] span').last()[0]);
+		Morebits.Status.warn(Twinkle.block.currentBlockInfo ? 'Pemblokiran sebelumnya' : 'Ini ' + (Morebits.ip.isRange(relevantUserName) ? 'range' : 'user') + ' telah diblokir sebelumnya', $blockloglink[0]);
+	}
+
+	// Make sure all the fields are correct based on initial defaults
+	if (blockBox) {
+		Twinkle.block.callback.change_preset(e);
+	} else if (templateBox) {
+		Twinkle.block.callback.change_template(e);
 	}
 };
 
@@ -564,13 +819,13 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
  *   autoblock: <autoblock any IP addresses used (for registered users only)>
  *   disabletalk: <disable user from editing their own talk page while blocked>
  *   expiry: <string - expiry timestamp, can include relative times like "5 months", "2 weeks" etc>
- *   forAnonOnly: <show block option in the interface only if the relevant user is an IP>
+ *   forUnregisteredOnly: <show block option in the interface only if the relevant user is an IP>
  *   forRegisteredOnly: <show block option in the interface only if the relevant user is registered>
  *   label: <string - label for the option of the dropdown in the interface (keep brief)>
  *   noemail: prevent the user from sending email through Special:Emailuser
  *   pageParam: <set if the associated block template accepts a page parameter>
  *   prependReason: <string - prepends the value of 'reason' to the end of the existing reason, namely for when revoking talk page access>
- *   nocreate: <block account creation from the user's IP (for anonymous users only)>
+ *   nocreate: <block account creation from the user's IP (for unregistered users only)>
  *   nonstandard: <template does not conform to stewardship of WikiProject User Warnings and may not accept standard parameters>
  *   reason: <string - block rationale, as would appear in the block log,
  *            and the edit summary for when adding block template, unless 'summary' is set>
@@ -1073,11 +1328,10 @@ Twinkle.block.blockPresetsInfo = {
 
 Twinkle.block.transformBlockPresets = function twinkleblockTransformBlockPresets() {
 	// supply sensible defaults
-	$.each(Twinkle.block.blockPresetsInfo, function(preset, settings) {
+	$.each(Twinkle.block.blockPresetsInfo, (preset, settings) => {
 		settings.summary = settings.summary || settings.reason;
 		settings.sig = settings.sig !== undefined ? settings.sig : 'yes';
-		// despite this it's preferred that you use 'infinity' as the value for expiry
-		settings.indefinite = settings.indefinite || settings.expiry === 'infinity' || settings.expiry === 'infinite' || settings.expiry === 'indefinite' || settings.expiry === 'never';
+		settings.indefinite = settings.indefinite || Morebits.string.isInfinity(settings.expiry);
 
 		if (!Twinkle.block.isRegistered && settings.indefinite) {
 			settings.expiry = '31 hours';
@@ -1156,16 +1410,16 @@ Twinkle.block.blockGroups = [
 		label: 'Alasan bertemplat',
 		list: [
 			{ label: 'proksi yang diblokir', value: 'blocked proxy' },
-			{ label: 'pemblokiran oleh Pemeriksa', value: 'CheckUser block', disabled: !Morebits.userIsInGroup('checkuser') },
-			{ label: 'checkuserblock-account', value: 'checkuserblock-account', disabled: !Morebits.userIsInGroup('checkuser') },
-			{ label: 'checkuserblock-wide', value: 'checkuserblock-wide', disabled: !Morebits.userIsInGroup('checkuser') },
-			{ label: 'colocationwebhost', value: 'colocationwebhost' },
-			{ label: 'oversightblock', value: 'oversightblock', disabled: !Morebits.userIsInGroup('oversight') },
+			{ label: 'pemblokiran oleh Pemeriksa', value: 'CheckUser block'},
+			{ label: 'checkuserblock-account', value: 'checkuserblock-account'},
+			{ label: 'checkuserblock-wide', value: 'checkuserblock-wide'},
+			{ label: 'colocationwebhost', value: 'colocationwebhost'},
+			{ label: 'oversightblock', value: 'oversightblock'},
 			// { label: 'rangeblock', value: 'rangeblock' }, // placeholder for when we add support for rangeblocks
 			{ label: 'spamblacklistblock', value: 'spamblacklistblock' },
 			{ label: 'tor', value: 'tor' },
-			{ label: 'webhostblock', value: 'webhostblock' },
-			{ label: 'zombie proxy', value: 'zombie proxy' }
+			{ label: 'pemblokiran penyedia web', value: 'webhostblock' },
+			{ label: 'proksi zombie', value: 'zombie proxy' }
 		]
 	}
 ];
@@ -1180,9 +1434,9 @@ Twinkle.block.blockGroupsPartial = [
 		]
 	},
 	{
-		label: 'Extended partial block reasons',
+		label: 'Alasan pemblokiran sebagaian diperpanjang',
 		list: [
-			/* { label: 'Arbitration enforcement', value: 'uw-aepblock' }, */
+			{ label: 'Penegakan arbitrase', value: 'uw-aepblock' },
 			{ label: 'Pelecehan surel', value: 'uw-epblock' },
 			{ label: 'Menyalahgunaan beberapa akun', value: 'uw-acpblock' },
 			{ label: 'Menyalahgunaan beberapa akun - selamanya', value: 'uw-acpblockindef' }
@@ -1190,19 +1444,50 @@ Twinkle.block.blockGroupsPartial = [
 	}
 ];
 
-
 Twinkle.block.callback.filtered_block_groups = function twinkleblockCallbackFilteredBlockGroups(group, show_template) {
-	return $.map(group, function(blockGroup) {
-		var list = $.map(blockGroup.list, function(blockPreset) {
-			// only show uw-talkrevoked if reblocking
-			if (!Twinkle.block.currentBlockInfo && blockPreset.value === 'uw-talkrevoked') {
-				return;
+	return $.map(group, (blockGroup) => {
+		const list = $.map(blockGroup.list, (blockPreset) => {
+			switch (blockPreset.value) {
+				case 'uw-talkrevoked':
+					if (blockedUserName !== relevantUserName) {
+						return;
+					}
+					break;
+				case 'rangeblock':
+					if (!Morebits.ip.isRange(relevantUserName)) {
+						return;
+					}
+					blockPreset.selected = !Morebits.ip.get64(relevantUserName);
+					break;
+				case 'CheckUser block':
+				case 'checkuserblock-account':
+				case 'checkuserblock-wide':
+					if (!Morebits.userIsInGroup('checkuser')) {
+						return;
+					}
+					break;
+				case 'oversightblock':
+					if (!Morebits.userIsInGroup('suppress')) {
+						return;
+					}
+					break;
+				default:
+					break;
 			}
 
-			var blockSettings = Twinkle.block.blockPresetsInfo[blockPreset.value];
-			var registrationRestrict = blockSettings.forRegisteredOnly ? Twinkle.block.isRegistered : blockSettings.forAnonOnly ? !Twinkle.block.isRegistered : true;
+			const blockSettings = Twinkle.block.blockPresetsInfo[blockPreset.value];
+
+			let registrationRestrict;
+			if (blockSettings.forRegisteredOnly) {
+				registrationRestrict = Twinkle.block.isRegistered;
+			} else if (blockSettings.forUnregisteredOnly) {
+				registrationRestrict = !Twinkle.block.isRegistered;
+			} else {
+				registrationRestrict = true;
+			}
+
 			if (!(blockSettings.templateName && show_template) && registrationRestrict) {
-				var templateName = blockSettings.templateName || blockPreset.value;
+				const templateName = blockSettings.templateName || blockPreset.value;
 				return {
 					label: (show_template ? '{{' + templateName + '}}: ' : '') + blockPreset.label,
 					value: blockPreset.value,
@@ -1225,52 +1510,73 @@ Twinkle.block.callback.filtered_block_groups = function twinkleblockCallbackFilt
 };
 
 Twinkle.block.callback.change_preset = function twinkleblockCallbackChangePreset(e) {
-	var key = e.target.form.preset.value;
+	const form = e.target.form, key = form.preset.value;
 	if (!key) {
 		return;
 	}
 
-	e.target.form.template.value = Twinkle.block.blockPresetsInfo[key].templateName || key;
 	Twinkle.block.callback.update_form(e, Twinkle.block.blockPresetsInfo[key]);
-	Twinkle.block.callback.change_template(e);
+	if (form.template) {
+		form.template.value = Twinkle.block.blockPresetsInfo[key].templateName || key;
+		Twinkle.block.callback.change_template(e);
+	} else {
+		Morebits.QuickForm.setElementVisibility(form.dstopic.parentNode, key === 'uw-aeblock' || key === 'uw-aepblock');
+	}
 };
 
 Twinkle.block.callback.change_expiry = function twinkleblockCallbackChangeExpiry(e) {
-	var expiry = e.target.form.expiry;
+	const expiry = e.target.form.expiry;
 	if (e.target.value === 'custom') {
-		Morebits.quickForm.setElementVisibility(expiry.parentNode, true);
+		Morebits.QuickForm.setElementVisibility(expiry.parentNode, true);
 	} else {
-		Morebits.quickForm.setElementVisibility(expiry.parentNode, false);
+		Morebits.QuickForm.setElementVisibility(expiry.parentNode, false);
 		expiry.value = e.target.value;
 	}
 };
 
 Twinkle.block.seeAlsos = [];
 Twinkle.block.callback.toggle_see_alsos = function twinkleblockCallbackToggleSeeAlso() {
-	var reason = this.form.reason.value.replace(
-		new RegExp('( <!--|;) ' + 'lihat juga ' + Twinkle.block.seeAlsos.join(' dan ') + '( -->)?'), ''
+	const reason = this.form.reason.value.replace(
+		new RegExp('( <!--|;) lihat juga ' + Twinkle.block.seeAlsos.join(' dan ') + '( -->)?'), ''
 	);
 
-	Twinkle.block.seeAlsos = Twinkle.block.seeAlsos.filter(function(el) {
-		return el !== this.value;
-	}.bind(this));
+	Twinkle.block.seeAlsos = Twinkle.block.seeAlsos.filter((el) => el !== this.value);
 
 	if (this.checked) {
 		Twinkle.block.seeAlsos.push(this.value);
 	}
-	var seeAlsoMessage = Twinkle.block.seeAlsos.join(' dan ');
+	const seeAlsoMessage = Twinkle.block.seeAlsos.join(' and ');
 
 	if (!Twinkle.block.seeAlsos.length) {
 		this.form.reason.value = reason;
-	} else if (reason.indexOf('{{') !== -1) {
+	} else if (reason.includes('{{')) {
 		this.form.reason.value = reason + ' <!-- lihat juga ' + seeAlsoMessage + ' -->';
 	} else {
 		this.form.reason.value = reason + '; lihat juga ' + seeAlsoMessage;
 	}
 };
 
+Twinkle.block.dsReason = '';
+Twinkle.block.callback.toggle_ds_reason = function twinkleblockCallbackToggleDSReason() {
+	const reason = this.form.reason.value.replace(
+		new RegExp(' ?\\(\\[\\[' + Twinkle.block.dsReason + '\\]\\]\\)'), ''
+	);
+
+	Twinkle.block.dsinfo.then((dsinfo) => {
+		const sanctionCode = this.selectedIndex;
+		const sanctionName = this.options[sanctionCode].label;
+		Twinkle.block.dsReason = dsinfo[sanctionName].page;
+		if (!this.value) {
+			this.form.reason.value = reason;
+		} else {
+			this.form.reason.value = reason + ' ([[' + Twinkle.block.dsReason + ']])';
+		}
+	});
+};
+
 Twinkle.block.callback.update_form = function twinkleblockCallbackUpdateForm(e, data) {
-	var form = e.target.form, expiry = data.expiry;
+	const form = e.target.form;
+	let expiry = data.expiry;
 
 	// don't override original expiry if useInitialOptions is set
 	if (!data.useInitialOptions) {
@@ -1283,9 +1589,9 @@ Twinkle.block.callback.update_form = function twinkleblockCallbackUpdateForm(e, 
 
 		form.expiry.value = expiry;
 		if (form.expiry_preset.value === 'custom') {
-			Morebits.quickForm.setElementVisibility(form.expiry.parentNode, true);
+			Morebits.QuickForm.setElementVisibility(form.expiry.parentNode, true);
 		} else {
-			Morebits.quickForm.setElementVisibility(form.expiry.parentNode, false);
+			Morebits.QuickForm.setElementVisibility(form.expiry.parentNode, false);
 		}
 	}
 
@@ -1294,17 +1600,17 @@ Twinkle.block.callback.update_form = function twinkleblockCallbackUpdateForm(e, 
 	data.hardblock = data.hardblock !== undefined ? data.hardblock : false;
 
 	// disable autoblock if blocking a bot
-	if (Twinkle.block.isRegistered && relevantUserName.search(/bot\b/i) > 0) {
+	if (Twinkle.block.userIsBot || /bot\b/i.test(relevantUserName)) {
 		data.autoblock = false;
 	}
 
-	$(form.field_block_options).find(':checkbox').each(function(i, el) {
+	$(form).find('[name=field_block_options]').find(':checkbox').each((i, el) => {
 		// don't override original options if useInitialOptions is set
 		if (data.useInitialOptions && data[el.name] === undefined) {
 			return;
 		}
 
-		var check = data[el.name] === '' || !!data[el.name];
+		const check = data[el.name] === '' || !!data[el.name];
 		$(el).prop('checked', check);
 	});
 
@@ -1313,17 +1619,55 @@ Twinkle.block.callback.update_form = function twinkleblockCallbackUpdateForm(e, 
 	} else {
 		form.reason.value = data.reason || '';
 	}
+
+	// Clear and/or set any partial page or namespace restrictions
+	if (form.pagerestrictions) {
+		const $pageSelect = $(form).find('[name=pagerestrictions]');
+		const $namespaceSelect = $(form).find('[name=namespacerestrictions]');
+
+		// Respect useInitialOptions by clearing data when switching presets
+		// In practice, this will always clear, since no partial presets use it
+		if (!data.useInitialOptions) {
+			$pageSelect.val(null).trigger('change');
+			$namespaceSelect.val(null).trigger('change');
+		}
+
+		// Add any preset options; in practice, just used for prior block settings
+		if (data.restrictions) {
+			if (data.restrictions.pages && !$pageSelect.val().length) {
+				const pages = data.restrictions.pages.map((pr) => pr.title);
+				// since page restrictions use an ajax source, we
+				// short-circuit that and just add a new option
+				pages.forEach((page) => {
+					if (!$pageSelect.find("option[value='" + $.escapeSelector(page) + "']").length) {
+						const newOption = new Option(page, page, true, true);
+						$pageSelect.append(newOption);
+					}
+				});
+				$pageSelect.val($pageSelect.val().concat(pages)).trigger('change');
+			}
+			if (data.restrictions.namespaces) {
+				$namespaceSelect.val($namespaceSelect.val().concat(data.restrictions.namespaces)).trigger('change');
+			}
+		}
+	}
 };
 
 Twinkle.block.callback.change_template = function twinkleblockcallbackChangeTemplate(e) {
-	var form = e.target.form, value = form.template.value, settings = Twinkle.block.blockPresetsInfo[value];
-	if (!$(form).find('[name=actiontype][value=block]').is(':checked')) {
+	const form = e.target.form, value = form.template.value, settings = Twinkle.block.blockPresetsInfo[value];
+
+	const blockBox = $(form).find('[name=actiontype][value=block]').is(':checked');
+	const partialBox = $(form).find('[name=actiontype][value=partial]').is(':checked');
+	const templateBox = $(form).find('[name=actiontype][value=template]').is(':checked');
+
+	// Block form is not present
+	if (!blockBox) {
 		if (settings.indefinite || settings.nonstandard) {
 			if (Twinkle.block.prev_template_expiry === null) {
 				Twinkle.block.prev_template_expiry = form.template_expiry.value || '';
 			}
 			form.template_expiry.parentNode.style.display = 'none';
-			form.template_expiry.value = 'indefinite';
+			form.template_expiry.value = 'infinity';
 		} else if (form.template_expiry.parentNode.style.display === 'none') {
 			if (Twinkle.block.prev_template_expiry !== null) {
 				form.template_expiry.value = Twinkle.block.prev_template_expiry;
@@ -1334,35 +1678,41 @@ Twinkle.block.callback.change_template = function twinkleblockcallbackChangeTemp
 		if (Twinkle.block.prev_template_expiry) {
 			form.expiry.value = Twinkle.block.prev_template_expiry;
 		}
-		Morebits.quickForm.setElementVisibility(form.notalk.parentNode, !settings.nonstandard);
-		Morebits.quickForm.setElementVisibility(form.noemail_template.parentNode, $(form).find('[name=actiontype][value=partial]').is(':checked') && !$(form).find('[name=actiontype][value=block]').is(':checked'));
-		Morebits.quickForm.setElementVisibility(form.nocreate_template.parentNode, $(form).find('[name=actiontype][value=partial]').is(':checked') && !$(form).find('[name=actiontype][value=block]').is(':checked'));
-	} else {
-		Morebits.quickForm.setElementVisibility(
+		Morebits.QuickForm.setElementVisibility(form.notalk.parentNode, !settings.nonstandard);
+		// Partial
+		Morebits.QuickForm.setElementVisibility(form.noemail_template.parentNode, partialBox);
+		Morebits.QuickForm.setElementVisibility(form.nocreate_template.parentNode, partialBox);
+	} else if (templateBox) { // Only present if block && template forms both visible
+		Morebits.QuickForm.setElementVisibility(
 			form.blank_duration.parentNode,
 			!settings.indefinite && !settings.nonstandard
 		);
 	}
-	Morebits.quickForm.setElementVisibility(form.article.parentNode, !!settings.pageParam);
-	Morebits.quickForm.setElementVisibility(form.block_reason.parentNode, !!settings.reasonParam);
+
+	Morebits.QuickForm.setElementVisibility(form.dstopic.parentNode, value === 'uw-aeblock' || value === 'uw-aepblock');
+
+	// Only particularly relevant if template form is present
+	Morebits.QuickForm.setElementVisibility(form.article.parentNode, settings && !!settings.pageParam);
+	Morebits.QuickForm.setElementVisibility(form.block_reason.parentNode, settings && !!settings.reasonParam);
 
 	// Partial block
-	Morebits.quickForm.setElementVisibility(form.area.parentNode, $(form).find('[name=actiontype][value=partial]').is(':checked') && !$(form).find('[name=actiontype][value=block]').is(':checked'));
+	Morebits.QuickForm.setElementVisibility(form.area.parentNode, partialBox && !blockBox);
 
 	form.root.previewer.closePreview();
 };
 Twinkle.block.prev_template_expiry = null;
 
 Twinkle.block.callback.preview = function twinkleblockcallbackPreview(form) {
-	var params = {
+	const params = {
 		article: form.article.value,
 		blank_duration: form.blank_duration ? form.blank_duration.checked : false,
 		disabletalk: form.disabletalk.checked || (form.notalk ? form.notalk.checked : false),
 		expiry: form.template_expiry ? form.template_expiry.value : form.expiry.value,
 		hardblock: Twinkle.block.isRegistered ? form.autoblock.checked : form.hardblock.checked,
-		indefinite: (/indef|infinit|never|\*|max/).test(form.template_expiry ? form.template_expiry.value : form.expiry.value),
+		indefinite: Morebits.string.isInfinity(form.template_expiry ? form.template_expiry.value : form.expiry.value),
 		reason: form.block_reason.value,
 		template: form.template.value,
+		dstopic: form.dstopic.value,
 		partial: $(form).find('[name=actiontype][value=partial]').is(':checked'),
 		pagerestrictions: $(form.pagerestrictions).val() || [],
 		namespacerestrictions: $(form.namespacerestrictions).val() || [],
@@ -1371,17 +1721,17 @@ Twinkle.block.callback.preview = function twinkleblockcallbackPreview(form) {
 		area: form.area.value
 	};
 
-	var templateText = Twinkle.block.callback.getBlockNoticeWikitext(params);
+	const templateText = Twinkle.block.callback.getBlockNoticeWikitext(params);
 
-	form.previewer.beginRender(templateText, 'User_talk:' + mw.config.get('wgRelevantUserName')); // Force wikitext/correct username
+	form.previewer.beginRender(templateText, 'User_talk:' + relevantUserName); // Force wikitext/correct username
 };
 
 Twinkle.block.callback.evaluate = function twinkleblockCallbackEvaluate(e) {
-	var $form = $(e.target),
+	const $form = $(e.target),
 		toBlock = $form.find('[name=actiontype][value=block]').is(':checked'),
 		toWarn = $form.find('[name=actiontype][value=template]').is(':checked'),
-		toPartial = $form.find('[name=actiontype][value=partial]').is(':checked'),
-		blockoptions = {}, templateoptions = {};
+		toPartial = $form.find('[name=actiontype][value=partial]').is(':checked');
+	let blockoptions = {}, templateoptions = {};
 
 	Twinkle.block.callback.saveFieldset($form.find('[name=field_block_options]'));
 	Twinkle.block.callback.saveFieldset($form.find('[name=field_template_options]'));
@@ -1389,8 +1739,10 @@ Twinkle.block.callback.evaluate = function twinkleblockCallbackEvaluate(e) {
 	blockoptions = Twinkle.block.field_block_options;
 
 	templateoptions = Twinkle.block.field_template_options;
+
 	templateoptions.disabletalk = !!(templateoptions.disabletalk || blockoptions.disabletalk);
 	templateoptions.hardblock = !!blockoptions.hardblock;
+
 	delete blockoptions.expiry_preset; // remove extraneous
 
 	// Partial API requires this to be gone, not false or 0
@@ -1409,29 +1761,34 @@ Twinkle.block.callback.evaluate = function twinkleblockCallbackEvaluate(e) {
 
 	if (toBlock) {
 		if (blockoptions.partial) {
-			if (blockoptions.disabletalk && blockoptions.namespacerestrictions.indexOf('3') === -1) {
-				return alert('Pemblokiran sebagian tidak membatasi halaman pembicaraan, kecuali Anda menginginkan akses halaman tersebut juga dicabut.');
+			if (blockoptions.disabletalk && !blockoptions.namespacerestrictions.includes('3')) {
+				return alert('Pemblokiran sebagian tidak membatasi halaman pembicaraan, kecuali Anda menginginkan akses halaman tersebut juga dicabut!');
 			}
 			if (!blockoptions.namespacerestrictions && !blockoptions.pagerestrictions) {
 				if (!blockoptions.noemail && !blockoptions.nocreate) { // Blank entries technically allowed [[phab:T208645]]
 					return alert('Tidak ada halaman atau ruangnama dipilih, atau tidak ada opsi pembatasan pengiriman surel dan pembuatan akun dipilih. Pilih paling sedikit satu opsi pada pemblokiran sebagian!');
-				} else if (!confirm('Anda akan memblokir tanpa menerapkan pembatasan penyuntingan pada halaman atau ruangnama. Yakin?')) {
+				} else if ((templateoptions.template !== 'uw-epblock' || $form.find('select[name="preset"]').val() !== 'uw-epblock') &&
+					// Don't require confirmation if email harassment defaults are set
+					!confirm('Anda akan memblokir tanpa menerapkan pembatasan penyuntingan pada halaman atau ruangnama. Yakin?')) {
 					return;
 				}
 			}
 		}
 		if (!blockoptions.expiry) {
-			return alert('Berikan waktu kedaluwarsa pemblokiran.');
+			return alert('Berikan waktu kedaluwarsa pemblokiran!');
+		} else if (Morebits.string.isInfinity(blockoptions.expiry) && !Twinkle.block.isRegistered) {
+			return alert("Tidak dapat memblokir selamanya sebuah alamat IP!");
 		}
 		if (!blockoptions.reason) {
-			return alert('Berikan alasan pemblokiran.');
+			return alert('Berikan alasan pemblokiran!');
 		}
 
-		Morebits.simpleWindow.setButtonsEnabled(false);
-		Morebits.status.init(e.target);
-		var statusElement = new Morebits.status('Menjalankan pemblokiran');
+		Morebits.SimpleWindow.setButtonsEnabled(false);
+		Morebits.Status.init(e.target);
+		const statusElement = new Morebits.Status('Menjalankan pemblokiran');
 		blockoptions.action = 'block';
-		blockoptions.user = mw.config.get('wgRelevantUserName');
+
+		blockoptions.user = relevantUserName;
 
 		// boolean-flipped options
 		blockoptions.anononly = blockoptions.hardblock ? undefined : true;
@@ -1463,99 +1820,133 @@ Twinkle.block.callback.evaluate = function twinkleblockCallbackEvaluate(e) {
 		  a block expired (different statuses, confirmation) or the
 		  same block is still active (same status, no confirmation).
 		*/
-		api.get({
+		const query = {
 			format: 'json',
 			action: 'query',
 			list: 'blocks|logevents',
 			letype: 'block',
 			lelimit: 1,
-			letitle: 'User:' + blockoptions.user,
-			bkusers: blockoptions.user
-		}).then(function(data) {
-			var block = data.query.blocks[0];
-			var logevents = data.query.logevents[0];
-			var logid = data.query.logevents.length ? logevents.logid : false;
+			letitle: 'User:' + blockoptions.user
+		};
+		// bkusers doesn't catch single IPs blocked as part of a range block
+		if (mw.util.isIPAddress(blockoptions.user, true)) {
+			query.bkip = blockoptions.user;
+		} else {
+			query.bkusers = blockoptions.user;
+		}
+		api.get(query).then((data) => {
+			let block = data.query.blocks[0];
+			// As with the initial data fetch, if an IP is blocked
+			// *and* rangeblocked, this would only grab whichever
+			// block is more recent, which would likely mean a
+			// mismatch.  However, if the rangeblock is updated
+			// while filling out the form, this won't detect that,
+			// but that's probably fine.
+			if (data.query.blocks.length > 1 && block.user !== relevantUserName) {
+				block = data.query.blocks[1];
+			}
+			const logevents = data.query.logevents[0];
+			const logid = data.query.logevents.length ? logevents.logid : false;
 
 			if (logid !== Twinkle.block.blockLogId || !!block !== !!Twinkle.block.currentBlockInfo) {
-				var message = 'Status pemblokiran ' + mw.config.get('wgRelevantUserName') + ' berubah. ';
+				let message = 'Status pemblokiran ' + blockoptions.user + ' berubah. ';
 				if (block) {
 					message += 'Status baru: ';
 				} else {
 					message += 'Entri sebelumnya: ';
 				}
 
-				var logExpiry = '';
+				let logExpiry = '';
 				if (logevents.params.duration) {
 					if (logevents.params.duration === 'infinity') {
 						logExpiry = 'indefinitely';
 					} else {
-						var expiryDate = new Morebits.date(logevents.params.expiry);
-						logExpiry += (expiryDate.isBefore(new Date()) ? ', kedaluwarsa ' : ' hingga ') + expiryDate.calendar();
+						const expiryDate = new Morebits.Date(logevents.params.expiry);
+						logExpiry += (expiryDate.isBefore(new Date()) ? ', kedaluwarsa  ' : ' hingga ') + expiryDate.calendar();
 					}
 				} else { // no duration, action=unblock, just show timestamp
-					logExpiry = ' ' + new Morebits.date(logevents.timestamp).calendar();
+					logExpiry = ' ' + new Morebits.Date(logevents.timestamp).calendar();
 				}
-				message += Morebits.string.toUpperCaseFirstChar(logevents.action) + 'ed by ' + logevents.user + logExpiry +
+				message += Morebits.string.toUpperCaseFirstChar(logevents.action) + 'oleh ' + logevents.user + logExpiry +
 					' for "' + logevents.comment + '". Abaikan pengaturan Anda?';
 
 				if (!confirm(message)) {
-					Morebits.status.info('Menjalankan pemblokiran', 'Dibatalkan oleh pengguna');
+					Morebits.Status.info('Menjalankan pemblokiran', 'Dibatalkan oleh pengguna');
 					return;
 				}
 				blockoptions.reblock = 1; // Writing over a block will fail otherwise
 			}
+
 			// execute block
+			blockoptions.tags = Twinkle.changeTags;
 			blockoptions.token = mw.user.tokens.get('csrfToken');
-			var mbApi = new Morebits.wiki.api('Menjalankan pemblokiran', blockoptions, function() {
+			const mbApi = new Morebits.wiki.Api('Menjalankan pemblokiran', blockoptions, (() => {
 				statusElement.info('Selesai');
 				if (toWarn) {
 					Twinkle.block.callback.issue_template(templateoptions);
 				}
-			});
+			}));
 			mbApi.post();
 		});
 	} else if (toWarn) {
-		Morebits.simpleWindow.setButtonsEnabled(false);
+		Morebits.SimpleWindow.setButtonsEnabled(false);
 
-		Morebits.status.init(e.target);
+		Morebits.Status.init(e.target);
 		Twinkle.block.callback.issue_template(templateoptions);
 	} else {
-		return alert('Berikan tugas kepada Twinkle!');
+		return alert('Berikan Twinke sesuatu untuk dilakukan!');
 	}
 };
 
 Twinkle.block.callback.issue_template = function twinkleblockCallbackIssueTemplate(formData) {
-	var userTalkPage = 'User_talk:' + mw.config.get('wgRelevantUserName');
+	// Use wgRelevantUserName to ensure the block template goes to a single IP and not to the
+	// "talk page" of an IP range (which does not exist)
+	const userTalkPage = 'Pembicaraan_pengguna:' + mw.config.get('wgRelevantUserName');
 
-	var params = $.extend(formData, {
-		messageData: Twinkle.block.blockPresetsInfo[formData.template],
-		reason: Twinkle.block.field_template_options.block_reason,
-		disabletalk: Twinkle.block.field_template_options.notalk,
-		noemail: Twinkle.block.field_template_options.noemail_template,
-		nocreate: Twinkle.block.field_template_options.nocreate_template
-	});
+	const params = Twinkle.block.combineFormDataAndFieldTemplateOptions(
+		formData,
+		Twinkle.block.blockPresetsInfo[formData.template],
+		Twinkle.block.field_template_options.block_reason,
+		Twinkle.block.field_template_options.notalk,
+		Twinkle.block.field_template_options.noemail_template,
+		Twinkle.block.field_template_options.nocreate_template
+	);
 
 	Morebits.wiki.actionCompleted.redirect = userTalkPage;
 	Morebits.wiki.actionCompleted.notice = 'Tindakan selesai, memuat ulang halaman pembicaraan dalam beberapa detik';
 
-	var wikipedia_page = new Morebits.wiki.page(userTalkPage, 'Mengubah halaman pembicaraan pengguna');
+	const wikipedia_page = new Morebits.wiki.Page(userTalkPage, 'Mengubah halaman pembicaraan pengguna');
 	wikipedia_page.setCallbackParameters(params);
-	wikipedia_page.setFollowRedirect(true);
 	wikipedia_page.load(Twinkle.block.callback.main);
 };
 
+Twinkle.block.combineFormDataAndFieldTemplateOptions = function(formData, messageData, reason, disabletalk, noemail, nocreate) {
+	return $.extend(formData, {
+		messageData: messageData,
+		reason: reason,
+		disabletalk: disabletalk,
+		noemail: noemail,
+		nocreate: nocreate
+	});
+};
+
 Twinkle.block.callback.getBlockNoticeWikitext = function(params) {
-	var text = '{{', settings = Twinkle.block.blockPresetsInfo[params.template];
+	let text = '{{';
+	const settings = Twinkle.block.blockPresetsInfo[params.template];
 	if (!settings.nonstandard) {
 		text += 'subst:' + params.template;
 		if (params.article && settings.pageParam) {
 			text += '|page=' + params.article;
 		}
+		if (params.dstopic) {
+			text += '|topic=' + params.dstopic;
+		}
 
 		if (!/te?mp|^\s*$|min/.exec(params.expiry)) {
 			if (params.indefinite) {
 				text += '|indef=yes';
-			} else if (!params.blank_duration) {
+			} else if (!params.blank_duration && !new Morebits.Date(params.expiry).isValid()) {
+				// Block template wants a duration, not date
 				text += '|time=' + params.expiry;
 			}
 		}
@@ -1575,27 +1966,23 @@ Twinkle.block.callback.getBlockNoticeWikitext = function(params) {
 		// Building the template, however, takes a fair bit of logic
 		if (params.partial) {
 			if (params.pagerestrictions.length || params.namespacerestrictions.length) {
-				var makeSentence = function (array) {
+				const makeSentence = function (array) {
 					if (array.length < 3) {
 						return array.join(' dan ');
 					}
-					var last = array.pop();
+					const last = array.pop();
 					return array.join(', ') + ', dan ' + last;
 
 				};
-				text += '|area=' + (params.indefinite ? 'certain ' : 'from certain ');
+				text += '|area=' + (params.indefinite ? 'tertentu ' : 'dari tertentu ');
 				if (params.pagerestrictions.length) {
-					text += 'pages (' + makeSentence(params.pagerestrictions.map(function(p) {
-						return '[[:' + p + ']]';
-					}));
-					text += params.namespacerestrictions.length ? ') and certain ' : ')';
+					text += 'pages (' + makeSentence(params.pagerestrictions.map((p) => '[[:' + p + ']]'));
+					text += params.namespacerestrictions.length ? ') dan tertentu ' : ')';
 				}
 				if (params.namespacerestrictions.length) {
 					// 1 => Talk, 2 => User, etc.
-					var namespaceNames = params.namespacerestrictions.map(function(id) {
-						return menuFormattedNamespaces[id];
-					});
-					text += '[[WP:NAMESPACE|Ruangnama]] (' + makeSentence(namespaceNames) + ')';
+					const namespaceNames = params.namespacerestrictions.map((id) => menuFormattedNamespaces[id]);
+					text += '[[Wikipedia:Ruangnama|Ruangnama]] (' + makeSentence(namespaceNames) + ')';
 				}
 			} else if (params.area) {
 				text += '|area=' + params.area;
@@ -1619,32 +2006,37 @@ Twinkle.block.callback.getBlockNoticeWikitext = function(params) {
 };
 
 Twinkle.block.callback.main = function twinkleblockcallbackMain(pageobj) {
-	var text = pageobj.getPageText(),
-		params = pageobj.getCallbackParameters(),
-		messageData = params.messageData,
-		date = new Morebits.date(pageobj.getLoadTime());
+	const params = pageobj.getCallbackParameters(),
+		date = new Morebits.Date(pageobj.getLoadTime()),
+		messageData = params.messageData;
+	let text;
 
-	var dateHeaderRegex = date.monthHeaderRegex(), dateHeaderRegexLast, dateHeaderRegexResult;
-	while ((dateHeaderRegexLast = dateHeaderRegex.exec(text)) !== null) {
-		dateHeaderRegexResult = dateHeaderRegexLast;
-	}
-	// If dateHeaderRegexResult is null then lastHeaderIndex is never checked. If it is not null but
-	// \n== is not found, then the date header must be at the very start of the page. lastIndexOf
-	// returns -1 in this case, so lastHeaderIndex gets set to 0 as desired.
-	var lastHeaderIndex = text.lastIndexOf('\n==') + 1;
-
-	if (text.length > 0) {
-		text += '\n\n';
-	}
-
-	params.indefinite = (/indef|infinit|never|\*|max/).test(params.expiry);
+	params.indefinite = Morebits.string.isInfinity(params.expiry);
 
 	if (Twinkle.getPref('blankTalkpageOnIndefBlock') && params.template !== 'uw-lblock' && params.indefinite) {
-		Morebits.status.info('Info', 'Menghapus isi halaman pembicaraan berdasarkan preferensi dan membuat subbagian tingkat 2 untuk tanggal');
+		Morebits.Status.info('Info', 'Menghapus isi halaman pembicaraan berdasarkan preferensi dan membuat subbagian tingkat 2 untuk tanggal');
 		text = date.monthHeader() + '\n';
-	} else if (!dateHeaderRegexResult || dateHeaderRegexResult.index !== lastHeaderIndex) {
-		Morebits.status.info('Info', 'Akan membuat bagian tingkat 2 baru untuk tanggal karena subbagian bulan ini tidak tersedia');
-		text += date.monthHeader() + '\n';
+	} else {
+		text = pageobj.getPageText();
+
+		const dateHeaderRegex = date.monthHeaderRegex();
+		let dateHeaderRegexLast, dateHeaderRegexResult;
+		while ((dateHeaderRegexLast = dateHeaderRegex.exec(text)) !== null) {
+			dateHeaderRegexResult = dateHeaderRegexLast;
+		}
+		// If dateHeaderRegexResult is null then lastHeaderIndex is never checked. If it is not null but
+		// \n== is not found, then the date header must be at the very start of the page. lastIndexOf
+		// returns -1 in this case, so lastHeaderIndex gets set to 0 as desired.
+		const lastHeaderIndex = text.lastIndexOf('\n==') + 1;
+
+		if (text.length > 0) {
+			text += '\n\n';
+		}
+
+		if (!dateHeaderRegexResult || dateHeaderRegexResult.index !== lastHeaderIndex) {
+			Morebits.Status.info('Info', 'Akan membuat bagian tingkat 2 baru untuk tanggal karena subbagian bulan ini tidak tersedia');
+			text += date.monthHeader() + '\n';
+		}
 	}
 
 	params.expiry = typeof params.template_expiry !== 'undefined' ? params.template_expiry : params.expiry;
@@ -1652,19 +2044,20 @@ Twinkle.block.callback.main = function twinkleblockcallbackMain(pageobj) {
 	text += Twinkle.block.callback.getBlockNoticeWikitext(params);
 
 	// build the edit summary
-	var summary = messageData.summary;
+	let summary = messageData.summary;
 	if (messageData.suppressArticleInSummary !== true && params.article) {
 		summary += ' di [[:' + params.article + ']]';
 	}
-	summary += '.' + Twinkle.getPref('summaryAd');
+	summary += '.';
 
 	pageobj.setPageText(text);
 	pageobj.setEditSummary(summary);
+	pageobj.setChangeTags(Twinkle.changeTags);
 	pageobj.setWatchlist(Twinkle.getPref('watchWarnings'));
 	pageobj.save();
 };
 
-})(jQuery);
-
+Twinkle.addInitCallback(Twinkle.block, 'block');
+}());
 
 // </nowiki>

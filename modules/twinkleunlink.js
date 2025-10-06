@@ -11,7 +11,7 @@
  */
 
 Twinkle.unlink = function twinkleunlink() {
-	if (mw.config.get('wgNamespaceNumber') < 0 || mw.config.get('wgPageName') === 'Wikipedia:Sandbox' ||
+	if (mw.config.get('wgNamespaceNumber') < 0 || mw.config.get('wgPageName') === 'Wikipedia:Bak pasir' ||
 		// Restrict to extended confirmed users (see #428)
 		(!Morebits.userIsInGroup('extendedconfirmed') && !Morebits.userIsSysop)) {
 		return;
@@ -146,10 +146,10 @@ Twinkle.unlink.callbacks = {
 				if (!list.length) {
 					apiobj.params.form.append({ type: 'div', label: 'Tidak ditemukan penggunaan gambar.' });
 				} else {
-					apiobj.params.form.append({ type: 'header', label: 'File usage' });
+					apiobj.params.form.append({ type: 'header', label: 'Penggunaan berkas' });
 					namespaces = [];
 					$.each(Twinkle.getPref('unlinkNamespaces'), (k, v) => {
-						namespaces.push(v === '0' ? '(Article)' : mw.config.get('wgFormattedNamespaces')[v]);
+						namespaces.push(v === '0' ? '(Artikel)' : mw.config.get('wgFormattedNamespaces')[v]);
 					});
 					apiobj.params.form.append({
 						type: 'div',
@@ -196,29 +196,29 @@ Twinkle.unlink.callbacks = {
 				apiobj.params.form.append({ type: 'header', label: 'Backlinks' });
 				namespaces = [];
 				$.each(Twinkle.getPref('unlinkNamespaces'), (k, v) => {
-					namespaces.push(v === '0' ? '(Article)' : mw.config.get('wgFormattedNamespaces')[v]);
+					namespaces.push(v === '0' ? '(Artikel)' : mw.config.get('wgFormattedNamespaces')[v]);
 				});
 				apiobj.params.form.append({
 					type: 'div',
-					label: 'Selected namespaces: ' + namespaces.join(', '),
+					label: 'Ruangnama terplih: ' + namespaces.join(', '),
 					tooltip: 'Anda dapat mengubah setelan ini di preferensi Twinkle Anda di [[WP:TWPREFS]]'
 				});
 				if (response['query-continue'] && response['query-continue'].backlinks) {
 					apiobj.params.form.append({
 						type: 'div',
-						label: 'First ' + mw.language.convertNumber(list.length) + ' backlinks shown.'
+						label: 'Pranla balik ' + mw.language.convertNumber(list.length) + ' pertama ditampilkan.'
 					});
 				}
 				apiobj.params.form.append({
 					type: 'button',
-					label: 'Select All',
+					label: 'Pilih semua',
 					event: function(e) {
 						$(Morebits.QuickForm.getElements(e.target.form, 'backlinks')).prop('checked', true);
 					}
 				});
 				apiobj.params.form.append({
 					type: 'button',
-					label: 'Deselect All',
+					label: 'Batalkan semua pilihan',
 					event: function(e) {
 						$(Morebits.QuickForm.getElements(e.target.form, 'backlinks')).prop('checked', false);
 					}

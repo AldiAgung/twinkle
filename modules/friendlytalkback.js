@@ -25,9 +25,9 @@ Twinkle.talkback.callback = function() {
 	const Window = new Morebits.SimpleWindow(600, 350);
 	Window.setTitle('Talkback');
 	Window.setScriptName('Twinkle');
-	Window.addFooterLink('Talkback prefs', 'WP:TW/PREF#talkback');
-	Window.addFooterLink('Twinkle help', 'WP:TW/DOC#talkback');
-	Window.addFooterLink('Give feedback', 'WT:TW');
+	Window.addFooterLink('Preferensi balasan percakapan', 'WP:TW/PREF#talkback');
+	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#talkback');
+	Window.addFooterLink('Berikan umpan balik', 'WT:TW');
 
 	const form = new Morebits.QuickForm(Twinkle.talkback.evaluate);
 

@@ -20,16 +20,16 @@ Twinkle.deprod = function() {
 	) {
 		return;
 	}
-	Twinkle.addPortletLink(Twinkle.deprod.callback, 'Deprod', 'tw-deprod', 'Delete prod pages found in this category');
+	Twinkle.addPortletLink(Twinkle.deprod.callback, 'Deprod', 'tw-deprod', 'Halaman penghapusan prod ditemukan di kategori ini');
 };
 
 const concerns = {};
 
 Twinkle.deprod.callback = function() {
 	const Window = new Morebits.simpleWindow(800, 400);
-	Window.setTitle('PROD cleaning');
+	Window.setTitle('Pembersihan PROD');
 	Window.setScriptName('Twinkle');
-	Window.addFooterLink('Proposed deletion', 'WP:PROD');
+	Window.addFooterLink('Usulan penghapusan', 'WP:PROD');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#deprod');
 
 	const form = new Morebits.quickForm(callback_commit);
@@ -73,7 +73,7 @@ Twinkle.deprod.callback = function() {
 			const editProt = page.protection.filter((pr) => pr.type === 'edit' && pr.level === 'sysop').pop();
 			if (editProt) {
 				metadata.push('fully protected' +
-					(editProt.expiry === 'infinity' ? ' indefinitely' : ', expires ' + editProt.expiry));
+					(editProt.expiry === 'tidak terbatas' ? ' tidak didefinisikan' : ', kadaluwarsa ' + editProt.expiry));
 			}
 			list.push({
 				label: metadata.length ? '(' + metadata.join('; ') + ')' : '',
@@ -85,14 +85,14 @@ Twinkle.deprod.callback = function() {
 		apiobj.params.form.append({ type: 'header', label: 'Halaman untuk dihapus' });
 		apiobj.params.form.append({
 			type: 'button',
-			label: 'Select All',
+			label: 'Pilih semua',
 			event: function(e) {
 				$(Morebits.quickForm.getElements(e.target.form, 'pages')).prop('checked', true);
 			}
 		});
 		apiobj.params.form.append({
 			type: 'button',
-			label: 'Deselect All',
+			label: 'Batalkan pilihan',
 			event: function(e) {
 				$(Morebits.quickForm.getElements(e.target.form, 'pages')).prop('checked', false);
 			}
@@ -151,7 +151,7 @@ var callback_commit = function(event) {
 			}
 
 			var page = new Morebits.wiki.page(pageName, 'Menghapus halaman ' + pageName);
-			page.setEditSummary('[[WP:PROD|PROD]] sudah tidak berlaku, concern was: ' + concerns[pageName] + Twinkle.getPref('deletionSummaryAd'));
+			page.setEditSummary('[[WP:PROD|PROD]] sudah tidak berlaku, alasannya adalah: ' + concerns[pageName] + Twinkle.getPref('deletionSummaryAd'));
 			page.setChangeTags(Twinkle.changeTags);
 			page.suppressProtectWarning();
 			page.deletePage(batchOperation.workerSuccess, batchOperation.workerFailure);
@@ -162,8 +162,8 @@ var callback_commit = function(event) {
 			return;
 		}
 
-		const page = new Morebits.wiki.Page('Talk:' + apiobj.params.page, 'Menghapus halaman pembicaraan dari halaman ' + apiobj.params.page);
-		page.setEditSummary('[[WP:CSD#G8|G8]]: [[Help:Talk page|Halaman pembicaraan]] dari halaman terhapus [[' + apiobj.params.page + ']]');
+		const page = new Morebits.wiki.Page('Pembicaraan:' + apiobj.params.page, 'Menghapus halaman pembicaraan dari halaman ' + apiobj.params.page);
+		page.setEditSummary('[[WP:KPC#U8|U8]]: [[Bantuan:Halaman Pembicaraan|Halaman pembicaraan]] dari halaman terhapus [[' + apiobj.params.page + ']]');
 		page.setChangeTags(Twinkle.changeTags);
 		page.deletePage();
 	},
@@ -173,7 +173,7 @@ var callback_commit = function(event) {
 		redirects.forEach((rd) => {
 			const judul = rd.title;
 			const page = new Morebits.wiki.Page(judul, 'Menghapus pengalihan halaman' + judul);
-			page.setEditSummary('[[WP:CSD#G8|G8]]: Mengalihkan ke halaman terhapus [[' + apiobj.params.page + ']]');
+			page.setEditSummary('[[WP:KPC#U8|U8]]: Mengalihkan ke halaman terhapus [[' + apiobj.params.page + ']]');
 			page.setChangeTags(Twinkle.changeTags);
 			page.deletePage();
 		});

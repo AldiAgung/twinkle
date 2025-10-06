@@ -1,8 +1,6 @@
 // <nowiki>
 
-
-(function($) {
-
+(function() {
 
 /*
  ****************************************
@@ -12,7 +10,6 @@
  * Active on:              Existing project pages and user pages; existing and
  *                         non-existing categories; Special:PrefixIndex
  */
-
 
 Twinkle.batchprotect = function twinklebatchprotect() {
 	if (Morebits.userIsSysop && ((mw.config.get('wgArticleId') > 0 && (mw.config.get('wgNamespaceNumber') === 2 ||
@@ -24,161 +21,81 @@ Twinkle.batchprotect = function twinklebatchprotect() {
 
 Twinkle.batchprotect.unlinkCache = {};
 Twinkle.batchprotect.callback = function twinklebatchprotectCallback() {
-	var Window = new Morebits.simpleWindow(600, 400);
+	const Window = new Morebits.SimpleWindow(600, 400);
 	Window.setTitle('Perlindungan massal');
 	Window.setScriptName('Twinkle');
 	Window.addFooterLink('Kebijakan perlindungan', 'WP:PROT');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#protect');
+	Window.addFooterLink('Berikan umpan balik', 'WT:TW');
 
-	var form = new Morebits.quickForm(Twinkle.batchprotect.callback.evaluate);
+	const form = new Morebits.QuickForm(Twinkle.batchprotect.callback.evaluate);
 	form.append({
 		type: 'checkbox',
-		name: 'editmodify',
 		event: Twinkle.protect.formevents.editmodify,
 		list: [
 			{
 				label: 'Ubah perlindungan penyuntingan',
 				value: 'editmodify',
+				name : 'editmodify',
 				tooltip: 'Hanya untuk halaman yang ada',
 				checked: true
 			}
 		]
 	});
-	var editlevel = form.append({
+	form.append({
 		type: 'select',
 		name: 'editlevel',
 		label: 'Ubah perlindungan:',
-		event: Twinkle.protect.formevents.editlevel
-	});
-	editlevel.append({
-		type: 'option',
-		label: 'Semua',
-		value: 'all'
-	});
-	editlevel.append({
-		type: 'option',
-		label: 'Terkonfirmasi otomatis',
-		value: 'autoconfirmed'
-	});
-	/* editlevel.append({
-		type: 'option',
-		label: 'Extended confirmed',
-		value: 'extendedconfirmed'
-	});
-	editlevel.append({
-		type: 'option',
-		label: 'Template editor',
-		value: 'templateeditor'
-	}); */
-	editlevel.append({
-		type: 'option',
-		label: 'Pengurus',
-		value: 'sysop',
-		selected: true
+		event: Twinkle.protect.formevents.editlevel,
+		list: Twinkle.protect.protectionLevels
 	});
 	form.append({
 		type: 'select',
 		name: 'editexpiry',
-		label: 'Kedaluwarsa:',
+		label: 'Kadaluwarsa:',
 		event: function(e) {
 			if (e.target.value === 'custom') {
 				Twinkle.protect.doCustomExpiry(e.target);
 			}
 		},
-		list: [
-			{ label: '1 jam', value: '1 hour' },
-			{ label: '2 jam', value: '2 hours' },
-			{ label: '3 jam', value: '3 hours' },
-			{ label: '6 jam', value: '6 hours' },
-			{ label: '12 jam', value: '12 hours' },
-			{ label: '1 hari', value: '1 day' },
-			{ label: '2 hari', selected: true, value: '2 days' },
-			{ label: '3 hari', value: '3 days' },
-			{ label: '4 hari', value: '4 days' },
-			{ label: '1 minggu', value: '1 week' },
-			{ label: '2 minggu', value: '2 weeks' },
-			{ label: '1 bulan', value: '1 month' },
-			{ label: '2 bulan', value: '2 months' },
-			{ label: '3 bulan', value: '3 months' },
-			{ label: '1 tahun', value: '1 year' },
-			{ label: 'selamanya', value: 'indefinite' },
-			{ label: 'Atur sendiri...', value: 'custom' }
-		]
+		list: Twinkle.protect.protectionLengths // Default (2 days) set after render
 	});
 
 	form.append({
 		type: 'checkbox',
-		name: 'movemodify',
 		event: Twinkle.protect.formevents.movemodify,
 		list: [
 			{
-				label: 'Ubah perlindungan pemindahan',
+				label: 'Perlindungan modifikasi pemindahan',
 				value: 'movemodify',
-				tooltip: 'Hanya untuk halaman yang ada',
+				name: 'movemodify',
+				tooltip: 'Hanya terdapat halaman.',
 				checked: true
 			}
 		]
 	});
-	var movelevel = form.append({
+	form.append({
 		type: 'select',
 		name: 'movelevel',
-		label: 'Perlindungan pemindahan:',
-		event: Twinkle.protect.formevents.movelevel
-	});
-	movelevel.append({
-		type: 'option',
-		label: 'Semua',
-		value: 'all'
-	});
-	/* movelevel.append({
-		type: 'option',
-		label: 'Extended confirmed',
-		value: 'extendedconfirmed'
-	});
-	movelevel.append({
-		type: 'option',
-		label: 'Template editor',
-		value: 'templateeditor'
-	}); */
-	movelevel.append({
-		type: 'option',
-		label: 'Pengurus',
-		value: 'sysop',
-		selected: true
+		label: 'Perlindugan pemindahan:',
+		event: Twinkle.protect.formevents.movelevel,
+		// Autoconfirmed is required for a move, redundant
+		list: Twinkle.protect.protectionLevels.filter((level) => level.value !== 'autoconfirmed')
 	});
 	form.append({
 		type: 'select',
 		name: 'moveexpiry',
-		label: 'Kedaluwarsa:',
+		label: 'Kadaluwarsa:',
 		event: function(e) {
 			if (e.target.value === 'custom') {
 				Twinkle.protect.doCustomExpiry(e.target);
 			}
 		},
-		list: [
-			{ label: '1 jam', value: '1 hour' },
-			{ label: '2 jam', value: '2 hours' },
-			{ label: '3 jam', value: '3 hours' },
-			{ label: '6 jam', value: '6 hours' },
-			{ label: '12 jam', value: '12 hours' },
-			{ label: '1 hari', value: '1 day' },
-			{ label: '2 hari', selected: true, value: '2 days' },
-			{ label: '3 hari', value: '3 days' },
-			{ label: '4 hari', value: '4 days' },
-			{ label: '1 minggu', value: '1 week' },
-			{ label: '2 minggu', value: '2 weeks' },
-			{ label: '1 bulan', value: '1 month' },
-			{ label: '2 bulan', value: '2 months' },
-			{ label: '3 bulan', value: '3 months' },
-			{ label: '1 tahun', value: '1 year' },
-			{ label: 'selamanya', value: 'indefinite' },
-			{ label: 'Atur sendiri...', value: 'custom' }
-		]
+		list: Twinkle.protect.protectionLengths // Default (2 days) set after render
 	});
 
 	form.append({
 		type: 'checkbox',
-		name: 'createmodify',
 		event: function twinklebatchprotectFormCreatemodifyEvent(e) {
 			e.target.form.createlevel.disabled = !e.target.checked;
 			e.target.form.createexpiry.disabled = !e.target.checked || (e.target.form.createlevel.value === 'all');
@@ -188,93 +105,52 @@ Twinkle.batchprotect.callback = function twinklebatchprotectCallback() {
 			{
 				label: 'Ubah perlindungan pembuatan',
 				value: 'createmodify',
-				tooltip: 'Hanya untuk halaman yang belum ada',
+				name: 'createmodify',
+				tooltip: 'Hanya untuk halaman yang belum ada.',
 				checked: true
 			}
 		]
 	});
-	var createlevel = form.append({
+	form.append({
 		type: 'select',
 		name: 'createlevel',
-		label: 'Buat perlindungan:',
-		event: Twinkle.protect.formevents.createlevel
-	});
-	createlevel.append({
-		type: 'option',
-		label: 'Semua',
-		value: 'all'
-	});
-	createlevel.append({
-		type: 'option',
-		label: 'Terkonfirmasi otomatis',
-		value: 'autoconfirmed'
-	});
-	/* createlevel.append({
-		type: 'option',
-		label: 'Extended confirmed',
-		value: 'extendedconfirmed'
-	});
-	createlevel.append({
-		type: 'option',
-		label: 'Template editor',
-		value: 'templateeditor'
-	}); */
-	createlevel.append({
-		type: 'option',
-		label: 'Pengurus',
-		value: 'sysop',
-		selected: true
+		label: 'Perlindungan pembuatan:',
+		event: Twinkle.protect.formevents.createlevel,
+		list: Twinkle.protect.protectionLevels
 	});
 	form.append({
 		type: 'select',
 		name: 'createexpiry',
-		label: 'Kedaluwarsa:',
+		label: 'Kadaluwarsa:',
 		event: function(e) {
 			if (e.target.value === 'custom') {
 				Twinkle.protect.doCustomExpiry(e.target);
 			}
 		},
-		list: [
-			{ label: '1 jam', value: '1 hour' },
-			{ label: '2 jam', value: '2 hours' },
-			{ label: '3 jam', value: '3 hours' },
-			{ label: '6 jam', value: '6 hours' },
-			{ label: '12 jam', value: '12 hours' },
-			{ label: '1 hari', value: '1 day' },
-			{ label: '2 hari', selected: true, value: '2 days' },
-			{ label: '3 hari', value: '3 days' },
-			{ label: '4 hari', value: '4 days' },
-			{ label: '1 minggu', value: '1 week' },
-			{ label: '2 minggu', value: '2 weeks' },
-			{ label: '1 bulan', value: '1 month' },
-			{ label: '2 bulan', value: '2 months' },
-			{ label: '3 bulan', value: '3 months' },
-			{ label: '1 tahun', value: '1 year' },
-			{ label: 'selamanya', value: 'indefinite' },
-			{ label: 'Atur sendiri...', value: 'custom' }
-		]
+		list: Twinkle.protect.protectionLengths // Default (indefinite) set after render
 	});
 
 	form.append({
 		type: 'header',
-		label: ''  // horizontal rule
+		label: '' // horizontal rule
 	});
 	form.append({
 		type: 'input',
 		name: 'reason',
-		label: 'Alasan: ',
+		label: 'Alasan:',
 		size: 60,
-		tooltip: 'Untuk log perlindungan dan riwayat halaman'
+		tooltip: 'Untuk catatan perlindungan dan riwayat halaman.'
 	});
 
-	var query = {
-		'action': 'query',
-		'prop': 'revisions|info',
-		'rvprop': 'size',
-		'inprop': 'protection'
+	const query = {
+		action: 'query',
+		prop: 'revisions|info|imageinfo',
+		rvprop: 'size|user',
+		inprop: 'protection',
+		format: 'json'
 	};
 
-	if (mw.config.get('wgNamespaceNumber') === 14) {  // categories
+	if (mw.config.get('wgNamespaceNumber') === 14) { // categories
 		query.generator = 'categorymembers';
 		query.gcmtitle = mw.config.get('wgPageName');
 		query.gcmlimit = Twinkle.getPref('batchMax');
@@ -289,71 +165,85 @@ Twinkle.batchprotect.callback = function twinklebatchprotectCallback() {
 		query.gpllimit = Twinkle.getPref('batchMax');
 	}
 
-	var statusdiv = document.createElement('div');
-	statusdiv.style.padding = '15px';  // just so it doesn't look broken
+	const statusdiv = document.createElement('div');
+	statusdiv.style.padding = '15px'; // just so it doesn't look broken
 	Window.setContent(statusdiv);
-	Morebits.status.init(statusdiv);
+	Morebits.Status.init(statusdiv);
 	Window.display();
 
-	var statelem = new Morebits.status('Mengambil senarai halaman');
+	const statelem = new Morebits.Status('Mengambil daftar halaman');
 
-	var wikipedia_api = new Morebits.wiki.api('memuat...', query, function(apiobj) {
-		var xml = apiobj.responseXML;
-		var $pages = $(xml).find('page');
-		var list = [];
-		$pages.each(function(index, page) {
-			var $page = $(page);
-			var title = $page.attr('title');
-			var isRedir = $page.attr('redirect') === ''; // XXX ??
-			var missing = $page.attr('missing') === ''; // XXX ??
-			var size = $page.find('rev').attr('size');
-			var $editProt;
+	const wikipedia_api = new Morebits.wiki.Api('memuat...', query, ((apiobj) => {
+		const response = apiobj.getResponse();
+		const pages = (response.query && response.query.pages) || [];
+		const list = [];
+		pages.sort(Twinkle.sortByNamespace);
+		pages.forEach((page) => {
+			const metadata = [];
+			const missing = !!page.missing;
+			let editProt;
 
-			var metadata = [];
 			if (missing) {
 				metadata.push('halaman tidak ada');
-				$editProt = $page.find('pr[type="create"][level="sysop"]');
+				editProt = page.protection.filter((pr) => pr.type === 'create' && pr.level === 'sysop').pop();
 			} else {
-				if (isRedir) {
+				if (page.redirect) {
 					metadata.push('redirect');
 				}
-				metadata.push(size + ' bytes');
-				$editProt = $page.find('pr[type="edit"][level="sysop"]');
+
+				if (page.ns === 6) {
+					metadata.push('pengunggah: ' + page.imageinfo[0].user);
+					metadata.push('suntingan terakhir dari: ' + page.revisions[0].user);
+				} else {
+					metadata.push(mw.language.convertNumber(page.revisions[0].size) + ' bita');
+				}
+
+				editProt = page.protection
+					.filter((pr) => pr.type === 'edit' && pr.level === 'sysop')
+					.pop();
 			}
-			if ($editProt.length > 0) {
-				metadata.push('fully' + (missing ? ' create' : '') + ' dilindungi' +
-				($editProt.attr('expiry') === 'infinity' ? ' selamanya' : ', kedaluwarsa ' + new Morebits.date($editProt.attr('expiry')).calendar('utc') + ' (UTC)'));
+			if (editProt) {
+				metadata.push('fully' + (missing ? ' create' : '') + ' protected' +
+				(editProt.expiry === 'infinity' ? ' indefinitely' : ', expires ' + new Morebits.Date(editProt.expiry).calendar('utc') + ' (UTC)'));
 			}
 
-			list.push({ label: title + (metadata.length ? ' (' + metadata.join('; ') + ')' : ''), value: title, checked: true, style: $editProt.length > 0 ? 'color:red' : '' });
+			const title = page.title;
+			list.push({ label: title + (metadata.length ? ' (' + metadata.join('; ') + ')' : ''), value: title, checked: true, style: editProt ? 'color:red' : '' });
 		});
-		form.append({ type: 'header', label: 'Halaman yang akan dilindungi' });
+		form.append({ type: 'header', label: 'Halaman untuk dilindungi' });
 		form.append({
 			type: 'button',
-			label: 'Pilih semua',
+			label: 'Pilih Semua',
 			event: function(e) {
-				$(Morebits.quickForm.getElements(e.target.form, 'pages')).prop('checked', true);
+				$(Morebits.QuickForm.getElements(e.target.form, 'pages')).prop('checked', true);
 			}
 		});
 		form.append({
 			type: 'button',
-			label: 'Kosongkan centang',
+			label: 'Batalkan Pilihan Semua',
 			event: function(e) {
-				$(Morebits.quickForm.getElements(e.target.form, 'pages')).prop('checked', false);
+				$(Morebits.QuickForm.getElements(e.target.form, 'pages')).prop('checked', false);
 			}
 		});
 		form.append({
 			type: 'checkbox',
 			name: 'pages',
+			shiftClickSupport: true,
 			list: list
 		});
 		form.append({ type: 'submit' });
 
-		var result = form.render();
+		const result = form.render();
 		Window.setContent(result);
 
-		Morebits.checkboxShiftClickSupport(Morebits.quickForm.getElements(result, 'pages'));
-	}, statelem);
+		// Set defaults
+		result.editexpiry.value = '2 days';
+		result.moveexpiry.value = '2 days';
+		result.createexpiry.value = 'infinity';
+
+		Morebits.QuickForm.getElements(result, 'pages').forEach(Twinkle.generateArrowLinks);
+
+	}), statelem);
 
 	wikipedia_api.post();
 };
@@ -361,83 +251,64 @@ Twinkle.batchprotect.callback = function twinklebatchprotectCallback() {
 Twinkle.batchprotect.currentProtectCounter = 0;
 Twinkle.batchprotect.currentprotector = 0;
 Twinkle.batchprotect.callback.evaluate = function twinklebatchprotectCallbackEvaluate(event) {
-	Morebits.wiki.actionCompleted.notice = 'Perlindungan massal telah selesai';
+	Morebits.wiki.actionCompleted.notice = 'Proses perlindungan selesai';
 
-	var form = event.target;
+	const form = event.target;
 
-	var numProtected = $(Morebits.quickForm.getElements(form, 'pages')).filter(function(index, element) {
-		return element.checked && element.nextElementSibling.style.color === 'red';
-	}).length;
-	if (numProtected > 0 && !confirm('Anda akan melakukan tindakan pada ' + numProtected + ' halaman yang dilindungi penuh. Yakin?')) {
+	const numProtected = $(Morebits.QuickForm.getElements(form, 'pages'))
+		.filter((index, element) => element.checked && element.nextElementSibling.style.color === 'red')
+		.length;
+	if (numProtected > 0 && !confirm('Anda akan melakukan ' + mw.language.convertNumber(numProtected) + ' halaman perlindungan penuh, apakah anda yakin?')) {
 		return;
 	}
 
-	var pages = form.getChecked('pages');
-	var reason = form.reason.value;
-	var editmodify = form.editmodify.checked;
-	var editlevel = form.editlevel.value;
-	var editexpiry = form.editexpiry.value;
-	var movemodify = form.movemodify.checked;
-	var movelevel = form.movelevel.value;
-	var moveexpiry = form.moveexpiry.value;
-	var createmodify = form.createmodify.checked;
-	var createlevel = form.createlevel.value;
-	var createexpiry = form.createexpiry.value;
+	const input = Morebits.QuickForm.getInputData(form);
 
-	if (!reason) {
-		alert('Anda harus memberikan alasan. Jangan mengabaikannya!');
+	if (!input.reason) {
+		alert("Anda harus memberi alasan!");
 		return;
 	}
 
-	Morebits.simpleWindow.setButtonsEnabled(false);
-	Morebits.status.init(form);
+	Morebits.SimpleWindow.setButtonsEnabled(false);
+	Morebits.Status.init(form);
 
-	if (!pages) {
-		Morebits.status.error('Galat', 'Tidak ada halaman untuk dilindungi. Membatalkan...');
+	if (input.pages.length === 0) {
+		Morebits.Status.error('Galat', 'Tidak ada untuk dilindungi, membatalkan');
 		return;
 	}
 
-	var batchOperation = new Morebits.batchOperation('Menerapkan pengaturan perlindungan');
-	batchOperation.setOption('chunkSize', Twinkle.getPref('batchProtectChunks'));
+	const batchOperation = new Morebits.BatchOperation('Menerapkan pengaturan perlindungan');
+	batchOperation.setOption('chunkSize', Twinkle.getPref('batchChunks'));
 	batchOperation.setOption('preserveIndividualStatusLines', true);
-	batchOperation.setPageList(pages);
-	batchOperation.run(function(pageName) {
-		var query = {
-			'action': 'query',
-			'titles': pageName
+	batchOperation.setPageList(input.pages);
+	batchOperation.run((pageName) => {
+		const query = {
+			action: 'query',
+			titles: pageName,
+			format: 'json'
 		};
-		var wikipedia_api = new Morebits.wiki.api('Memeriksa apakah ' + pageName + ' ada', query,
+		const wikipedia_api = new Morebits.wiki.Api('Memeriksa jika ' + pageName + ' ada', query,
 			Twinkle.batchprotect.callbacks.main, null, batchOperation.workerFailure);
-		wikipedia_api.params = {
+		wikipedia_api.params = $.extend({
 			page: pageName,
-			reason: reason,
-			editmodify: editmodify,
-			editlevel: editlevel,
-			editexpiry: editexpiry,
-			movemodify: movemodify,
-			movelevel: movelevel,
-			moveexpiry: moveexpiry,
-			createmodify: createmodify,
-			createlevel: createlevel,
-			createexpiry: createexpiry,
 			batchOperation: batchOperation
-		};
+		}, input);
 		wikipedia_api.post();
 	});
 };
 
 Twinkle.batchprotect.callbacks = {
 	main: function(apiobj) {
-		var xml = apiobj.responseXML;
-		var normal = $(xml).find('normalized n').attr('to');
-		if (normal) {
-			apiobj.params.page = normal;
+		const response = apiobj.getResponse();
+
+		if (response.query.normalized) {
+			apiobj.params.page = response.query.normalized[0].to;
 		}
 
-		var exists = $(xml).find('page').attr('missing') !== '';
+		const exists = !response.query.pages[0].missing;
 
-		var page = new Morebits.wiki.page(apiobj.params.page, 'Melindungi ' + apiobj.params.page);
-		var takenAction = false;
+		const page = new Morebits.wiki.Page(apiobj.params.page, 'Melindungi ' + apiobj.params.page);
+		let takenAction = false;
 		if (exists && apiobj.params.editmodify) {
 			page.setEditProtection(apiobj.params.editlevel, apiobj.params.editexpiry);
 			takenAction = true;
@@ -451,16 +322,18 @@ Twinkle.batchprotect.callbacks = {
 			takenAction = true;
 		}
 		if (!takenAction) {
-			Morebits.status.warn('Melindungi ' + apiobj.params.page, 'halaman ' + (exists ? 'tersedia' : 'tidak ada') + '; sedang gabut, loncati...');
+			Morebits.Status.warn('Melindungi halaman' + apiobj.params.page, + (exists ? 'ada' : 'tidak ada') + '; tidak ada untuk dilakukan, membatalkan');
 			apiobj.params.batchOperation.workerFailure(apiobj);
 			return;
 		}
 
 		page.setEditSummary(apiobj.params.reason);
+		page.setChangeTags(Twinkle.changeTags);
 		page.protect(apiobj.params.batchOperation.workerSuccess, apiobj.params.batchOperation.workerFailure);
 	}
 };
-})(jQuery);
 
+Twinkle.addInitCallback(Twinkle.batchprotect, 'batchprotect');
+}());
 
 // </nowiki>

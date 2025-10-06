@@ -17,7 +17,7 @@ Twinkle.batchdelete = function twinklebatchdelete() {
 			mw.config.get('wgCanonicalSpecialPageName') === 'Prefixindex'
 		)
 	) {
-		Twinkle.addPortletLink(Twinkle.batchdelete.callback, 'D-batch', 'tw-batch', 'Delete pages found in this category/on this page');
+		Twinkle.addPortletLink(Twinkle.batchdelete.callback, 'D-batch', 'tw-batch', 'Halaman penghapusan ditemukan di kategori/halaman ini');
 	}
 };
 
@@ -31,15 +31,15 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 	const Window = new Morebits.SimpleWindow(600, 400);
 	Window.setTitle('Batch deletion');
 	Window.setScriptName('Twinkle');
-	Window.addFooterLink('Twinkle help', 'WP:TW/DOC#batchdelete');
-	Window.addFooterLink('Give feedback', 'WT:TW');
+	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#batchdelete');
+	Window.addFooterLink('Berikan umpan balik', 'WT:TW');
 
 	const form = new Morebits.QuickForm(Twinkle.batchdelete.callback.evaluate);
 	form.append({
 		type: 'checkbox',
 		list: [
 			{
-				label: 'Delete pages',
+				label: 'Hapus halaman',
 				name: 'delete_page',
 				value: 'delete',
 				checked: true,
@@ -47,19 +47,19 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 					type: 'checkbox',
 					list: [
 						{
-							label: 'Delete associated talk pages (except user talk pages)',
+							label: 'Hapus halaman pembicaraannya (kecuali halaman pembicaraan pengguna)',
 							name: 'delete_talk',
 							value: 'delete_talk',
 							checked: true
 						},
 						{
-							label: 'Delete redirects to deleted pages',
+							label: 'Hapus pengalihan ke halaman yang dihapus',
 							name: 'delete_redirects',
 							value: 'delete_redirects',
 							checked: true
 						},
 						{
-							label: 'Delete subpages of deleted pages',
+							label: 'Hapus subhalaman dari halaman yang dihapus',
 							name: 'delete_subpages',
 							value: 'delete_subpages',
 							checked: false,
@@ -68,17 +68,17 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 								type: 'checkbox',
 								list: [
 									{
-										label: 'Delete talk pages of deleted subpages',
+										label: 'Hapus halaman pembicaraan dari halaman yang dihapus',
 										name: 'delete_subpage_talks',
 										value: 'delete_subpage_talks'
 									},
 									{
-										label: 'Delete redirects to deleted subpages',
+										label: 'Hapus pengalihan dari halaman yang dihapus',
 										name: 'delete_subpage_redirects',
 										value: 'delete_subpage_redirects'
 									},
 									{
-										label: 'Unlink backlinks to each deleted subpage (in Main and Portal namespaces only)',
+										label: 'Lepaskan tautan ke halaman yang dihapus (dalam ruangnama Utama dan Portal)',
 										name: 'unlink_subpages',
 										value: 'unlink_subpages'
 									}
@@ -89,13 +89,13 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 				}
 			},
 			{
-				label: 'Unlink backlinks to each page (in Main and Portal namespaces only)',
+				label: 'Lepaskan tautan ke setiap halaman (dalam ruangnama Utama dan Portal)',
 				name: 'unlink_page',
 				value: 'unlink',
 				checked: false
 			},
 			{
-				label: 'Remove usages of each file (in all namespaces)',
+				label: 'Hapus penggunaan setiap halaman (dalam semua ruangnama)',
 				name: 'unlink_file',
 				value: 'unlink_file',
 				checked: true
@@ -105,7 +105,7 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 	form.append({
 		type: 'input',
 		name: 'reason',
-		label: 'Reason:',
+		label: 'Alasan:',
 		size: 60
 	});
 
@@ -133,7 +133,7 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 			query.gapprefix = mw.util.getParamValue('prefix');
 		} else {
 			let pathSplit = decodeURIComponent(location.pathname).split('/');
-			if (pathSplit.length < 3 || pathSplit[2] !== 'Special:PrefixIndex') {
+			if (pathSplit.length < 3 || pathSplit[2] !== 'Istimewa:PrefixIndex') {
 				return;
 			}
 			const titleSplit = pathSplit[3].split(':');
@@ -163,8 +163,8 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 
 	Twinkle.batchdelete.pages = {};
 
-	const statelem = new Morebits.Status('Grabbing list of pages');
-	const wikipedia_api = new Morebits.wiki.Api('loading...', query, ((apiobj) => {
+	const statelem = new Morebits.Status('Mengambil daftar halaman');
+	const wikipedia_api = new Morebits.wiki.Api('memuat...', query, ((apiobj) => {
 		const response = apiobj.getResponse();
 		let pages = (response.query && response.query.pages) || [];
 		pages = pages.filter((page) => !page.missing && page.imagerepository !== 'shared');
@@ -178,14 +178,14 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 			const editProt = page.protection.filter((pr) => pr.type === 'edit' && pr.level === 'sysop').pop();
 			if (editProt) {
 				metadata.push('fully protected' +
-				(editProt.expiry === 'infinity' ? ' indefinitely' : ', expires ' + new Morebits.Date(editProt.expiry).calendar('utc') + ' (UTC)'));
+				(editProt.expiry === 'infinity' ? ' selamanya' : ', kadaluwarsa ' + new Morebits.Date(editProt.expiry).calendar('utc') + ' (UTC)'));
 			}
 
 			if (page.ns === 6) {
-				metadata.push('uploader: ' + page.imageinfo[0].user);
-				metadata.push('last edit from: ' + page.revisions[0].user);
+				metadata.push('pengunggah: ' + page.imageinfo[0].user);
+				metadata.push('suntingan terakhir dari: ' + page.revisions[0].user);
 			} else {
-				metadata.push(mw.language.convertNumber(page.revisions[0].size) + ' bytes');
+				metadata.push(mw.language.convertNumber(page.revisions[0].size) + ' bita');
 			}
 
 			const title = page.title;
@@ -198,10 +198,10 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 		});
 
 		const form = apiobj.params.form;
-		form.append({ type: 'header', label: 'Pages to delete' });
+		form.append({ type: 'header', label: 'Halaman untuk dihapus' });
 		form.append({
 			type: 'button',
-			label: 'Select All',
+			label: 'Pilih semua',
 			event: function dBatchSelectAll() {
 				$(result).find('input[name=pages]:not(:checked)').each((_, e) => {
 					e.click(); // check it, and invoke click event so that subgroup can be shown
@@ -213,7 +213,7 @@ Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 		});
 		form.append({
 			type: 'button',
-			label: 'Deselect All',
+			label: 'Batalkan pilih Semua',
 			event: function dBatchDeselectAll() {
 				$(result).find('input[name=pages]:checked').each((_, e) => {
 					e.click(); // uncheck it, and invoke click event so that subgroup can be hidden
@@ -293,7 +293,7 @@ Twinkle.batchdelete.callback.toggleSubpages = function twDbatchToggleSubpages(e)
 		}
 
 		// Proceed with API calls to get list of subpages
-		const loadingText = '<strong id="dbatch-subpage-loading">Loading... </strong>';
+		const loadingText = '<strong id="dbatch-subpage-loading">Memuat... </strong>';
 		$(e.target).after(loadingText);
 
 		const pages = $(form.pages).map((i, el) => el.value).get();
@@ -310,7 +310,7 @@ Twinkle.batchdelete.callback.toggleSubpages = function twDbatchToggleSubpages(e)
 				return;
 			}
 
-			const wikipedia_api = new Morebits.wiki.Api('Getting list of subpages of ' + pageName, {
+			const wikipedia_api = new Morebits.wiki.Api('Mengambil daftar dari sub halaman ' + pageName, {
 				action: 'query',
 				prop: 'revisions|info|imageinfo',
 				generator: 'allpages',
@@ -334,13 +334,13 @@ Twinkle.batchdelete.callback.toggleSubpages = function twDbatchToggleSubpages(e)
 					const editProt = page.protection.filter((pr) => pr.type === 'edit' && pr.level === 'sysop').pop();
 					if (editProt) {
 						metadata.push('fully protected' +
-						(editProt.expiry === 'infinity' ? ' indefinitely' : ', expires ' + new Morebits.Date(editProt.expiry).calendar('utc') + ' (UTC)'));
+						(editProt.expiry === 'infinity' ? ' selamanya' : ', kadaluwarsa ' + new Morebits.Date(editProt.expiry).calendar('utc') + ' (UTC)'));
 					}
 					if (page.ns === 6) {
-						metadata.push('uploader: ' + page.imageinfo[0].user);
-						metadata.push('last edit from: ' + page.revisions[0].user);
+						metadata.push('pengunggah: ' + page.imageinfo[0].user);
+						metadata.push('suntingan terakhir dari: ' + page.revisions[0].user);
 					} else {
-						metadata.push(mw.language.convertNumber(page.revisions[0].size) + ' bytes');
+						metadata.push(mw.language.convertNumber(page.revisions[0].size) + ' bita');
 					}
 
 					const title = page.title;
@@ -404,29 +404,29 @@ Twinkle.batchdelete.callback.toggleSubpages = function twDbatchToggleSubpages(e)
 };
 
 Twinkle.batchdelete.callback.evaluate = function twinklebatchdeleteCallbackEvaluate(event) {
-	Morebits.wiki.actionCompleted.notice = 'Batch deletion is now complete';
+	Morebits.wiki.actionCompleted.notice = 'Operasi penghapusan selesai';
 
 	const form = event.target;
 
 	const numProtected = $(Morebits.QuickForm.getElements(form, 'pages')).filter((index, element) => element.checked && element.nextElementSibling.style.color === 'red').length;
-	if (numProtected > 0 && !confirm('You are about to delete ' + mw.language.convertNumber(numProtected) + ' fully protected page(s). Are you sure?')) {
+	if (numProtected > 0 && !confirm('Anda akan menghapus halaman terproteksi penuh ' + mw.language.convertNumber(numProtected) + ' Apakah anda yakin?')) {
 		return;
 	}
 
 	const input = Morebits.QuickForm.getInputData(form);
 
 	if (!input.reason) {
-		alert('You need to give a reason, you cabal crony!');
+		alert('Anda harus menyertakan alasan!');
 		return;
 	}
 	Morebits.SimpleWindow.setButtonsEnabled(false);
 	Morebits.Status.init(form);
 	if (input.pages.length === 0) {
-		Morebits.Status.error('Error', 'nothing to delete, aborting');
+		Morebits.Status.error('Galat', 'tidak ada untuk dihapus membatalkan');
 		return;
 	}
 
-	const pageDeleter = new Morebits.BatchOperation(input.delete_page ? 'Deleting pages' : 'Initiating requested tasks');
+	const pageDeleter = new Morebits.BatchOperation(input.delete_page ? 'Menghapus halaman' : 'Memulai tugas yang diminta');
 	pageDeleter.setOption('chunkSize', Twinkle.getPref('batchChunks'));
 	// we only need the initial status lines if we're deleting the pages in the pages array
 	pageDeleter.setOption('preserveIndividualStatusLines', input.delete_page);
@@ -443,7 +443,7 @@ Twinkle.batchdelete.callback.evaluate = function twinklebatchdeleteCallbackEvalu
 			pageDeleter: pageDeleter
 		};
 
-		const wikipedia_page = new Morebits.wiki.Page(pageName, 'Deleting page ' + pageName);
+		const wikipedia_page = new Morebits.wiki.Page(pageName, 'Menghapus halaman ' + pageName);
 		wikipedia_page.setCallbackParameters(params);
 		if (input.delete_page) {
 			wikipedia_page.setEditSummary(input.reason);
@@ -455,7 +455,7 @@ Twinkle.batchdelete.callback.evaluate = function twinklebatchdeleteCallbackEvalu
 		}
 	}, () => {
 		if (input.delete_subpages && input.subpages) {
-			const subpageDeleter = new Morebits.BatchOperation('Deleting subpages');
+			const subpageDeleter = new Morebits.BatchOperation('Menghapus sub halaman');
 			subpageDeleter.setOption('chunkSize', Twinkle.getPref('batchChunks'));
 			subpageDeleter.setOption('preserveIndividualStatusLines', true);
 			subpageDeleter.setPageList(input.subpages);
@@ -471,7 +471,7 @@ Twinkle.batchdelete.callback.evaluate = function twinklebatchdeleteCallbackEvalu
 					pageDeleter: subpageDeleter
 				};
 
-				const wikipedia_page = new Morebits.wiki.Page(pageName, 'Deleting subpage ' + pageName);
+				const wikipedia_page = new Morebits.wiki.Page(pageName, 'Menghapus sub halaman ' + pageName);
 				wikipedia_page.setCallbackParameters(params);
 				wikipedia_page.setEditSummary(input.reason);
 				wikipedia_page.setChangeTags(Twinkle.changeTags);
@@ -505,7 +505,7 @@ Twinkle.batchdelete.callbacks = {
 				bllimit: 'max', // 500 is max for normal users, 5000 for bots and sysops
 				format: 'json'
 			};
-			wikipedia_api = new Morebits.wiki.Api('Grabbing backlinks', query, Twinkle.batchdelete.callbacks.unlinkBacklinksMain);
+			wikipedia_api = new Morebits.wiki.Api('Mengambil pranala balik', query, Twinkle.batchdelete.callbacks.unlinkBacklinksMain);
 			wikipedia_api.params = params;
 			wikipedia_api.post();
 		}
@@ -518,7 +518,7 @@ Twinkle.batchdelete.callbacks = {
 				iulimit: 'max', // 500 is max for normal users, 5000 for bots and sysops
 				format: 'json'
 			};
-			wikipedia_api = new Morebits.wiki.Api('Grabbing file links', query, Twinkle.batchdelete.callbacks.unlinkImageInstancesMain);
+			wikipedia_api = new Morebits.wiki.Api('Mengambil tautan halaman', query, Twinkle.batchdelete.callbacks.unlinkImageInstancesMain);
 			wikipedia_api.params = params;
 			wikipedia_api.post();
 		}
@@ -532,7 +532,7 @@ Twinkle.batchdelete.callbacks = {
 					rdlimit: 'max', // 500 is max for normal users, 5000 for bots and sysops
 					format: 'json'
 				};
-				wikipedia_api = new Morebits.wiki.Api('Grabbing redirects', query, Twinkle.batchdelete.callbacks.deleteRedirectsMain);
+				wikipedia_api = new Morebits.wiki.Api('Mengambil pengalihan', query, Twinkle.batchdelete.callbacks.deleteRedirectsMain);
 				wikipedia_api.params = params;
 				wikipedia_api.post();
 			}
@@ -545,7 +545,7 @@ Twinkle.batchdelete.callbacks = {
 						titles: pageTitle.toText(),
 						format: 'json'
 					};
-					wikipedia_api = new Morebits.wiki.Api('Checking whether talk page exists', query, Twinkle.batchdelete.callbacks.deleteTalk);
+					wikipedia_api = new Morebits.wiki.Api('Mengecek apabila terdapat halaman pembicaraan', query, Twinkle.batchdelete.callbacks.deleteTalk);
 					wikipedia_api.params = params;
 					wikipedia_api.params.talkPage = pageTitle.toText();
 					wikipedia_api.post();
@@ -561,12 +561,12 @@ Twinkle.batchdelete.callbacks = {
 			return;
 		}
 
-		const redirectDeleter = new Morebits.BatchOperation('Deleting redirects to ' + apiobj.params.page);
+		const redirectDeleter = new Morebits.BatchOperation('Menghapus pengalihan dari ' + apiobj.params.page);
 		redirectDeleter.setOption('chunkSize', Twinkle.getPref('batchChunks'));
 		redirectDeleter.setPageList(pages);
 		redirectDeleter.run((pageName) => {
-			const wikipedia_page = new Morebits.wiki.Page(pageName, 'Deleting ' + pageName);
-			wikipedia_page.setEditSummary('[[WP:CSD#G8|G8]]: Redirect to deleted page [[' + apiobj.params.page + ']]');
+			const wikipedia_page = new Morebits.wiki.Page(pageName, 'Menghapus ' + pageName);
+			wikipedia_page.setEditSummary('[[WP:KPC#U8|U8]]: Mengalihkan ke halaman terhapus [[' + apiobj.params.page + ']]');
 			wikipedia_page.setChangeTags(Twinkle.changeTags);
 			wikipedia_page.deletePage(redirectDeleter.workerSuccess, redirectDeleter.workerFailure);
 		});
@@ -579,8 +579,8 @@ Twinkle.batchdelete.callbacks = {
 			return;
 		}
 
-		const page = new Morebits.wiki.Page(apiobj.params.talkPage, 'Deleting talk page of page ' + apiobj.params.page);
-		page.setEditSummary('[[WP:CSD#G8|G8]]: [[Help:Talk page|Talk page]] of deleted page [[' + apiobj.params.page + ']]');
+		const page = new Morebits.wiki.Page(apiobj.params.talkPage, 'Menghapus halaman pembicaraan dari halaman ' + apiobj.params.page);
+		page.setEditSummary('[[WP:KPC#U8|U8]]: [[Bantuan:Halaman pembicaraan|Halaman pembicaraan]] dari halaman terhapus [[' + apiobj.params.page + ']]');
 		page.setChangeTags(Twinkle.changeTags);
 		page.deletePage();
 	},
@@ -592,11 +592,11 @@ Twinkle.batchdelete.callbacks = {
 			return;
 		}
 
-		const unlinker = new Morebits.BatchOperation('Unlinking backlinks to ' + apiobj.params.page);
+		const unlinker = new Morebits.BatchOperation('Menghapus pengalihan ke ' + apiobj.params.page);
 		unlinker.setOption('chunkSize', Twinkle.getPref('batchChunks'));
 		unlinker.setPageList(pages);
 		unlinker.run((pageName) => {
-			const wikipedia_page = new Morebits.wiki.Page(pageName, 'Unlinking on ' + pageName);
+			const wikipedia_page = new Morebits.wiki.Page(pageName, 'Menghapus pengalihan ' + pageName);
 			const params = $.extend({}, apiobj.params);
 			params.title = pageName;
 			params.unlinker = unlinker;
@@ -628,7 +628,7 @@ Twinkle.batchdelete.callbacks = {
 			params.unlinker.workerSuccess(pageobj);
 			return;
 		}
-		pageobj.setEditSummary('Removing link(s) to deleted page ' + params.page);
+		pageobj.setEditSummary('Menghapus tautan dari halaman terhapus ' + params.page);
 		pageobj.setChangeTags(Twinkle.changeTags);
 		pageobj.setPageText(text);
 		pageobj.setCreateOption('nocreate');
@@ -643,11 +643,11 @@ Twinkle.batchdelete.callbacks = {
 			return;
 		}
 
-		const unlinker = new Morebits.BatchOperation('Unlinking backlinks to ' + apiobj.params.page);
+		const unlinker = new Morebits.BatchOperation('Melepas tautan backlink ke ' + apiobj.params.page);
 		unlinker.setOption('chunkSize', Twinkle.getPref('batchChunks'));
 		unlinker.setPageList(pages);
 		unlinker.run((pageName) => {
-			const wikipedia_page = new Morebits.wiki.Page(pageName, 'Removing file usages on ' + pageName);
+			const wikipedia_page = new Morebits.wiki.Page(pageName, 'Menghapus penggunaan berkas pada ' + pageName);
 			const params = $.extend({}, apiobj.params);
 			params.title = pageName;
 			params.unlinker = unlinker;
@@ -672,15 +672,15 @@ Twinkle.batchdelete.callbacks = {
 		}
 		const old_text = text;
 		const wikiPage = new Morebits.wikitext.Page(text);
-		text = wikiPage.commentOutImage(image, 'Commented out because image was deleted').getText();
+		text = wikiPage.commentOutImage(image, 'Mengomentari karena gambar telah dihapus').getText();
 
 		Twinkle.batchdelete.unlinkCache[params.title] = text;
 		if (text === old_text) {
-			pageobj.getStatusElement().error('failed to unlink image ' + image + ' from ' + pageobj.getPageName());
+			pageobj.getStatusElement().error('gagal untuk menghapus tautan gambar' + image + ' dari ' + pageobj.getPageName());
 			params.unlinker.workerFailure(pageobj);
 			return;
 		}
-		pageobj.setEditSummary('Removing instance of file ' + image + ' that has been deleted because "' + params.reason + '")');
+		pageobj.setEditSummary('Menghapus isi berkas' + image + ' yang telah dihapus karena "' + params.reason + '")');
 		pageobj.setChangeTags(Twinkle.changeTags);
 		pageobj.setPageText(text);
 		pageobj.setCreateOption('nocreate');
