@@ -50,7 +50,7 @@ Twinkle.block.callback = function twinkleblockCallback() {
 	const form = new Morebits.QuickForm(Twinkle.block.callback.evaluate);
 	const actionfield = form.append({
 		type: 'field',
-		label: 'Type of action'
+		label: 'Jenis tindakan'
 	});
 	actionfield.append({
 		type: 'checkbox',
@@ -111,7 +111,7 @@ Twinkle.block.callback = function twinkleblockCallback() {
 				checked: Twinkle.getPref('defaultToBlock64'),
 				label: 'Blokir /64 saja',
 				value: 'block64',
-				tooltip: Morebits.ip.isRange(mw.config.get('wgRelevantUserName')) ? 'Will eschew leaving a template.' : 'Templat apapun akan diberikan ke alamat IP asli: ' + mw.config.get('wgRelevantUserName')
+				tooltip: Morebits.ip.isRange(mw.config.get('wgRelevantUserName')) ? 'Akan meninggalkan sebuah templat.' : 'Templat apapun akan diberikan ke alamat IP asli: ' + mw.config.get('wgRelevantUserName')
 			}]
 		});
 	}
@@ -162,7 +162,7 @@ Twinkle.block.processUserInfo = function twinkleblockProcessUserInfo(data, fn) {
 		$(blockWindow.content).dialog('widget').find('.morebits-dialog-buttons').empty();
 		Morebits.Status.init(blockWindow.content.querySelector('form'));
 		Morebits.Status.warn(
-			`This target has ${data.query.blocks.length} active blocks`,
+			`Pengguna ini mempunyai ${data.query.blocks.length} pemblokiran aktif`,
 			`Multiblocks tidak didukung oleh Twinkle. Gunakan [[Istimewa:Blokir pengguna/${relevantUserName}]].`
 		);
 		return;
@@ -362,7 +362,7 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 			list: Twinkle.block.callback.filtered_block_groups(blockGroup)
 		});
 
-		field_block_options = new Morebits.QuickForm.Element({ type: 'field', label: 'Block options', name: 'field_block_options' });
+		field_block_options = new Morebits.QuickForm.Element({ type: 'field', label: 'Opsi pemblokiran', name: 'field_block_options' });
 		field_block_options.append({ type: 'div', name: 'currentblock', label: ' ' });
 		field_block_options.append({ type: 'div', name: 'hasblocklog', label: ' ' });
 		field_block_options.append({
@@ -536,7 +536,7 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 	const dsSelectSettings = {
 		type: 'select',
 		name: 'dstopic',
-		label: 'DS topic',
+		label: 'Topik DS',
 		value: '',
 		tooltip: 'Jika dipilih, akan diinformasikan templat dan akan ditambahkan ke pesan pemblokiran',
 		event: Twinkle.block.callback.toggle_ds_reason
@@ -788,13 +788,13 @@ Twinkle.block.callback.change_action = function twinkleblockCallbackChangeAction
 	// only return the correct block log if wgRelevantUserName is the
 	// exact range, not merely a funtional equivalent
 	if (Twinkle.block.hasBlockLog) {
-		const $blockloglink = $('<span>').append($('<a target="_blank" href="' + mw.util.getUrl('Special:Log', {action: 'view', page: relevantUserName, type: 'block'}) + '">block log</a>)'));
+		const $blockloglink = $('<span>').append($('<a target="_blank" href="' + mw.util.getUrl('Istimewa:Log', {action: 'view', page: relevantUserName, type: 'block'}) + '">catatam pemblokiran</a>)'));
 		if (!Twinkle.block.currentBlockInfo) {
 			const lastBlockAction = Twinkle.block.blockLog[0];
 			if (lastBlockAction.action === 'unblock') {
-				$blockloglink.append(' (unblocked ' + new Morebits.Date(lastBlockAction.timestamp).calendar('utc') + ')');
+				$blockloglink.append(' (buka pemblokiran ' + new Morebits.Date(lastBlockAction.timestamp).calendar('utc') + ')');
 			} else { // block or reblock
-				$blockloglink.append(' (' + lastBlockAction.params.duration + ', expired ' + new Morebits.Date(lastBlockAction.params.expiry).calendar('utc') + ')');
+				$blockloglink.append(' (' + lastBlockAction.params.duration + ', kadaluwarsa ' + new Morebits.Date(lastBlockAction.params.expiry).calendar('utc') + ')');
 			}
 		}
 
