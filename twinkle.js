@@ -360,7 +360,7 @@ Twinkle.load = function () {
 	// that others load faster, especially the watchlist.
 	let activeSpecialPageList = [ 'Block', 'Contributions', 'Recentchanges', 'Recentchangeslinked' ]; // wgRelevantUserName defined for non-sysops on Special:Block
 	if (Morebits.userIsSysop) {
-		activeSpecialPageList = activeSpecialPageList.concat([ 'DeletedContributions', 'Prefixindex' ]);
+		activeSpecialPageList = activeSpecialPageList.concat([ 'Kontribusi dihapus', 'Prefixindex' ]);
 	}
 	if (mw.config.get('wgNamespaceNumber') === -1 &&
 		!activeSpecialPageList.includes(mw.config.get('wgCanonicalSpecialPageName'))) {
@@ -404,7 +404,7 @@ Twinkle.load = function () {
 	// If using a skin with space for lots of modules, display a link to Twinkle Preferences
 	const usingSkinWithDropDownMenu = mw.config.get('skin') === 'vector' || mw.config.get('skin') === 'vector-2022' || mw.config.get('skin') === 'timeless';
 	if (usingSkinWithDropDownMenu) {
-		Twinkle.addPortletLink(mw.util.getUrl('Wikipedia:Twinkle/Preferences'), 'Config', 'tw-config', 'Open Twinkle preferences page');
+		Twinkle.addPortletLink(mw.util.getUrl('Wikipedia:Twinkle/Preferences'), 'Config', 'tw-config', 'Membuka halaman preferensi Twinkle');
 	}
 };
 
@@ -453,7 +453,7 @@ Twinkle.makeFindSourcesDiv = function makeSourcesDiv(divID) {
 	}
 	if (!Twinkle.findSources) {
 		const parser = new Morebits.wiki.Preview($(divID)[0]);
-		parser.beginRender('({{Find sources|' + Morebits.pageNameNorm + '}})', 'WP:AFD').then(() => {
+		parser.beginRender('({{Cari sumber|' + Morebits.pageNameNorm + '}})', 'WP:UP').then(() => {
 			// Save for second-time around
 			Twinkle.findSources = parser.previewbox.innerHTML;
 			$(divID).removeClass('morebits-previewbox');

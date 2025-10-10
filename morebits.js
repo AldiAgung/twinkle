@@ -1871,7 +1871,7 @@ Morebits.date.localeData = {
 		nextDay: msg('relative-nextday', '[Besok pada] h:mm A'),
 		thisWeek: msg('relative-thisweek', 'dddd [pada] h:mm A'),
 		pastWeek: msg('relative-pastweek', '[terakhir] dddd [pada] h:mm A'),
-		other: msg('relative-other', 'YYYY-MM-DD')
+		other: msg('relative-other', 'DD-MM-YYYY')
 	}
 };
 
@@ -1980,7 +1980,7 @@ Morebits.date.prototype = {
 			this['set' + unitNorm](this['get' + unitNorm]() + num);
 			return this;
 		}
-		throw new Error('Invalid unit "' + unit + '": Hanya ' + Object.keys(unitMap).join(', ') + ' yang diperbolehkan.');
+		throw new Error('Unit tidak valid "' + unit + '": Hanya ' + Object.keys(unitMap).join(', ') + ' yang diperbolehkan.');
 	},
 
 	/**
@@ -2306,7 +2306,7 @@ Morebits.wiki.api = function(currentAction, query, onSuccess, statusElement, onE
 	} else if (query.format === 'json' && !query.formatversion) {
 		this.query.formatversion = '2';
 	} else if (!['xml', 'json'].includes(query.format)) {
-		this.statelem.error('Invalid API format: hanya xml dan json didukung.');
+		this.statelem.error('Format API tidak valid: hanya xml dan json didukung.');
 	}
 
 	// Ignore tags for queries and most common unsupported actions, produces warnings
@@ -2419,7 +2419,7 @@ Morebits.wiki.api.prototype = {
 			function onAPIfailure(jqXHR, statusText, errorThrown) {
 				this.statusText = statusText;
 				this.errorThrown = errorThrown; // frequently undefined
-				this.errorText = msg('api-error', statusText, jqXHR.statusText, statusText + ' "' + jqXHR.statusText + '" occurred while contacting the API.');
+				this.errorText = msg('api-error', statusText, jqXHR.statusText, statusText + ' "' + jqXHR.statusText + '" terjadi ketika berinteraksi dengan API.');
 				return this.returnError();
 			}
 
@@ -2428,7 +2428,7 @@ Morebits.wiki.api.prototype = {
 
 	returnError: function(callerAjaxParameters) {
 		if (this.errorCode === 'badtoken' && !this.badtokenRetry) {
-			this.statelem.warn(msg('invalid-token-retrying', 'Invalid token. Getting a new token and retrying...'));
+			this.statelem.warn(msg('invalid-token-retrying', 'Token tidak valid. Mendapatkan token dan mencoba lagi...'));
 			this.badtokenRetry = true;
 			// Get a new CSRF token and retry. If the original action needs a different
 			// type of action than CSRF, we do one pointless retry before bailing out
@@ -3451,7 +3451,7 @@ Morebits.wiki.page = function(pageName, status) {
 		ctx.onLookupCreationSuccess = onSuccess;
 		ctx.onLookupCreationFailure = onFailure || emptyFunction;
 		if (!onSuccess) {
-			ctx.statusElement.error('Kesalahan internal: tidak callback onSuccess disedikan ke lookupCreation()!');
+			ctx.statusElement.error('Kesalahan internal: tidak ada pemanggilan balik onSuccess disedikan ke lookupCreation()!');
 			ctx.onLookupCreationFailure(this);
 			return;
 		}
@@ -3716,7 +3716,7 @@ Morebits.wiki.page = function(pageName, status) {
 		}
 
 		if (!ctx.flaggedRevs) {
-			ctx.statusElement.error('Kesalahan internal: kamu harus atur flaggedRevs sebelum memanggil stabilize()!');
+			ctx.statusElement.error('Kesalahan internal: anda harus atur flaggedRevs sebelum memanggil stabilize()!');
 			ctx.onStabilizeFailure(this);
 			return;
 		}
@@ -5624,7 +5624,7 @@ Morebits.batchOperation = function(currentAction) {
 					statelem.info(msg('batch-done-page', pageName, 'selesai ([[' + pageName + ']])'));
 				} else {
 					// we don't know the page title - just display a generic message
-					statelem.info(msg('done', 'done'));
+					statelem.info(msg('done', 'selesai'));
 				}
 			} else {
 				// remove the status line automatically produced by Morebits.wiki.*
@@ -5691,7 +5691,7 @@ Morebits.batchOperation = function(currentAction) {
 		} else {
 			// ctx.countFinished > total
 			// just for giggles! (well, serious debugging, actually)
-			ctx.statusElement.warn('Selesai (overshot by ' + (ctx.countFinished - total) + ')');
+			ctx.statusElement.warn('Selesai (dilakukan oleh ' + (ctx.countFinished - total) + ')');
 			Morebits.wiki.removeCheckpoint();
 			ctx.running = false;
 		}
@@ -5745,7 +5745,7 @@ Morebits.taskManager = function(context) {
 			$.when.apply(self.context, dependencyPromisesArray).then(function() {
 				const result = task.apply(self.context, arguments);
 				if (result === undefined) { // maybe the function threw, or it didn't return anything
-					mw.log.error('Morebits.taskManager: task returned undefined');
+					mw.log.error('Morebits.taskManager: task dikembalikan tidak didefinisikan');
 					self.deferreds.get(task).reject.apply(self.context, arguments);
 					self.failureCallbackMap.get(task).apply(self.context, []);
 				}
