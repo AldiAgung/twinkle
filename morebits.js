@@ -5,10 +5,10 @@
  * The highlights include:
  * - {@link Morebits.wiki.api} - memanggil API MediaWiki
  * - {@link Morebits.wiki.page} - modifikasi halaman di Wiki (sunting, balikan, hapus, etc.)
- * - {@link Morebits.date} - enhanced date object processing, sort of a light moment.js
+ * - {@link Morebits.date} - Pemrosesan objek penanggalan yang dimutakhirkan, seperti moment.js ringan
  * - {@link Morebits.quickForm} - membuat formulir HTML cepat
  * - {@link Morebits.simpleWindow} - sebuabh pembungkus untuk UI dialog jQuery dengan penampilan kustom dan fitur ekstra
- * - {@link Morebits.status} - a rough-and-ready status message displayer, used by the Morebits.wiki classes
+ * - {@link Morebits.status} - Penampil pesan status disiapkan, digunakan kelas-kelas Morebits.wiki
  * - {@link Morebits.wikitext} - utilitas untuk mengurus wikitext
  * - {@link Morebits.string} - utilitas untuk manipulasi strings
  * - {@link Morebits.array} - utilitas untuk manipulasi array
@@ -1588,7 +1588,7 @@ Morebits.array = {
 	 */
 	uniq: function(arr) {
 		if (!Array.isArray(arr)) {
-			throw new Error('A non-array object passed to Morebits.array.uniq');
+			throw new Error('Objek non-array diterapkan ke Morebits.array.uniq');
 		}
 		return arr.filter((item, idx) => arr.indexOf(item) === idx);
 	},
@@ -1603,7 +1603,7 @@ Morebits.array = {
 	 */
 	dups: function(arr) {
 		if (!Array.isArray(arr)) {
-			throw new Error('A non-array object passed to Morebits.array.dups');
+			throw new Error('Objek non-array diterapkan ke Morebits.array.dups');
 		}
 		return arr.filter((item, idx) => arr.indexOf(item) !== idx);
 	},
@@ -1618,7 +1618,7 @@ Morebits.array = {
 	 */
 	chunk: function(arr, size) {
 		if (!Array.isArray(arr)) {
-			throw new Error('A non-array object passed to Morebits.array.chunk');
+			throw new Error('Objek non-array diterapkan ke Morebits.array.chunk');
 		}
 		if (typeof size !== 'number' || size <= 0) { // pretty impossible to do anything :)
 			return [ arr ]; // we return an array consisting of this array.

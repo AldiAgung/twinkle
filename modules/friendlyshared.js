@@ -21,7 +21,7 @@ Twinkle.shared = function twinkleshared() {
 
 Twinkle.shared.callback = function twinklesharedCallback() {
 	const Window = new Morebits.SimpleWindow(600, 450);
-	Window.setTitle('Shared IP address tagging');
+	Window.setTitle('Menandai alamat ip berbagi');
 	Window.setScriptName('Twinkle');
 	Window.addFooterLink('preferensi berbagi', 'WP:TW/PREF#shared');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#shared');
@@ -85,32 +85,32 @@ Twinkle.shared.callback = function twinklesharedCallback() {
 
 Twinkle.shared.standardList = [
 	{
-		label: '{{Shared IP}}: templat alamat IP berbagi',
+		label: '{{Ip berbagi}}: templat alamat IP berbagi',
 		value: 'Shared IP',
 		tooltip: 'Templat halaman pembicaraan pengguna IP yang memberikan informasi berguna kepada pengguna IP dan bagi yang ingin memperingati, memblokir, atau mencegah mereka'
 	},
 	{
-		label: '{{Shared IP edu}}: Templat alamat IP yang dimodifikasi untuk institusi edukasi',
+		label: '{{IP berbagi intansi pendidikan}}: Templat alamat IP yang dimodifikasi untuk institusi edukasi',
 		value: 'Shared IP edu'
 	},
 	{
-		label: '{{Shared IP corp}}: Templat alamat IP yang dimodifikasi untuk bisnis',
+		label: '{{Ip berbagi perusahaan}}: Templat alamat IP yang dimodifikasi untuk bisnis',
 		value: 'Shared IP corp'
 	},
 	{
-		label: '{{Shared IP public}}: Templat alamat IP yang dimodifikasi untuk terminal publik',
+		label: '{{Ip berbagi publik}}: Templat alamat IP yang dimodifikasi untuk terminal publik',
 		value: 'Shared IP public'
 	},
 	{
-		label: '{{Shared IP gov}}: Templat alamat IP yang dimodifikasi untuk fasilitas pemerintahan atau agensi',
+		label: '{{Ip pemerintah berbagi}}: Templat alamat IP yang dimodifikasi untuk fasilitas pemerintahan atau agensi',
 		value: 'Shared IP gov'
 	},
 	{
-		label: '{{Dynamic IP}}: Templat alamat IP yang dimodifikasi untuk organisasi dengan pengalamatan dinamis with dynamic addressing',
+		label: '{{Ip dinamis}}: Templat alamat IP yang dimodifikasi untuk organisasi dengan pengalamatan dinamis with dynamic addressing',
 		value: 'Dynamic IP'
 	},
 	{
-		label: '{{Static IP}}: templat alamat IP berbagi untuk alamat IP statis',
+		label: '{{Ip statis}}: templat alamat IP berbagi untuk alamat IP statis',
 		value: 'Static IP'
 	},
 	{
@@ -118,7 +118,7 @@ Twinkle.shared.standardList = [
 		value: 'ISP'
 	},
 	{
-		label: '{{Mobile IP}}: templat alamat IP berbagi dimodifikasi untuk perusahaan telepon seluler dan pelanggan mereka',
+		label: '{{Ip seluler}}: templat alamat IP berbagi dimodifikasi untuk perusahaan telepon seluler dan pelanggan mereka',
 		value: 'Mobile IP'
 	},
 	{
