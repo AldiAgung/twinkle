@@ -15,7 +15,7 @@ Twinkle.warn = function twinklewarn() {
 
 	// Users and IPs but not IP ranges
 	if (mw.config.exists('wgRelevantUserName') && !Morebits.ip.isRange(mw.config.get('wgRelevantUserName'))) {
-		Twinkle.addPortletLink(Twinkle.warn.callback, 'Warn', 'tw-warn', 'Warn/notify user');
+		Twinkle.addPortletLink(Twinkle.warn.callback, 'Warn', 'tw-warn', 'Peringati/beritahu pengguna');
 		if (Twinkle.getPref('autoMenuAfterRollback') &&
 			mw.config.get('wgNamespaceNumber') === 3 &&
 			Twinkle.getPrefill('vanarticle') &&
@@ -56,7 +56,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 
 	Twinkle.warn.dialog = new Morebits.SimpleWindow(600, 440);
 	const dialog = Twinkle.warn.dialog;
-	dialog.setTitle('Warn/notify user');
+	dialog.setTitle('Peringati/beritahu pengguna');
 	dialog.setScriptName('Twinkle');
 	dialog.addFooterLink('Memlilih sebuah tingkat peringatan', 'WP:UWUL#Levels');
 	dialog.addFooterLink('Preferensi peringatan', 'WP:TW/PREF#warn');
@@ -113,7 +113,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 	});
 
 	const more = form.append({ type: 'field', name: 'reasonGroup', label: 'Informasi peringatan' });
-	more.append({ type: 'textarea', label: 'Optional message:', name: 'reason', tooltip: 'Mungkin sebuah alasan, atau sebuah pembertiahuan detil harus ditambahkan' });
+	more.append({ type: 'textarea', label: 'Pesan opsional:', name: 'reason', tooltip: 'Mungkin sebuah alasan, atau sebuah pembertiahuan detil harus ditambahkan' });
 
 	const previewlink = document.createElement('a');
 	$(previewlink).on('click', () => {
@@ -124,7 +124,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 	more.append({ type: 'div', id: 'warningpreview', label: [ previewlink ] });
 	more.append({ type: 'div', id: 'twinklewarn-previewbox', style: 'display: none' });
 
-	more.append({ type: 'submit', label: 'Submit' });
+	more.append({ type: 'submit', label: 'Kirim' });
 
 	var result = form.render();
 	dialog.setContent(result);
@@ -156,7 +156,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 				const revertUser = rev && rev[1].user;
 				if (revertUser && revertUser !== mw.config.get('wgUserName')) {
 					message += ' Seseorang telah membalikan halaman dan telah memperingati penggunanya.';
-					$('#twinkle-warn-warning-messages').text('Note:' + message);
+					$('#twinkle-warn-warning-messages').text('Catatan:' + message);
 				}
 			})).post();
 		}
@@ -167,7 +167,7 @@ Twinkle.warn.callback = function twinklewarnCallback() {
 			if (vantimestamp && revDate.isValid()) {
 				if (revDate.add(24, 'hours').isBefore(new Date())) {
 					message += ' Suntingan ini dibuat lebih dari 24 jam yang lalu jadi peringatannya mungkin sudah basi.';
-					$('#twinkle-warn-warning-messages').text('Note:' + message);
+					$('#twinkle-warn-warning-messages').text('Catatan:' + message);
 				}
 			}
 		};
@@ -1320,7 +1320,7 @@ Twinkle.warn.callback.change_category = function twinklewarnCallbackChangeCatego
 		case 'kitchensink':
 			['level1', 'level2', 'level3', 'level4', 'level4im'].forEach((lvl) => {
 				$.each(Twinkle.warn.messages.levels, (levelGroupLabel, levelGroup) => {
-					createGroup(levelGroup, 'Level ' + lvl.slice(5) + ': ' + levelGroupLabel, true, lvl);
+					createGroup(levelGroup, 'Tingkat ' + lvl.slice(5) + ': ' + levelGroupLabel, true, lvl);
 				});
 			});
 			createGroup(Twinkle.warn.messages.singlenotice, 'Pemberitahuan isu tunggal');
@@ -1373,7 +1373,7 @@ Twinkle.warn.callback.change_category = function twinklewarnCallbackChangeCatego
 					// most likely because it's a cross-namespace redirect
 					// Supersedes the typical $autolevelMessage added in autolevelParseWikitext
 					const $noTalkPageNode = $('<strong>', {
-						text: 'Unable to load user talk page; it might be a cross-namespace redirect.  Autolevel detection will not work.',
+						text: 'Tidak dapat memuat halaman pembicaraan pengguna; Ini mungkin pengalihan lintas ruangnama. Deteksi tingkat otomatis tidak akan berfungsi..',
 						id: 'twinkle-warn-autolevel-message',
 						css: {color: 'red' }
 					});
@@ -1385,7 +1385,7 @@ Twinkle.warn.callback.change_category = function twinklewarnCallbackChangeCatego
 			}
 			break;
 		default:
-			alert('Unknown warning group in twinklewarn');
+			alert('Grup peringatan tidak diketahui di twinklewarn');
 			break;
 	}
 
@@ -1462,11 +1462,11 @@ Twinkle.warn.callback.change_subcategory = function twinklewarnCallbackChangeSub
 	// Tags that don't take a linked article, but something else (often a username).
 	// The value of each tag is the label next to the input field
 	const notLinkedArticle = {
-		'uw-agf-sock': 'Optional username of other account (without User:) ',
-		'uw-bite': "Username of 'bitten' user (without User:) ",
-		'uw-socksuspect': 'Username of sock master, if known (without User:) ',
-		'uw-username': 'Username violates policy because... ',
-		'uw-aiv': 'Optional username that was reported (without User:) '
+		'uw-agf-sock': 'Nama pengguna opsional dari akun lainnya (tanpa Pengguna:) ',
+		'uw-bite': "Nama pengguna yang 'digigit' pengguna (tanpa Pengguna:) ",
+		'uw-socksuspect': 'Nama pengguna dari pengendali akun kedua jika diketahui (tanpa Pengguna:) ',
+		'uw-username': 'Pelanggaran nama pengguna karena... ',
+		'uw-aiv': 'Nama pengguna opsional yang dilaporkan (tanpa Pengguna:) '
 	};
 
 	const hasLevel = ['singlenotice', 'singlewarn', 'singlecombined', 'kitchensink'].includes(selected_main_group);
@@ -1496,13 +1496,13 @@ Twinkle.warn.callback.change_subcategory = function twinklewarnCallbackChangeSub
 	$('#tw-warn-red-notice').remove();
 	let $redWarning;
 	if (selected_template === 'uw-username') {
-		$redWarning = $("<div style='color: red;' id='tw-warn-red-notice'>harusnya{{uw-username}} <b>tidak</b> digunakan untuk pelanggaran kebijakan nama pengguna <b>menyolok</b>. " +
-			"Blatant violations should be reported directly to UAA (via Twinkle's ARV tab). " +
-			'{{uw-username}} should only be used in edge cases in order to engage in discussion with the user.</div>');
+		$redWarning = $("<div style='color: red;' id='tw-warn-red-notice'>harusnya{{uw-username}} <b>tidak</b> digunakan untuk pelanggaran kebijakan nama pengguna <b>secara terang-terangan</b>. " +
+			"Pelanggaran terang-terangan harus dilaporkan langsung kepada UAA (melalui tab ARV Twinkle). " +
+			'{{uw-username}} hanya digunakan diujung nama untuk  edge cases in order to engage in discussion with the user.</div>');
 		$redWarning.insertAfter(Morebits.QuickForm.getElementLabelObject(e.target.form.reasonGroup));
 	} else if (selected_template === 'uw-coi-username') {
-		$redWarning = $("<div style='color: red;' id='tw-warn-red-notice'>{{uw-coi-username}} should <b>not</b> be used for <b>blatant</b> username policy violations. " +
-			"Blatant violations should be reported directly to UAA (via Twinkle's ARV tab). " +
+		$redWarning = $("<div style='color: red;' id='tw-warn-red-notice'>{{uw-coi-username}} harusnya <b>tidak</b> digunakan untuk pelanggaran kebijakan nama pengguna <b>secara terang-terangan</b>. " +
+			"Pelanggaran terang-terangan harus dilaporkan langsung kepada UAA (melalui tab ARV Twinkle). " +
 			'{{uw-coi-username}} should only be used in edge cases in order to engage in discussion with the user.</div>');
 		$redWarning.insertAfter(Morebits.QuickForm.getElementLabelObject(e.target.form.reasonGroup));
 	}
@@ -1805,9 +1805,9 @@ Twinkle.warn.callbacks = {
 				if (params.sub_group === 'uw-agf-sock' ||
 						params.sub_group === 'uw-socksuspect' ||
 						params.sub_group === 'uw-aiv') { // these templates require a username
-					summary += ' of [[:User:' + params.article + ']]';
+					summary += ' dari [[:Pengguna:' + params.article + ']]';
 				} else {
-					summary += ' on [[:' + params.article + ']]';
+					summary += ' pada [[:' + params.article + ']]';
 				}
 			}
 		}
