@@ -29,7 +29,7 @@ let subpagesLoaded;
 Twinkle.batchdelete.callback = function twinklebatchdeleteCallback() {
 	subpagesLoaded = false;
 	const Window = new Morebits.SimpleWindow(600, 400);
-	Window.setTitle('Batch deletion');
+	Window.setTitle('Proses penghapusan');
 	Window.setScriptName('Twinkle');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#batchdelete');
 	Window.addFooterLink('Berikan umpan balik', 'WT:TW');
