@@ -1,79 +1,115 @@
 // <nowiki>
 
-(function($) {
-
+(function() {
 
 /*
  ****************************************
- *** friendlytag.js: Tag module
+ *** twinkletag.js: Tag module
  ****************************************
  * Mode of invocation:     Tab ("Tag")
  * Active on:              Existing articles and drafts; file pages with a corresponding file
  *                         which is local (not on Commons); all redirects
  */
 
-Twinkle.tag = function friendlytag() {
-	// redirect tagging
-	if (Morebits.wiki.isPageRedirect()) {
+Twinkle.tag = function twinkletag() {
+	// redirect tagging (exclude category redirects, which are all soft redirects and so shouldn't be tagged with rcats)
+	if (Morebits.isPageRedirect() && mw.config.get('wgNamespaceNumber') !== 14) {
 		Twinkle.tag.mode = 'redirect';
-		Twinkle.addPortletLink(Twinkle.tag.callback, 'Tag', 'friendly-tag', 'Tag pengalihan');
+		Twinkle.addPortletLink(Twinkle.tag.callback, 'Tag', 'twinkle-tag', 'Tag redirect');
 	// file tagging
 	} else if (mw.config.get('wgNamespaceNumber') === 6 && !document.getElementById('mw-sharedupload') && document.getElementById('mw-imagepage-section-filehistory')) {
 		Twinkle.tag.mode = 'file';
-		Twinkle.addPortletLink(Twinkle.tag.callback, 'Tag', 'friendly-tag', 'Beri tag pemeliharaan ke artikel');
+		Twinkle.addPortletLink(Twinkle.tag.callback, 'Tag', 'twinkle-tag', 'Tambah tag pemeliharaan ke berkas');
 	// article/draft article tagging
-	} else if ([0, 118].indexOf(mw.config.get('wgNamespaceNumber')) !== -1 && mw.config.get('wgCurRevisionId')) {
+	} else if ([0, 118].includes(mw.config.get('wgNamespaceNumber')) && mw.config.get('wgCurRevisionId')) {
 		Twinkle.tag.mode = 'article';
 		// Can't remove tags when not viewing current version
 		Twinkle.tag.canRemove = (mw.config.get('wgCurRevisionId') === mw.config.get('wgRevisionId')) &&
 			// Disabled on latest diff because the diff slider could be used to slide
 			// away from the latest diff without causing the script to reload
 			!mw.config.get('wgDiffNewId');
-		Twinkle.addPortletLink(Twinkle.tag.callback, 'Tag', 'friendly-tag', 'Berikan atau hapus tag pemeliharaan ke artikel');
+		Twinkle.addPortletLink(Twinkle.tag.callback, 'Tag', 'twinkle-tag', 'Tambah atau hapus tag pemeliharaan artikel');
 	}
 };
 
 Twinkle.tag.checkedTags = [];
 
-Twinkle.tag.callback = function friendlytagCallback() {
-	var Window = new Morebits.simpleWindow(630, Twinkle.tag.mode === 'article' ? 500 : 400);
+Twinkle.tag.callback = function twinkletagCallback() {
+	const Window = new Morebits.SimpleWindow(630, Twinkle.tag.mode === 'article' ? 500 : 400);
 	Window.setScriptName('Twinkle');
 	// anyone got a good policy/guideline/info page/instructional page link??
+	Window.addFooterLink('Preferensi Tag', 'WP:TW/PREF#tag');
 	Window.addFooterLink('Bantuan Twinkle', 'WP:TW/DOC#tag');
+	Window.addFooterLink('Berikan umpan balik', 'WT:TW');
 
-	var form = new Morebits.quickForm(Twinkle.tag.callback.evaluate);
+	const form = new Morebits.QuickForm(Twinkle.tag.callback.evaluate);
+
+	// if page is unreviewed, add a checkbox to the form so that user can pick whether or not to review it
+	const isPatroller = mw.config.get('wgUserGroups').some((r) => ['patroller', 'sysop'].includes(r));
+	if (isPatroller) {
+		new mw.Api().get({
+			action: 'pagetriagelist',
+			format: 'json',
+			page_id: mw.config.get('wgArticleId')
+		}).then((response) => {
+			// Figure out whether the article is marked as reviewed in PageTriage.
+			// Recent articles will have a patrol_status that we can read.
+			// For articles that have been out of the new pages feed for awhile, pages[0] will be undefined.
+			const isReviewed = response.pagetriagelist.pages[0] ?
+				response.pagetriagelist.pages[0].patrol_status > 0 :
+				true;
+
+			// if article is not marked as reviewed, show the "mark as reviewed" check box
+			if (!isReviewed) {
+				// Quickform is probably already rendered. Instead of using form.append(), we need to make an element and then append it using JQuery.
+				const checkbox = new Morebits.QuickForm.Element({
+					type: 'checkbox',
+					list: [
+						{
+							label: 'Tandai halaman terpatroli',
+							value: 'patrol',
+							name: 'patrol',
+							checked: Twinkle.getPref('markTaggedPagesAsPatrolled')
+						}
+					]
+				});
+				const html = checkbox.render();
+				$('.quickform').prepend(html);
+			}
+		});
+	}
 
 	form.append({
 		type: 'input',
-		label: 'Filter cepat: ',
+		label: 'Daftar saring tag:',
 		name: 'quickfilter',
-		size: '30px',
+		size: '30',
 		event: function twinkletagquickfilter() {
 			// flush the DOM of all existing underline spans
-			$allCheckboxDivs.find('.search-hit').each(function(i, e) {
-				var label_element = e.parentElement;
+			$allCheckboxDivs.find('.search-hit').each((i, e) => {
+				const labelElement = e.parentElement;
 				// This would convert <label>Hello <span class=search-hit>wo</span>rld</label>
 				// to <label>Hello world</label>
-				label_element.innerHTML = label_element.textContent;
+				labelElement.innerHTML = labelElement.textContent;
 			});
 
 			if (this.value) {
 				$allCheckboxDivs.hide();
 				$allHeaders.hide();
-				var searchString = this.value;
-				var searchRegex = new RegExp(mw.util.escapeRegExp(searchString), 'i');
+				const searchString = this.value;
+				const searchRegex = new RegExp(mw.util.escapeRegExp(searchString), 'i');
 
 				$allCheckboxDivs.find('label').each(function () {
-					var label_text = this.textContent;
-					var searchHit = searchRegex.exec(label_text);
+					const labelText = this.textContent;
+					const searchHit = searchRegex.exec(labelText);
 					if (searchHit) {
-						var range = document.createRange();
-						var textnode = this.childNodes[0];
+						const range = document.createRange();
+						const textnode = this.childNodes[0];
 						range.selectNodeContents(textnode);
 						range.setStart(textnode, searchHit.index);
 						range.setEnd(textnode, searchHit.index + searchString.length);
-						var underline_span = $('<span>').addClass('search-hit').css('text-decoration', 'underline')[0];
-						range.surroundContents(underline_span);
+						const underlineSpan = $('<span>').addClass('search-hit').css('text-decoration', 'underline')[0];
+						range.surroundContents(underlineSpan);
 						this.parentElement.style.display = 'block'; // show
 					}
 				});
@@ -86,24 +122,38 @@ Twinkle.tag.callback = function friendlytagCallback() {
 
 	switch (Twinkle.tag.mode) {
 		case 'article':
-			Window.setTitle('Pemberian tag pemeliharaan dalam artikel');
+			Window.setTitle('Tandai pemeliharaan artikel');
+
+			// Build sorting and lookup object flatObject, which is always
+			// needed but also used to generate the alphabetical list
+			Twinkle.tag.article.flatObject = {};
+			Object.values(Twinkle.tag.article.tagList).forEach((group) => {
+				Object.values(group).forEach((subgroup) => {
+					if (Array.isArray(subgroup)) {
+						subgroup.forEach((item) => {
+							Twinkle.tag.article.flatObject[item.tag] = item;
+						});
+					} else {
+						Twinkle.tag.article.flatObject[subgroup.tag] = subgroup;
+					}
+				});
+			});
 
 			form.append({
 				type: 'select',
 				name: 'sortorder',
-				label: 'Lihat daftar ini:',
-				tooltip: 'Anda dapat mengganti tampilan susunan baku dalam preferensi Twinkle Anda (WP:TWPREFS).',
+				label: 'Lihat daftar:',
+				tooltip: 'Anda dapat mengganti tampilan urutan default dalam preferensi Twinkle anda (WP:TWPREFS).',
 				event: Twinkle.tag.updateSortOrder,
 				list: [
-					{ type: 'option', value: 'cat', label: 'Menurut kategori', selected: Twinkle.getPref('tagArticleSortOrder') === 'cat' },
-					{ type: 'option', value: 'alpha', label: 'Menurut abjad', selected: Twinkle.getPref('tagArticleSortOrder') === 'alpha' }
+					{ type: 'option', value: 'cat', label: 'Berdasarkan kategori', selected: Twinkle.getPref('tagArticleSortOrder') === 'cat' },
+					{ type: 'option', value: 'alpha', label: 'Dalam urutan alfabet', selected: Twinkle.getPref('tagArticleSortOrder') === 'alpha' }
 				]
 			});
 
-
 			if (!Twinkle.tag.canRemove) {
-				var divElement = document.createElement('div');
-				divElement.innerHTML = 'Untuk menghapus tag yang ada, silakan buka menu Tag dari versi artikel saat ini';
+				const divElement = document.createElement('div');
+				divElement.innerHTML = 'Untuk penghapusan tag yang sudah ada, harap buka menu dari revisi terkini artikel';
 				form.append({
 					type: 'div',
 					name: 'untagnotice',
@@ -122,10 +172,10 @@ Twinkle.tag.callback = function friendlytagCallback() {
 				type: 'checkbox',
 				list: [
 					{
-						label: 'Kelompokkan dalam {{multiple issues}} jika dibutuhkan',
+						label: 'Masukan kedalam {{multiple issues}} jika memungkinkan',
 						value: 'group',
 						name: 'group',
-						tooltip: 'Jika menerapkan dua templat atau lebih yang didukung oleh {{multiple issues}} dan kotak ini dicentang, semua templat yang didukung akan dikelompokkan dalam templat {{multiple issues}}.',
+						tooltip: 'Jika menerpakan dua atau lebih templat disertai {{multiple issues}} dan jika kotak ini dicentang, semua templat pendukung akan di grupkan di dalam templat {{multiple issues}}.',
 						checked: Twinkle.getPref('groupByDefault')
 					}
 				]
@@ -135,84 +185,103 @@ Twinkle.tag.callback = function friendlytagCallback() {
 				type: 'input',
 				label: 'Alasan',
 				name: 'reason',
-				tooltip: 'Alasan tambahan untuk dimasukkan dalam ringkasan suntingan. Disarankan saat menghapus tag.',
-				size: '60px'
+				tooltip: 'Alasan opsional yang ingin ditambahkan di ringkasan suntingan. Direkomendasikan saat menghilangkan tag.',
+				size: '60'
 			});
 
 			break;
 
 		case 'file':
-			Window.setTitle('Pemberian tag pemeliharaan berkas');
+			Window.setTitle('Menandai pemeliharaan berkas');
 
-			form.append({ type: 'header', label: 'Tag lisensi dan sumber bermasalah' });
-			form.append({ type: 'checkbox', name: 'fileTags', list: Twinkle.tag.file.licenseList });
-
-			form.append({ type: 'header', label: 'Tag yang berhubungan dengan Commons' });
-			form.append({ type: 'checkbox', name: 'fileTags', list: Twinkle.tag.file.commonsList });
-
-			form.append({ type: 'header', label: 'Tag perapian' });
-			form.append({ type: 'checkbox', name: 'fileTags', list: Twinkle.tag.file.cleanupList });
-
-			form.append({ type: 'header', label: 'Tag kualitas gambar' });
-			form.append({ type: 'checkbox', name: 'fileTags', list: Twinkle.tag.file.qualityList });
-
-			form.append({ type: 'header', label: 'Tag penggantian' });
-			form.append({ type: 'checkbox', name: 'fileTags', list: Twinkle.tag.file.replacementList });
+			$.each(Twinkle.tag.fileList, (groupName, group) => {
+				form.append({ type: 'header', label: groupName });
+				form.append({ type: 'checkbox', name: 'tags', list: group });
+			});
 
 			if (Twinkle.getPref('customFileTagList').length) {
-				form.append({ type: 'header', label: 'Tag kustom' });
-				form.append({ type: 'checkbox', name: 'fileTags', list: Twinkle.getPref('customFileTagList') });
+				form.append({ type: 'header', label: 'Tag khusus' });
+				form.append({ type: 'checkbox', name: 'tags', list: Twinkle.getPref('customFileTagList') });
 			}
 			break;
 
 		case 'redirect':
-			Window.setTitle('Tag pengalihan');
+			Window.setTitle('Mengalihkan penandaan');
 
-			form.append({ type: 'header', label: 'Templat ejaan, salah ketik, gaya, dan kapitalisasi' });
-			form.append({ type: 'checkbox', name: 'redirectTags', list: Twinkle.tag.spellingList });
+			// If a tag has a restriction for this namespace or title, return true, so that we know not to display it in the list of check boxes.
+			var isRestricted = function(item) {
+				if (typeof item.restriction === 'undefined') {
+					return false;
+				}
+				const namespace = mw.config.get('wgNamespaceNumber');
+				switch (item.restriction) {
+					case 'insideMainspaceOnly':
+						if (namespace !== 0) {
+							return true;
+						}
+						break;
+					case 'outsideUserspaceOnly':
+						if (namespace === 2 || namespace === 3) {
+							return true;
+						}
+						break;
+					case 'insideTalkNamespaceOnly':
+						if (namespace % 2 !== 1 || namespace < 0) {
+							return true;
+						}
+						break;
+					case 'disambiguationPagesOnly':
+						if (!mw.config.get('wgPageName').endsWith('_(disambiguasi)')) {
+							return true;
+						}
+						break;
+					default:
+						alert('Twinkle.tag: pembatasan tidak diketahui ' + item.restriction);
+						break;
+				}
+				return false;
+			};
 
-			form.append({ type: 'header', label: 'Templat nama pengganti' });
-			form.append({ type: 'checkbox', name: 'redirectTags', list: Twinkle.tag.alternativeList });
-
-			form.append({ type: 'header', label: 'Templat administrasi dan pengalihan lain-lain' });
-			form.append({ type: 'checkbox', name: 'redirectTags', list: Twinkle.tag.administrativeList });
+			// Generate the HTML form with the list of redirect tags that the user can choose to apply.
+			var i = 1;
+			$.each(Twinkle.tag.redirectList, (groupName, group) => {
+				form.append({ type: 'header', id: 'tagHeader' + i, label: groupName });
+				const subdiv = form.append({ type: 'div', id: 'tagSubdiv' + i++ });
+				$.each(group, (subgroupName, subgroup) => {
+					subdiv.append({ type: 'div', label: [ Morebits.htmlNode('b', subgroupName) ] });
+					subdiv.append({
+						type: 'checkbox',
+						name: 'tags',
+						list: subgroup
+							.filter((item) => !isRestricted(item))
+							.map((item) => ({ value: item.tag, label: '{{' + item.tag + '}}: ' + item.description, subgroup: item.subgroup }))
+					});
+				});
+			});
 
 			if (Twinkle.getPref('customRedirectTagList').length) {
-				form.append({ type: 'header', label: 'Custom tags' });
-				form.append({ type: 'checkbox', name: 'redirectTags', list: Twinkle.getPref('customRedirectTagList') });
+				form.append({ type: 'header', label: 'Tag khusus' });
+				form.append({ type: 'checkbox', name: 'tags', list: Twinkle.getPref('customRedirectTagList') });
 			}
 			break;
 
 		default:
-			alert('Twinkle.tag: moda tak dikenal ' + Twinkle.tag.mode);
+			alert('Twinkle.tag: mode tidak diketahui ' + Twinkle.tag.mode);
 			break;
 	}
 
-	if (document.getElementsByClassName('patrollink').length) {
-		form.append({
-			type: 'checkbox',
-			list: [
-				{
-					label: 'Tandai halaman ini sebagai terpatroli',
-					value: 'patrolPage',
-					name: 'patrolPage',
-					checked: Twinkle.getPref('markTaggedPagesAsPatrolled')
-				}
-			]
-		});
-	}
 	form.append({ type: 'submit', className: 'tw-tag-submit' });
 
-	var result = form.render();
+	const result = form.render();
 	Window.setContent(result);
 	Window.display();
 
 	// for quick filter:
-	$allCheckboxDivs = $(result).find('[name$=Tags]').parent();
-	$allHeaders = $(result).find('h5');
-	result.quickfilter.focus();  // place cursor in the quick filter field as soon as window is opened
+	$allCheckboxDivs = $(result).find('[name$=tags]').parent();
+	$allHeaders = $(result).find('h5, .quickformDescription');
+	result.quickfilter.focus(); // place cursor in the quick filter field as soon as window is opened
 	result.quickfilter.autocomplete = 'off'; // disable browser suggestions
-	result.quickfilter.addEventListener('keypress', function(e) {
+	result.quickfilter.addEventListener('keypress', (e) => {
 		if (e.keyCode === 13) { // prevent enter key from accidentally submitting the form
 			e.preventDefault();
 			return false;
@@ -228,11 +297,11 @@ Twinkle.tag.callback = function friendlytagCallback() {
 
 			// All tags are HTML table elements that are direct children of .mw-parser-output,
 			// except when they are within {{multiple issues}}
-			$('.mw-parser-output').children().each(function parsehtml(i, e) {
+			$('.mw-parser-output').children().each((i, e) => {
 
 				// break out on encountering the first heading, which means we are no
 				// longer in the lead section
-				if (e.tagName === 'H2') {
+				if (e.classList.contains('mw-heading')) {
 					return false;
 				}
 
@@ -243,30 +312,32 @@ Twinkle.tag.callback = function friendlytagCallback() {
 				// All tags have their first class name as "box-" + template name
 				if (e.className.indexOf('box-') === 0) {
 					if (e.classList[0] === 'box-Multiple_issues') {
-						$(e).find('.ambox').each(function(idx, e) {
-							var tag = e.classList[0].slice(4).replace(/_/g, ' ');
-							Twinkle.tag.alreadyPresentTags.push(tag);
+						$(e).find('.ambox').each((idx, e) => {
+							if (e.classList[0].indexOf('box-') === 0) {
+								const tag = e.classList[0].slice('box-'.length).replace(/_/g, ' ');
+								Twinkle.tag.alreadyPresentTags.push(tag);
+							}
 						});
 						return true; // continue
 					}
 
-					var tag = e.classList[0].slice(4).replace(/_/g, ' ');
+					const tag = e.classList[0].slice('box-'.length).replace(/_/g, ' ');
 					Twinkle.tag.alreadyPresentTags.push(tag);
 				}
 			});
 
 			// {{Uncategorized}} and {{Improve categories}} are usually placed at the end
 			if ($('.box-Uncategorized').length) {
-				Twinkle.tag.alreadyPresentTags.push('Uncategorized');
+				Twinkle.tag.alreadyPresentTags.push('Tidak dikatagorikan');
 			}
 			if ($('.box-Improve_categories').length) {
-				Twinkle.tag.alreadyPresentTags.push('Improve categories');
+				Twinkle.tag.alreadyPresentTags.push('Tingkatkan kategori');
 			}
 
 		}
 
 		// Add status text node after Submit button
-		var statusNode = document.createElement('small');
+		const statusNode = document.createElement('small');
 		statusNode.id = 'tw-tag-status';
 		Twinkle.tag.status = {
 			// initial state; defined like this because these need to be available for reference
@@ -277,204 +348,335 @@ Twinkle.tag.callback = function friendlytagCallback() {
 		$('button.tw-tag-submit').after(statusNode);
 
 		// fake a change event on the sort dropdown, to initialize the tag list
-		var evt = document.createEvent('Event');
+		const evt = document.createEvent('Event');
 		evt.initEvent('change', true, true);
 		result.sortorder.dispatchEvent(evt);
-
 	} else {
 		// Redirects and files: Add a link to each template's description page
-		Morebits.quickForm.getElements(result, Twinkle.tag.mode + 'Tags').forEach(generateLinks);
+		Morebits.QuickForm.getElements(result, 'tags').forEach(generateLinks);
 	}
 };
 
-
 // $allCheckboxDivs and $allHeaders are defined globally, rather than in the
 // quickfilter event function, to avoid having to recompute them on every keydown
-var $allCheckboxDivs, $allHeaders;
+let $allCheckboxDivs, $allHeaders;
 
 Twinkle.tag.updateSortOrder = function(e) {
-	var form = e.target.form;
-	var sortorder = e.target.value;
-	Twinkle.tag.checkedTags = form.getChecked('articleTags') || [];
+	const form = e.target.form;
+	const sortorder = e.target.value;
+	Twinkle.tag.checkedTags = form.getChecked('tags');
 
-	var container = new Morebits.quickForm.element({ type: 'fragment' });
+	const container = new Morebits.QuickForm.Element({ type: 'fragment' });
 
 	// function to generate a checkbox, with appropriate subgroup if needed
-	var makeCheckbox = function(tag, description) {
-		var checkbox = { value: tag, label: '{{' + tag + '}}: ' + description };
-		if (Twinkle.tag.checkedTags.indexOf(tag) !== -1) {
+	const makeCheckbox = function (item) {
+		const tag = item.tag, description = item.description;
+		const checkbox = { value: tag, label: '{{' + tag + '}}: ' + description };
+		if (Twinkle.tag.checkedTags.includes(tag)) {
 			checkbox.checked = true;
 		}
-		switch (tag) {
-			case 'Cleanup':
-				checkbox.subgroup = {
+		checkbox.subgroup = item.subgroup;
+		return checkbox;
+	};
+
+	const makeCheckboxesForAlreadyPresentTags = function() {
+		container.append({ type: 'header', id: 'tagHeader0', label: 'Tag sudah ada' });
+		const subdiv = container.append({ type: 'div', id: 'tagSubdiv0' });
+		const checkboxes = [];
+		const unCheckedTags = e.target.form.getUnchecked('existingTags');
+		Twinkle.tag.alreadyPresentTags.forEach((tag) => {
+			const checkbox =
+				{
+					value: tag,
+					label: '{{' + tag + '}}' + (Twinkle.tag.article.flatObject[tag] ? ': ' + Twinkle.tag.article.flatObject[tag].description : ''),
+					checked: !unCheckedTags.includes(tag),
+					style: 'font-style: italic'
+				};
+
+			checkboxes.push(checkbox);
+		});
+		subdiv.append({
+			type: 'checkbox',
+			name: 'existingTags',
+			list: checkboxes
+		});
+	};
+
+	if (sortorder === 'cat') { // categorical sort order
+		// function to iterate through the tags and create a checkbox for each one
+		const doCategoryCheckboxes = function(subdiv, subgroup) {
+			const checkboxes = [];
+			$.each(subgroup, (k, item) => {
+				if (!Twinkle.tag.alreadyPresentTags.includes(item.tag)) {
+					checkboxes.push(makeCheckbox(item));
+				}
+			});
+			subdiv.append({
+				type: 'checkbox',
+				name: 'tags',
+				list: checkboxes
+			});
+		};
+
+		if (Twinkle.tag.alreadyPresentTags.length > 0) {
+			makeCheckboxesForAlreadyPresentTags();
+		}
+		let i = 1;
+		// go through each category and sub-category and append lists of checkboxes
+		$.each(Twinkle.tag.article.tagList, (groupName, group) => {
+			container.append({ type: 'header', id: 'tagHeader' + i, label: groupName });
+			const subdiv = container.append({ type: 'div', id: 'tagSubdiv' + i++ });
+			if (Array.isArray(group)) {
+				doCategoryCheckboxes(subdiv, group);
+			} else {
+				$.each(group, (subgroupName, subgroup) => {
+					subdiv.append({ type: 'div', label: [ Morebits.htmlNode('b', subgroupName) ] });
+					doCategoryCheckboxes(subdiv, subgroup);
+				});
+			}
+		});
+	} else { // alphabetical sort order
+		if (Twinkle.tag.alreadyPresentTags.length > 0) {
+			makeCheckboxesForAlreadyPresentTags();
+			container.append({ type: 'header', id: 'tagHeader1', label: 'Tag yang tersedia' });
+		}
+
+		// Avoid repeatedly resorting
+		Twinkle.tag.article.alphabeticalList = Twinkle.tag.article.alphabeticalList || Object.keys(Twinkle.tag.article.flatObject).sort();
+		const checkboxes = [];
+		Twinkle.tag.article.alphabeticalList.forEach((tag) => {
+			if (!Twinkle.tag.alreadyPresentTags.includes(tag)) {
+				checkboxes.push(makeCheckbox(Twinkle.tag.article.flatObject[tag]));
+			}
+		});
+		container.append({
+			type: 'checkbox',
+			name: 'tags',
+			list: checkboxes
+		});
+	}
+
+	// append any custom tags
+	if (Twinkle.getPref('customTagList').length) {
+		container.append({ type: 'header', label: 'Tag kustom' });
+		container.append({ type: 'checkbox', name: 'tags',
+			list: Twinkle.getPref('customTagList').map((el) => {
+				el.checked = Twinkle.tag.checkedTags.includes(el.value);
+				return el;
+			})
+		});
+	}
+
+	const $workarea = $(form).find('#tagWorkArea');
+	const rendered = container.render();
+	$workarea.empty().append(rendered);
+
+	// for quick filter:
+	$allCheckboxDivs = $workarea.find('[name=tags], [name=existingTags]').parent();
+	$allHeaders = $workarea.find('h5, .quickformDescription');
+	form.quickfilter.value = ''; // clear search, because the search results are not preserved over mode change
+	form.quickfilter.focus();
+
+	// style adjustments
+	$workarea.find('h5').css({ 'font-size': '110%' });
+	$workarea.find('h5:not(:first-child)').css({ 'margin-top': '1em' });
+	$workarea.find('div').filter(':has(span.quickformDescription)').css({ 'margin-top': '0.4em' });
+
+	Morebits.QuickForm.getElements(form, 'existingTags').forEach(generateLinks);
+	Morebits.QuickForm.getElements(form, 'tags').forEach(generateLinks);
+
+	// tally tags added/removed, update statusNode text
+	const statusNode = document.getElementById('tw-tag-status');
+	$('[name=tags], [name=existingTags]').on('click', function() {
+		if (this.name === 'tags') {
+			Twinkle.tag.status.numAdded += this.checked ? 1 : -1;
+		} else if (this.name === 'existingTags') {
+			Twinkle.tag.status.numRemoved += this.checked ? -1 : 1;
+		}
+
+		const firstPart = 'Menambanhkan ' + Twinkle.tag.status.numAdded + ' tag' + (Twinkle.tag.status.numAdded);
+		const secondPart = 'Menghilangkan ' + Twinkle.tag.status.numRemoved + ' tag' + (Twinkle.tag.status.numRemoved);
+		statusNode.textContent =
+			(Twinkle.tag.status.numAdded ? '  ' + firstPart : '') +
+			(Twinkle.tag.status.numRemoved ? (Twinkle.tag.status.numAdded ? '; ' : '  ') + secondPart : '');
+	});
+};
+
+/**
+ * Adds a link to each template's description page
+ *
+ * @param {Morebits.QuickForm.Element} checkbox  associated with the template
+ */
+var generateLinks = function(checkbox) {
+	const link = Morebits.htmlNode('a', '>');
+	link.setAttribute('class', 'tag-template-link');
+	const tagname = checkbox.values;
+	link.setAttribute('href', mw.util.getUrl(
+		(!tagname.includes(':') ? 'Templat:' : '') +
+		(!tagname.includes('|') ? tagname : tagname.slice(0, tagname.indexOf('|')))
+	));
+	link.setAttribute('target', '_blank');
+	$(checkbox).parent().append(['\u00A0', link]);
+};
+
+// Tags for ARTICLES start here
+Twinkle.tag.article = {};
+
+// Shared across {{Rough translation}} and {{Not English}}
+const translationSubgroups = [
+	{
+		name: 'translationLanguage',
+		parameter: '1',
+		type: 'input',
+		label: 'Bahasa artikel (jika diketahui):',
+		tooltip: 'Consider looking at [[WP:LRC]] for help. If listing the article at PNT, please try to avoid leaving this box blank, unless you are completely unsure.'
+	}
+].concat(mw.config.get('wgNamespaceNumber') === 0 ? [
+	{
+		type: 'checkbox',
+		list: [ {
+			name: 'translationPostAtPNT',
+			label: 'Masukan artikel ini kedalam Wikipedia:Halaman untuk diterjemahkan ke Bahasa Indonesia (PNT)',
+			checked: true
+		} ]
+	},
+	{
+		name: 'translationComments',
+		type: 'textarea',
+		label: 'Komentar tamabahan untuk dimasukkan ke PNT',
+		tooltip: 'Opsional, dan hanya akan relevan jika "Daftar artikel ..." diatas diperiksa.'
+	}
+] : []);
+
+// Subgroups for {{merge}}, {{merge-to}} and {{merge-from}}
+const getMergeSubgroups = function(tag) {
+	let otherTagName = 'Merge';
+	switch (tag) {
+		case 'Merge from':
+			otherTagName = 'Merge to';
+			break;
+		case 'Merge to':
+			otherTagName = 'Merge from';
+			break;
+		// no default
+	}
+	return [
+		{
+			name: 'mergeTarget',
+			type: 'input',
+			label: 'Artikel lainnya:',
+			tooltip: 'Jika memasukan beberapa artikel, pisahkan dengan karakter garis: Artikel satu|Artikel dua',
+			required: true
+		},
+		{
+			type: 'checkbox',
+			list: [
+				{
+					name: 'mergeTagOther',
+					label: 'Tandai artikel lainnya dengan tag {{' + otherTagName + '}}',
+					checked: true,
+					tooltip: 'Hanya tersedia jika memasukan nama artikel.'
+				}
+			]
+		}
+	].concat(mw.config.get('wgNamespaceNumber') === 0 ? {
+		name: 'mergeReason',
+		type: 'textarea',
+		label: 'Kriteria untuk digabungkan (Akan dimasukkan ke' + 'halaman pembicaraan' + (tag === 'Merge to' ? 'artikel lain' : 'artikel ini') + ':',
+		tooltip: 'Opsional, tetapi lebih direkomendasikan. Biarkan kosong apabila tidak diinginkan. Hanya tersedia jika nama artikel dimasukkan.'
+	} : []);
+};
+
+// Tags arranged by category; will be used to generate the alphabetical list,
+// but tags should be in alphabetical order within the categories
+// excludeMI: true indicate a tag that *does not* work inside {{multiple issues}}
+// Add new categories with discretion - the list is long enough as is!
+Twinkle.tag.article.tagList = {
+	'Tag rapikan dan pemeliharaan': {
+		'Perapian secara umum': [
+			{
+				tag: 'Cleanup', description: 'membutuhkan perapian',
+				subgroup: {
 					name: 'cleanup',
+					parameter: 'alasan',
 					type: 'input',
-					label: 'Alasan perapian diperlukan: ',
-					tooltip: 'Wajib diisi',
-					size: 35
-				};
-				break;
-			case 'Close paraphrasing':
-				checkbox.subgroup = {
-					name: 'closeParaphrasing',
-					type: 'input',
-					label: 'Source: ',
-					tooltip: 'Kalimat yang diparafrase sangat mirip dengan sumber aslinya'
-				};
-				break;
-			case 'Copy edit':
-				checkbox.subgroup = {
+					label: 'Alasan spesifik mengapa memerlukan perapian:',
+					tooltip: 'Dibutuhkan.',
+					size: 35,
+					required: true
+				}
+			}, // has a subgroup with text input
+			{
+				tag: 'Cleanup rewrite',
+				description: "dibtuhkan penulisan ulang seluruhnya untuk memenuhi standar kualitas Wikipedia"
+			},
+			{
+				tag: 'Copy edit',
+				description: 'membutuhkan perbaikan salin sunting untuk gaya dan nada penulisan',
+				subgroup: {
 					name: 'copyEdit',
+					parameter: 'for',
 					type: 'input',
-					label: '"Artikel ini perlu disunting lebih lanjut untuk..." ',
-					tooltip: 'seperti ¨ejaan yang salah¨. Opsional.',
+					label: '"Artikel ini membutuhkan salin sunting untuk..."',
+					tooltip: 'mis. "pengejaan konsisten". Opsional.',
 					size: 35
-				};
-				break;
-			case 'Copypaste':
-				checkbox.subgroup = {
+				}
+			} // has a subgroup with text input
+		],
+		'Potensi konten tidak diinginkan': [
+			{
+				tag: 'Close paraphrasing',
+				description: 'mengandung parafrase tertutup dari sumber berhak cipta yang tidak bebas',
+				subgroup: {
+					name: 'closeParaphrasing',
+					parameter: 'source',
+					type: 'input',
+					label: 'Source:',
+					tooltip: 'Sumber yang telah diparafrasekan dengan tertutup'
+				}
+			},
+			{
+				tag: 'Copypaste',
+				description: 'terlihat seperti disalin dan ditempel dari tempat lain',
+				excludeMI: true,
+				subgroup: {
 					name: 'copypaste',
+					parameter: 'url',
 					type: 'input',
-					label: 'URL sumber: ',
-					tooltip: 'Jika diketahui',
+					label: 'URL sumber:',
+					tooltip: 'Jika diketahui.',
 					size: 50
-				};
-				break;
-			case 'Expand language':
-				checkbox.subgroup = [ {
-					name: 'expandLanguageLangCode',
-					type: 'input',
-					label: 'Kode bahasa: ',
-					tooltip: 'Kode bahasa sumber artikel ini dikembangkan'
-				}, {
-					name: 'expandLanguageArticle',
-					type: 'input',
-					label: 'Nama artikel: ',
-					tooltip: 'Judul artikel asal yang dikembangkan, tanpa awalan antarwiki'
 				}
-				];
-				break;
-			case 'Expert needed':
-				checkbox.subgroup = [
-					{
-						name: 'expertNeeded',
-						type: 'input',
-						label: 'Nama ProyekWiki terkait: ',
-						tooltip: 'Opsional. Berikan nama ProyekWiki yang dapat membantu merekrut pengguna ahli. Jangan berikan awalan "WikiProject" atau "ProyekWiki"'
-					},
-					{
-						name: 'expertNeededReason',
-						type: 'input',
-						label: 'Alasan: ',
-						tooltip: 'Penjelasan singkat yang menjelaskan masalahnya'
-					},
-					{
-						name: 'expertNeededTalk',
-						type: 'input',
-						label: 'Diskusi pembicaraan: ',
-						tooltip: 'Nama bagian dari halaman pembicaraan artikel ini yang sedang didiskusikan. Cukup berikan nama bagian artikelnya, bukan pranalanya.'
-					}
-				];
-				break;
-			case 'Globalize':
-				checkbox.subgroup = {
-					name: 'globalizeRegion',
-					type: 'input',
-					label: 'Tidak mewakili seluruh negara atau wilayah'
-				};
-				break;
-			case 'History merge':
-				checkbox.subgroup = [
-					{
-						name: 'histmergeOriginalPage',
-						type: 'input',
-						label: 'Artikel lain: ',
-						tooltip: 'Nama halaman yang harus digabung ke halaman ini (wajib)'
-					},
-					{
-						name: 'histmergeReason',
-						type: 'input',
-						label: 'Alasan: ',
-						tooltip: 'Penjelasan singkat dan alasan penggabungan sejarah artikel diperlukan'
-					},
-					{
-						name: 'histmergeSysopDetails',
-						type: 'input',
-						label: 'Perincian tambahan: ',
-						tooltip: 'Untuk kasus kompleks, berikan instruksi tambahan guna ditinjau oleh pengurus'
-					}
-				];
-				break;
-			case 'Merge':
-			case 'Merge from':
-			case 'Merge to':
-				var otherTagName = 'Merge';
-				switch (tag) {
-					case 'Merge from':
-						otherTagName = 'Merge to';
-						break;
-					case 'Merge to':
-						otherTagName = 'Merge from';
-						break;
-					// no default
-				}
-				checkbox.subgroup = [
-					{
-						name: 'mergeTarget',
-						type: 'input',
-						label: 'Artikel lainnya: ',
-						tooltip: 'Jika beberapa artikel ditulis, pisahkan dengan karakter pipa: Artikel pertama|Artikel kedua'
-					},
-					{
-						name: 'mergeTagOther',
-						type: 'checkbox',
-						list: [
-							{
-								label: 'Berikan tag ke artikel lainnya dengan tag {{' + otherTagName + '}}',
-								checked: true,
-								tooltip: 'Hanya ada jika nama artikel tunggal diberikan.'
-							}
-						]
-					}
-				];
-				if (mw.config.get('wgNamespaceNumber') === 0) {
-					checkbox.subgroup.push({
-						name: 'mergeReason',
-						type: 'textarea',
-						label: 'Alasan penggabungan (akan dikirimkan ke ' +
-							(tag === 'Merge from' ? 'artikel lainnya' : 'artikel ini') + ' halaman pembicaraan):',
-						tooltip: 'Opsional, namun sangat disarankan. Kosongkan jika tidak diinginkan. Hanya tersedia jika nama artikel tunggal diberikan.'
-					});
-				}
-				break;
-			case 'Not Indonesian':
-			case 'Rough translation':
-				checkbox.subgroup = [
-					{
-						name: 'translationLanguage',
-						type: 'input',
-						label: 'Bahasa artikel (jika diketahui): ',
-						tooltip: 'Baca pedoman penerjemahan artikel untuk informasi lebih lanjut.'
-					}
-				];
-				if (tag === 'Not Indonesian') {
-					checkbox.subgroup.push({
-						name: 'translationNotify',
-						type: 'checkbox',
-						list: [
-							{
-								label: 'Beritahukan pembuat artikel',
-								checked: true,
-								tooltip: 'Tempatkan {{uw-notenglish}} di halaman pembicaraannya.'
-							}
-						]
-					});
-				}
-				break;
-			case 'Notability':
-				checkbox.subgroup = {
+			}, // has a subgroup with text input
+			{ tag: 'AI-generated', description: 'konten terlihat seperti dibuat dengan model bahasa luas' },
+			{ tag: 'External links', description: 'pranala luar tidak memenuhi pedoman atau kebijakan' },
+			{ tag: 'Non-free', description: 'berisi penggunaan yang berlebih atau tidak sesuai dari materi hak cipta' }
+		],
+		'Struktur, pemformatan, dan bagian pembuka': [
+			{ tag: 'Cleanup reorganize', description: "membutuhkan perapian untuk memenuhi pedoman tata letak Wikipedia" },
+			{ tag: 'Lead missing', description: 'tidak ada bagian pemnbuka' },
+			{ tag: 'Lead rewrite', description: 'bagian pembuka harus ditulis ulang agar memenuhi pedoman' },
+			{ tag: 'Lead too long', description: 'panjang bagian pembuka terlalu panjang untuk ukuran artikel' },
+			{ tag: 'Lead too short', description: 'bagian pembuka terlalu pendek dan butuh di perpanjang untuk merangkum poin penting' },
+			{ tag: 'Sections', description: 'butuh dipisah menjadi bagian per topik' },
+			{ tag: 'Too many sections', description: 'terlalu banyak judul bagian yang membagi konten, harus diringkas' },
+			{ tag: 'Very long', description: 'terlalu panjang untuk dibaca dan di navigasi dengan baik' }
+		],
+		'Perapian terkait fiksi': [
+			{ tag: 'All plot', description: 'hampir semuanya ringkasan alur cerita' },
+			{ tag: 'Fiction', description: 'gagal membedakan antara fakta dan fiksi' },
+			{ tag: 'In-universe', description: 'subjek merupakan fiksi dan perlu ditulis ulang untuk menyediakan perspektif non-fiksi' },
+			{ tag: 'Long plot', description: 'ringkasan alur cerita terlalu panjang atau terlalu detail' },
+			{ tag: 'More plot', description: 'ringkasan alur cerita terlalu pendek' },
+			{ tag: 'No plot', description: 'butuh ringkasan alur cerita' }
+		]
+	},
+	'Masalah konten umum': {
+		'Kepentingan dan notabilitas': [
+			{ tag: 'Notability', description: 'subyek mungkin tidak memenuhi pedoman notabilitas umum',
+				subgroup: {
 					name: 'notability',
+					parameter: '1',
 					type: 'select',
 					list: [
 						{ label: '{{notability}}: subjek artikel mungkin tidak memenuhi kelayakan secara umum', value: 'none' },
@@ -495,917 +697,567 @@ Twinkle.tag.updateSortOrder = function(e) {
 						{ label: '{{notability|Television}}: pedoman kelayakan untuk acara televisi', value: 'Television' },
 						{ label: '{{notability|Web}}: pedoman kelayakan untuk isi situs web', value: 'Web' }
 					]
-				};
-				break;
-			default:
-				break;
-		}
-		return checkbox;
-	};
-
-	var makeCheckboxesForAlreadyPresentTags = function() {
-		container.append({ type: 'header', id: 'tagHeader0', label: 'Tags already present' });
-		var subdiv = container.append({ type: 'div', id: 'tagSubdiv0' });
-		var checkboxes = [];
-		var unCheckedTags = e.target.form.getUnchecked('alreadyPresentArticleTags') || [];
-		Twinkle.tag.alreadyPresentTags.forEach(function(tag) {
-			var description = Twinkle.tag.article.tags[tag];
-			var checkbox =
-				{
-					value: tag,
-					label: '{{' + tag + '}}' + (description ? ': ' + description : ''),
-					checked: unCheckedTags.indexOf(tag) === -1,
-					style: 'font-style: italic'
-				};
-
-			checkboxes.push(checkbox);
-		});
-		subdiv.append({
-			type: 'checkbox',
-			name: 'alreadyPresentArticleTags',
-			list: checkboxes
-		});
-	};
-
-	if (sortorder === 'cat') { // categorical sort order
-		// function to iterate through the tags and create a checkbox for each one
-		var doCategoryCheckboxes = function(subdiv, array) {
-			var checkboxes = [];
-			$.each(array, function(k, tag) {
-				var description = Twinkle.tag.article.tags[tag];
-				if (Twinkle.tag.alreadyPresentTags.indexOf(tag) === -1) {
-					checkboxes.push(makeCheckbox(tag, description));
 				}
-			});
-			subdiv.append({
-				type: 'checkbox',
-				name: 'articleTags',
-				list: checkboxes
-			});
-		};
-
-		if (Twinkle.tag.alreadyPresentTags.length > 0) {
-			makeCheckboxesForAlreadyPresentTags();
-		}
-		var i = 1;
-		// go through each category and sub-category and append lists of checkboxes
-		$.each(Twinkle.tag.article.tagCategories, function(title, content) {
-			container.append({ type: 'header', id: 'tagHeader' + i, label: title });
-			var subdiv = container.append({ type: 'div', id: 'tagSubdiv' + i++ });
-			if (Array.isArray(content)) {
-				doCategoryCheckboxes(subdiv, content);
-			} else {
-				$.each(content, function(subtitle, subcontent) {
-					subdiv.append({ type: 'div', label: [ Morebits.htmlNode('b', subtitle) ] });
-					doCategoryCheckboxes(subdiv, subcontent);
-				});
 			}
-		});
-	} else { // alphabetical sort order
-		if (Twinkle.tag.alreadyPresentTags.length > 0) {
-			makeCheckboxesForAlreadyPresentTags();
-			container.append({ type: 'header', id: 'tagHeader1', label: 'Available tags' });
-		}
-		var checkboxes = [];
-		$.each(Twinkle.tag.article.tags, function(tag, description) {
-			if (Twinkle.tag.alreadyPresentTags.indexOf(tag) === -1) {
-				checkboxes.push(makeCheckbox(tag, description));
-			}
-		});
-		container.append({
-			type: 'checkbox',
-			name: 'articleTags',
-			list: checkboxes
-		});
-	}
-
-	// append any custom tags
-	if (Twinkle.getPref('customTagList').length) {
-		container.append({ type: 'header', label: 'Tag yang disesuaikan' });
-		container.append({ type: 'checkbox', name: 'articleTags',
-			list: Twinkle.getPref('customTagList').map(function(el) {
-				el.checked = Twinkle.tag.checkedTags.indexOf(el.value) !== -1;
-				return el;
-			})
-		});
-	}
-
-	var $workarea = $(form).find('#tagWorkArea');
-	var rendered = container.render();
-	$workarea.empty().append(rendered);
-
-	// for quick filter:
-	$allCheckboxDivs = $workarea.find('[name$=Tags]').parent();
-	$allHeaders = $workarea.find('h5, .quickformDescription');
-	form.quickfilter.value = ''; // clear search, because the search results are not preserved over mode change
-	form.quickfilter.focus();
-
-	// style adjustments
-	$workarea.find('h5').css({ 'font-size': '110%' });
-	$workarea.find('h5:not(:first-child)').css({ 'margin-top': '1em' });
-	$workarea.find('div').filter(':has(span.quickformDescription)').css({ 'margin-top': '0.4em' });
-
-	var alreadyPresentTags = Morebits.quickForm.getElements(form, 'alreadyPresentArticleTags');
-	if (alreadyPresentTags) {
-		alreadyPresentTags.forEach(generateLinks);
-	}
-	// in the unlikely case that *every* tag is already on the page
-	var notPresentTags = Morebits.quickForm.getElements(form, 'articleTags');
-	if (notPresentTags) {
-		notPresentTags.forEach(generateLinks);
-	}
-
-	// tally tags added/removed, update statusNode text
-	var statusNode = document.getElementById('tw-tag-status');
-	$('[name=articleTags], [name=alreadyPresentArticleTags]').click(function() {
-		if (this.name === 'articleTags') {
-			Twinkle.tag.status.numAdded += this.checked ? 1 : -1;
-		} else if (this.name === 'alreadyPresentArticleTags') {
-			Twinkle.tag.status.numRemoved += this.checked ? -1 : 1;
-		}
-
-		var firstPart = 'Adding ' + Twinkle.tag.status.numAdded + ' tag' + (Twinkle.tag.status.numAdded > 1 ? 's' : '');
-		var secondPart = 'Removing ' + Twinkle.tag.status.numRemoved + ' tag' + (Twinkle.tag.status.numRemoved > 1 ? 's' : '');
-		statusNode.textContent =
-			(Twinkle.tag.status.numAdded ? '  ' + firstPart : '') +
-			(Twinkle.tag.status.numRemoved ? (Twinkle.tag.status.numAdded ? '; ' : '  ') + secondPart : '');
-	});
-};
-
-/**
- * Adds a link to each template's description page
- * @param {Morebits.quickForm.element} checkbox  associated with the template
- */
-var generateLinks = function(checkbox) {
-	var link = Morebits.htmlNode('a', '>');
-	link.setAttribute('class', 'tag-template-link');
-	var tagname = checkbox.values;
-	link.setAttribute('href', mw.util.getUrl(
-		(tagname.indexOf(':') === -1 ? 'Template:' : '') +
-		(tagname.indexOf('|') === -1 ? tagname : tagname.slice(0, tagname.indexOf('|')))
-	));
-	link.setAttribute('target', '_blank');
-	$(checkbox).parent().append(['\u00A0', link]);
-};
-
-
-// Tags for ARTICLES start here
-
-Twinkle.tag.article = {};
-
-// A list of all article tags, in alphabetical order
-// To ensure tags appear in the default "categorized" view, add them to the tagCategories hash below.
-
-Twinkle.tag.article.tags = {
-	'Advert': 'artikel ditulis seperti iklan',
-	'All plot': 'artikel hampir semuanya ringkasan alur',
-	'Autobiography': 'artikel adalah otobiografi yang tidak ditulis secara netral',
-	'BLP sources': 'artikel tokoh yang masih hidup perlu referensi lebih banyak untuk diperiksa',
-	'BLP unsourced': 'artikel tokoh yang masih hidup yang tidak punya referensi',
-	'Citation style': 'artikel yang kutipannya tidak jelas atau tak konsisten',
-	'Cleanup': 'artikel memerlukan perapian',
-	'Cleanup bare URLs': 'artikel menggunakan URL telanjang untuk referensi, yang rentan terhadap pranala mati',
-	'Cleanup-PR': 'artikel dibaca seperti siaran pers',
-	'Cleanup reorganize': 'artikel memerlukan pengubahan struktur agar sesuai dengan pedoman Wikipedia',
-	'Cleanup rewrite': 'artikel mungkin perlu ditulis ulang secara menyeluruh agar memenuhi standar kualitas Wikipedia',
-	'Cleanup tense': 'artikel ditulis dalam bentuk kala yang salah',
-	'Close paraphrasing': 'artikel mengandung parafrasa yang mirip dengan sumber tidak bebas berhak cipta',
-	'COI': 'pembuat artikel memiliki konflik kepentingan',
-	'Condense': 'artikel mungkin punya banyak kepala bagian yang membagi-bagi isinya',
-	'Confusing': 'artikel tidak memiliki isi yang jelas (membingungkan)',
-	'Context': 'konteks isi artikel tidak mencukupi',
-	'Copy edit': 'artikel butuh perbaikan pada tata bahasa, gaya, relasi antarparagrag, dan/atau ejaan',
-	'Copypaste': 'artikel terkesan disalin dari sebuah sumber',
-	'Current': 'artikel mendokumentasikan sebuah peristiwa terkini',
-	'Disputed': 'akurasi aktual isi halaman dipertanyakan',
-	'Essay-like': 'artikel ditulis seperti esai atau opini',
-	'Expand language': 'artikel dapat dikembangkan dengan materi dari Wikipedia bahasa lain',
-	'Expert needed': 'artikel perlu dilihat oleh pengguna yang ahli di bidang ini',
-	'External links': 'pranala luar artikel tidak mengikuti pedoman dan kebijakan',
-	'Fanpov': 'artikel mirip dengan situs penggemar',
-	'Fiction': 'artikel tidak dapat dibedakan antara nyata atau fiksi',
-	'Globalize': 'artikel tidak mewakili sudut pandang umum subjek tersebut',
-	'GOCEinuse': 'artikel sedang dalam perubahan besar oleh Guild of Copy Editors',
-	'History merge': 'menggabungkan riwayat halaman lain ke dalam halaman ini',
-	'Hoax': 'artikel berisi informasi palsu',
-	'Improve categories': 'artikel butuh kategori tambahan',
-	'Incomprehensible': 'artikel sulit untuk dipahami atau tidak komprehensif',
-	'In-universe': 'subjek artikel adalah fiksi dan butuh gaya penulisan dari sudut pandang nonfiksi',
-	'In use': 'artikel dalam pengembangan dalam waktu dekat',
-	'Lead missing': 'artikel tidak memiliki bagian pengantar dan perlu ditulis',
-	'Lead rewrite': 'pengantar artikel tidak sesuai pedoman',
-	'Lead too long': 'pengantar artikel sangat panjang dan harus dibuat lebih ringkas',
-	'Lead too short': 'pengantar artikel sangat pendek dan harus dikembangkan',
-	'Like resume': 'artikel ditulis seperti resume',
-	'Long plot': 'ringkasan alur di artikel terlalu panjang',
-	'Manual': 'gaya artikel mirip dengan buku pedoman',
-	'Merge': 'artikel ini perlu digabungkan ke artikel lain',
-	'Merge from': 'artikel lain harus digabungkan ke artikel ini',
-	'Merge to': 'artikel ini harus digabungkan ke artikel lain',
-	'More citations needed': 'artikel butuh referensi atau sumber tambahan untuk verifikasi',
-	'More footnotes': 'artikel sudah punya referensi, namun hanya punya sedikit catatan kaki',
-	'No footnotes': 'artikel punya referensi, namun tidak punya catatan kaki',
-	'No plot': 'artikel tidak memiliki ringkasan alur',
-	'Non-free': 'artikel mungkin mengandung materi yang berhak cipta yang tidak digunakan sebagaimana mestinya',
-	'Notability': 'subjek artikel tidak memenuhi kelayakan',
-	'Not English': 'artikel ditulis dalam bahasa selain bahasa Inggris dan butuh terjemahan',
-	'One source': 'artikel hanya merujuk pada sebuah sumber saja',
-	'Original research': 'artikel memiliki penggunaan riset asli klaim yang tidak terperiksa',
-	'Orphan': 'artikel tidak memiliki hubungan dengan artikel lain',
-	'Over-coverage': 'artikel mengandung anggapan atau cakupan tidak sesuai terhadap satu bagian atau lebih',
-	'Overlinked': 'artikel banyak mengandung pranala duplikat dan/atau tidak berhubungan',
-	'Overly detailed': 'artikel mengandung jumlah detail yang terlalu banyak',
-	'Over-quotation': 'artikel mengandung terlalu banyak atau terlalu panjang kutipan untuk entri ensiklopedis',
-	'Peacock': 'artikel mengandung istilah hiperbola yang mempromosikan subjek tanpa informasi lengkap',
-	'POV': 'sudut pandang penulisan artikel tidak netral',
-	'Primary sources': 'artikel terlalu mengandalkan sumber primer, dan butuh sumber tambahan',
-	'Prose': 'artikel mengandung format yang lebih sesuai ditulis dalam bentuk prosa',
-	'Recentism': 'artikel ini terlalu condong dengan peristiwa terkini',
-	'Rough translation': 'artikel sangat jelek penerjemahannya dan memerlukan perbaikan',
-	'Sections': 'artikel perlu dibagi dalam subbagian',
-	'Self-published': 'artikel mengandung sumber yang mungkin tak sesuai untuk sumber yang diterbitkan oleh diri sendiri',
-	'Technical': 'artikel mengandung banyak istilah yang rumit',
-	'Third-party': 'artikel terlalu mengandalkan sumber kedua, dan butuh sumber ketiga',
-	'Tone': 'gaya penulisan tak sesuai',
-	'Too few opinions': 'artikel tidak mengandung keseluruhan sudut pandang yang penting',
-	'Uncategorized': 'artikel tidak ada kategori',
-	'Under construction': 'artikel sedang dalam tahap pengembangan',
-	'Underlinked': 'artikel perlu lebih banyak pranala wiki',
-	'Undue weight': 'artikel ini memberi berat tak wajar untuk gagasan, insiden, atau kontroversi tertentu',
-	'Unfocused': 'artikel kurang memfokuskan subjek atau punya topik yang lebih dari satu',
-	'Unreferenced': 'artikel tidak punya referensi sama sekali',
-	'Unreliable sources': 'sumber artikel mungkin tidak dapat dipercaya',
-	'Undisclosed paid': 'artikel mungkin telah dibuat atau disunting sebagai imbalan untuk pembayaran yang tidak diungkapkan',
-	'Update': 'artikel memerlukan informasi yang lebih aktual',
-	'Very long': 'artikel sangaaaat panjang',
-	'Weasel': 'kenetralan artikel diganggu oleh penggunaan kata bersayap',
-	'Dead end': 'artikel tidak punya hubungan dengan artikel lain',
-	'Linkrot': 'sumber referensi artikel sudah mati, dan penulisannya harus diperbaiki',
-	'New unreviewed article': 'tandai artikel untuk diperiksa nanti',
-	'News release': 'gaya artikel mirip seperti berita',
-	'Not Indonesian': 'artikel tidak ditulis dalam bahasa Indonesia dan perlu diterjemahkan',
-	'Refimprove': 'artikel perlu sumber tambahan untuk diperiksa',
-	'Tense': 'artikel ditulis dalam gaya tidak sesuai',
-	'Tugas sekolah': 'artikel yang sedang digunakan untuk penilaian di sekolah/universitas'
-/* TODO: Incoming merge
-	'Advert': 'written like an advertisement',
-	'All plot': 'almost entirely a plot summary',
-	'Autobiography': 'autobiography and may not be written neutrally',
-	'BLP sources': 'BLP that needs additional sources for verification',
-	'BLP unsourced': 'BLP that has no sources at all (use BLP PROD instead for new articles)',
-	'Citation style': 'unclear or inconsistent citation style',
-	'Cleanup': 'requires cleanup',
-	'Cleanup bare URLs': 'uses bare URLs for references, which are prone to link rot',
-	'Cleanup-PR': 'reads like a press release or news article',
-	'Cleanup reorganize': "needs reorganization to comply with Wikipedia's layout guidelines",
-	'Cleanup rewrite': "needs to be rewritten entirely to comply with Wikipedia's quality standards",
-	'Cleanup tense': 'does not follow guidelines on use of different tenses.',
-	'Close paraphrasing': 'contains close paraphrasing of a non-free copyrighted source',
-	'COI': 'creator or major contributor may have a conflict of interest',
-	'Condense': 'too many section headers dividing up content',
-	'Confusing': 'confusing or unclear',
-	'Context': 'insufficient context for those unfamiliar with the subject',
-	'Copy edit': 'requires copy editing for grammar, style, cohesion, tone, or spelling',
-	'Copypaste': 'appears to have been copied and pasted from another location',
-	'Current': 'documents a current event',
-	'Dead end': 'article has no links to other articles',
-	'Disputed': 'questionable factual accuracy',
-	'Essay-like': 'written like a personal reflection, personal essay, or argumentative essay',
-	'Expand language': 'should be expanded with text translated from a foreign-language article',
-	'Expert needed': 'needs attention from an expert on the subject',
-	'External links': 'external links may not follow content policies or guidelines',
-	'Fanpov': "written from a fan's point of view",
-	'Fiction': 'fails to distinguish between fact and fiction',
-	'Globalize': 'may not represent a worldwide view of the subject',
-	'GOCEinuse': 'currently undergoing a major copy edit by the Guild of Copy Editors',
-	'History merge': 'another page should be history merged into this one',
-	'Hoax': 'may partially or completely be a hoax',
-	'Improve categories': 'needs additional or more specific categories',
-	'Incomprehensible': 'very hard to understand or incomprehensible',
-	'In-universe': 'subject is fictional and needs rewriting to provide a non-fictional perspective',
-	'In use': 'undergoing a major edit for a short while',
-	'Lead missing': 'no lead section',
-	'Lead rewrite': 'lead section needs to be rewritten to comply with guidelines',
-	'Lead too long': 'lead section is too long for the length of the article',
-	'Lead too short': 'lead section is too short and should be expanded to summarize key points',
-	'Like resume': 'written like a resume',
-	'Long plot': 'plot summary is too long or excessively detailed',
-	'Manual': 'written like a manual or guidebook',
-	'Merge': 'should be merged with another given article',
-	'Merge from': 'another given article should be merged into this one',
-	'Merge to': 'should be merged into another given article',
-	'More citations needed': 'needs additional references or sources for verification',
-	'More footnotes': 'has some references, but insufficient inline citations',
-	'No footnotes': 'has references, but lacks inline citations',
-	'No plot': 'needs a plot summary',
-	'Non-free': 'may contain excessive or improper use of copyrighted materials',
-	'Notability': 'subject may not meet the general notability guideline',
-	'Not English': 'written in a language other than English and needs translation',
-	'One source': 'relies largely or entirely on a single source',
-	'Original research': 'contains original research',
-	'Orphan': 'linked to from no other articles',
-	'Over-coverage': 'extensive bias or disproportional coverage towards one or more specific regions',
-	'Overlinked': 'too many duplicate and/or irrelevant links to other articles',
-	'Overly detailed': 'excessive amount of intricate detail',
-	'Over-quotation': 'too many or too-lengthy quotations for an encyclopedic entry',
-	'Peacock': 'contains wording that promotes the subject in a subjective manner without adding information',
-	'POV': 'does not maintain a neutral point of view',
-	'Primary sources': 'relies too much on references to primary sources, and needs secondary sources',
-	'Prose': 'written in a list format but may read better as prose',
-	'Recentism': 'slanted towards recent events',
-	'Rough translation': 'poor translation from another language',
-	'Sections': 'needs to be divided into sections by topic',
-	'Self-published': 'contains excessive or inappropriate references to self-published sources',
-	'Sources exist': 'notable topic, sources are available that could be added to article',
-	'Technical': 'too technical for most readers to understand',
-	'Third-party': 'relies too heavily on sources too closely associated with the subject',
-	'Tone': 'tone or style may not reflect the encyclopedic tone used on Wikipedia',
-	'Too few opinions': 'may not include all significant viewpoints',
-	'Uncategorized': 'not added to any categories',
-	'Under construction': 'in the process of an expansion or major restructuring',
-	'Underlinked': 'needs more wikilinks to other articles',
-	'Undue weight': 'lends undue weight to certain ideas, incidents, or controversies',
-	'Unfocused': 'lacks focus or is about more than one topic',
-	'Unreferenced': 'does not cite any sources at all',
-	'Unreliable sources': 'some references may not be reliable',
-	'Undisclosed paid': 'may have been created or edited in return for undisclosed payments',
-	'Update': 'needs additional up-to-date information added',
-	'Very long': 'too long to read and navigate comfortably',
-	'Weasel': 'neutrality or verifiability is compromised by the use of weasel words'
-*/
-};
-
-// A list of tags in order of category
-// Tags should be in alphabetical order within the categories
-// Add new categories with discretion - the list is long enough as is!
-
-Twinkle.tag.article.tagCategories = {
-	'Tag rapikan dan pemeliharaan': {
-		'Perapian secara umum': [
-			'Cleanup',  // has a subgroup with text input
-			'Cleanup rewrite',
-			'Copy edit'  // has a subgroup with text input
-		],
-		'Mengandung konten yang tidak diinginkan': [
-			'Close paraphrasing',
-			'Copypaste',  // has a subgroup with text input
-			'External links',
-			'Non-free'
-		],
-		'Struktur, format, dan pengantar': [
-			'Cleanup reorganize',
-			'Condense',
-			'Lead missing',
-			'Lead rewrite',
-			'Lead too long',
-			'Lead too short',
-			'Sections',
-			'Very long'
-		],
-		'Perapian yang berhubungan dengan isi fiksi': [
-			'All plot',
-			'Fiction',
-			'In-universe',
-			'Long plot',
-			'No plot'
-		]
-	},
-	'Masalah konten secara umum': {
-		'Kepentingan dan kelayakan': [
-			'Notability'  // has a subgroup with subcategories
 		],
 		'Gaya penulisan': [
-			'Advert',
-			'Cleanup tense',
-			'Essay-like',
-			'Fanpov',
-			'Like resume',
-			'Manual',
-			'Cleanup-PR',
-			'Over-quotation',
-			'Prose',
-			'Technical',
-			'Tone'
-		],
-		'Makna': [
-			'Confusing',
-			'Incomprehensible',
-			'Unfocused'
-		],
-		'Detail dan informasi': [
-			'Context',
-			'Expert needed',
-			'Overly detailed',
-			'Undue weight'
-		],
-		'Keaktualan': [
-			'Current',
-			'Update'
-		],
-		'Netralitas, kecondongan dan akurasi faktual': [
-			'Autobiography',
-			'COI',
-			'Disputed',
-			'Hoax',
-			'Globalize',  // has a subgroup with subcategories
-			'Over-coverage',
-			'Peacock',
-			'POV',
-			'Recentism',
-			'Too few opinions',
-			'Undisclosed paid',
-			'Weasel'
-		],
-		'Pemeriksaan dan sumber': [
-			'BLP sources',
-			'BLP unsourced',
-			'More citations needed',
-			'One source',
-			'Original research',
-			'Primary sources',
-			'Self-published',
-			'Third-party',
-			'Unreferenced',
-			'Unreliable sources'
-		]
-	},
-	'Masalah konten tertentu': {
-		'Bahasa': [
-			'Not Indonesian',  // has a subgroup with several options
-			'Rough translation',  // has a subgroup with several options
-			'Expand language'
-		],
-		'Pranala dan tautan': [
-			'Orphan',
-			'Overlinked',
-			'Underlinked'
-		],
-		'Teknik pemberian referensi': [
-			'Citation style',
-			'Cleanup bare URLs',
-			'More footnotes',
-			'No footnotes'
-		],
-		'Kategori': [
-			'Improve categories',
-			'Uncategorized'
-		]
-	},
-	'Penggabungan': [
-		'History merge',
-		'Merge', // these three have a subgroup with several options
-		'Merge from',
-		'Merge to'
-	],
-	'Informasi halaman': [
-		'GOCEinuse',
-		'In use',
-		'Tugas sekolah',
-		'Under construction'
-		/* TODO: Incoming merge
-	'Cleanup and maintenance tags': {
-		'General cleanup': [
-			'Cleanup',  // has a subgroup with text input
-			'Cleanup rewrite',
-			'Copy edit'  // has a subgroup with text input
-		],
-		'Potentially unwanted content': [
-			'Close paraphrasing',
-			'Copypaste',  // has a subgroup with text input
-			'External links',
-			'Non-free'
-		],
-		'Structure, formatting, and lead section': [
-			'Cleanup reorganize',
-			'Condense',
-			'Lead missing',
-			'Lead rewrite',
-			'Lead too long',
-			'Lead too short',
-			'Sections',
-			'Very long'
-		],
-		'Fiction-related cleanup': [
-			'All plot',
-			'Fiction',
-			'In-universe',
-			'Long plot',
-			'No plot'
-		]
-	},
-	'General content issues': {
-		'Importance and notability': [
-			'Notability'  // has a subgroup with subcategories
-		],
-		'Style of writing': [
-			'Advert',
-			'Cleanup tense',
-			'Essay-like',
-			'Fanpov',
-			'Like resume',
-			'Manual',
-			'Cleanup-PR',
-			'Over-quotation',
-			'Prose',
-			'Technical',
-			'Tone'
+			{ tag: 'Cleanup press release', description: 'artikel terlihat seperti rilis pers atau artikel berita',
+				subgroup: {
+					type: 'hidden',
+					name: 'cleanupPR1',
+					parameter: '1',
+					value: 'article'
+				}
+			},
+			{ tag: 'Cleanup tense', description: 'artikel ditulis dalam bentuk kala yang salah.' },
+			{ tag: 'Essay-like', description: 'ditulis seperti pandangan penulis, esai pribadi, atau esai argumen' },
+			{ tag: 'Fanpov', description: "ditulis dari pandangan seorang penggemar" },
+			{ tag: 'Inappropriate person', description: 'menggunakan pandangan orang pertama dan kedua secara tidak benar' },
+			{ tag: 'How-to', description: 'ditulis seperti buku manual atau panduan' },
+			{ tag: 'Over-quotation', description: 'Terlalu banyak kutipan panjang untuk entri ensiklopedis' },
+			{ tag: 'Promotional', description: 'Mengandung konten promosi atau ditulis seperti iklan' },
+			{ tag: 'Prose', description: 'written in a list format but may read better as prose' },
+			{ tag: 'Resume-like', description: 'ditulis seperti resume' },
+			{ tag: 'Technical', description: 'terlalu teknis untuk dibaca pembaca' },
+			{ tag: 'Tone', description: 'penulisan gaya dan nada tidak memenuhi nada ensklopedis yang digunakan Wikipedia' }
 		],
 		'Sense (or lack thereof)': [
-			'Confusing',
-			'Incomprehensible',
-			'Unfocused'
+			{ tag: 'Confusing', description: 'membingungkan atau tidak jelas' },
+			{ tag: 'Unfocused', description: 'kekuarangan fokus atau lebih dari satu topik' }
 		],
-		'Information and detail': [
-			'Context',
-			'Expert needed',
-			'Overly detailed',
-			'Undue weight'
+		'Informasi dan detail': [
+			{ tag: 'Context', description: 'konten tidak cukup bagi mereka yang tidak familiar dengan subyek' },
+			{ tag: 'Excessive examples', description: 'may contain indiscriminate, excessive, or irrelevant examples' },
+			{ tag: 'Expert needed', description: 'butuh perhatian dari ahli pada subyek',
+				subgroup: [
+					{
+						name: 'expertNeeded',
+						parameter: '1',
+						type: 'input',
+						label: 'Nama dari WikiProject relevan:',
+						tooltip: 'Optionally, enter the name of a WikiProject which might be able to help recruit an expert. Don\'t include the "WikiProject" prefix.'
+					},
+					{
+						name: 'expertNeededReason',
+						parameter: 'reason',
+						type: 'input',
+						label: 'Alasan:',
+						tooltip: 'Penjelasan pendek mengenai permasalahan. Alasan atau pranala Pembicaraan dibutuhkan.'
+					},
+					{
+						name: 'expertNeededTalk',
+						parameter: 'talk',
+						type: 'input',
+						label: 'Diskusi pembicaraan:',
+						tooltip: 'Nama bagian halaman pembicaraan artikel ini tempat isu tersebut dibahas. Jangan berikan tautan, cukup nama bagiannya. Tautan Alasan atau tautan Pembicaraan wajib diisi.'
+					}
+				]
+			},
+			{ tag: 'Overly detailed', description: 'jumlah detail rumit yang berlebihan' },
+			{ tag: 'Undue weight', description: 'lends undue weight to certain ideas, incidents, or controversies' }
 		],
-		'Timeliness': [
-			'Current',
-			'Update'
+		Timeliness: [
+			{ tag: 'Current', description: 'documents a current event', excludeMI: true }, // Works but not intended for use in MI
+			{ tag: 'Current related', description: 'mendokumentasikan topik yang dipengaruhi oleh peristiwa terkini', excludeMI: true }, // Works but not intended for use in MI
+			{ tag: 'Update', description: 'membutuhkan informasi tambahan terbaru',
+				subgroup: [
+					{
+						name: 'updatePart',
+						parameter: 'part',
+						type: 'input',
+						label: 'Bagian dari artikel:',
+						tooltip: 'Bagian yang perlu diperbarui',
+						size: '45'
+					},
+					{
+						name: 'updateReason',
+						parameter: 'reason',
+						type: 'input',
+						label: 'Reason:',
+						tooltip: 'Penjelasan mengapa artikel sudah kadaluwarsa',
+						size: '55'
+					}
+				]
+			}
 		],
-		'Neutrality, bias, and factual accuracy': [
-			'Autobiography',
-			'COI',
-			'Disputed',
-			'Hoax',
-			'Globalize',
-			'Over-coverage',
-			'Peacock',
-			'POV',
-			'Recentism',
-			'Too few opinions',
-			'Undisclosed paid',
-			'Weasel'
+		'Netralitas, bias, dan akurasi faktual': [
+			{ tag: 'Autobiography', description: 'autobiografi tidak ditulis dengan netral' },
+			{ tag: 'COI', description: 'pembuat atau kebanyakan kontributor memilki konflik kepentingan', subgroup: mw.config.get('wgNamespaceNumber') === 0 ? {
+				name: 'coiReason',
+				type: 'textarea',
+				label: 'Penjelasan untuk tag COI (akan di tempatkan di pembicaraan halaman):',
+				tooltip: 'Opsional, tapi sangat direkomendasikan. Biarkan kosong bila tidak perlu.'
+			} : [] },
+			{ tag: 'Disputed', description: 'akurasi faktual yang dipertanyakan' },
+			{ tag: 'Fringe theories', description: 'menyajikan teori pinggiran sebagai pandangan media utama' },
+			{ tag: 'Globalize', description: 'tidak menggamabarkan pandangan seluruh dunia terhadap subyek',
+				subgroup: [
+					{
+						type: 'hidden',
+						name: 'globalize1',
+						parameter: '1',
+						value: 'article'
+					}, {
+						name: 'globalizeRegion',
+						parameter: '2',
+						type: 'input',
+						label: 'Telalu disebutkan negara atau wilayah'
+					}
+				]
+			},
+			{ tag: 'Hoax', description: 'sebagian atau keseluruhan merupakan hoaks' },
+			{ tag: 'Paid contributions', description: 'mengandung kontributor bayaran, dan membutuhkan perapian' },
+			{ tag: 'Peacock', description: 'mengandung kalimat yang mempromosikan subyek dengan pandangan subjektif tanpa menambahkan informasi' },
+			{ tag: 'POV', description: 'tidak memakai pandang netral' },
+			{ tag: 'Recentism', description: 'slanted towards recent events' },
+			{ tag: 'Too few opinions', description: 'tidak memasukan semua pandangan signifikan' },
+			{ tag: 'Undisclosed paid', description: 'may have been created or edited in return for undisclosed payments' },
+			{ tag: 'Weasel', description: 'neutrality or verifiability is compromised by the use of weasel words' }
 		],
-		'Verifiability and sources': [
-			'BLP sources',
-			'BLP unsourced',
-			'More citations needed',
-			'One source',
-			'Original research',
-			'Primary sources',
-			'Self-published',
-			'Sources exist',
-			'Third-party',
-			'Unreferenced',
-			'Unreliable sources'
+		'Pemeriksaan sumber': [
+			{ tag: 'BLP no footnotes', description: 'BLP that lacks inline citations'},
+			{ tag: 'BLP one source', description: 'BLP that relies largely or entirely on a single source' },
+			{ tag: 'BLP sources', description: 'BLP that needs additional references or sources for verification' },
+			{ tag: 'BLP unreferenced', description: 'BLP does not cite any sources at all (use BLP PROD instead for new articles)' },
+			{ tag: 'More citations needed', description: 'butuh referensi tambahan atau sumber untuk verifikasi' },
+			{ tag: 'No significant coverage', description: 'tidak mengutip sumber apapun yang berisi cakupan luas' },
+			{ tag: 'No significant coverage (sports)', description: 'sports biography that does not cite any sources containing significant coverage' },
+			{ tag: 'One source', description: 'terlalu mengandalkan pada satu sumber' },
+			{ tag: 'Original research', description: 'mengandung riset asli' },
+			{ tag: 'Primary sources', description: 'terlalu banyak sumber primer, dan memerlukan sumber sekunder' },
+			{ tag: 'Self-published', description: 'mengandung referensi publikasi mandiri berlebihan atau tidak sesuai' },
+			{ tag: 'Sources exist', description: 'topik terkenal, sumber yang tersedia dapat ditambahkan ke artikel' },
+			{ tag: 'Third-party', description: 'terlalu banyak sumber yang berafiliasi degnan subyek' },
+			{ tag: 'Unreferenced', description: 'tidak mengutip sumber sama sekali' },
+			{ tag: 'Unreliable sources', description: 'beberapa referensi tidak terverfikasi' },
+			{ tag: 'User-generated', description: 'mengandng konten referensi pribadi (publikasi mandiri)'}
 		]
 	},
-	'Specific content issues': {
-		'Language': [
-			'Not English',  // has a subgroup with several options
-			'Rough translation',  // has a subgroup with several options
-			'Expand language'
+	'Masalah konten spesifik': {
+		Accessibility: [
+			{ tag: 'Cleanup colors', description: 'uses color as only way to convey information' },
+			{ tag: 'Overcoloured', description: 'penggunaan warna berlebihan'}
 		],
-		'Links': [
-			'Dead end',
-			'Orphan',
-			'Overlinked',
-			'Underlinked'
+		Language: [
+			{ tag: 'Tidak Indonesia', description: 'ditulis dalam bahasa selain Indonesia dan membutuhkan penerjemahan',
+				excludeMI: true,
+				subgroup: translationSubgroups.slice(0, 1).concat([{
+					type: 'checkbox',
+					list: [
+						{
+							name: 'translationNotify',
+							label: 'Beritahu pembuat artikel',
+							checked: true,
+							tooltip: "Menempatkan {{uw-notenglish}} di halaman pembicaraan pengguna."
+						}
+					]
+				}]).concat(translationSubgroups.slice(1))
+			},
+			{ tag: 'Rough translation', description: 'Terjemahan buruk dari bahasa lain', excludeMI: true,
+				subgroup: translationSubgroups
+			},
+			{ tag: 'Expand language', description: 'harus dikembangkan dengan teks terjemahan dari artikel bahasa asing',
+				excludeMI: true,
+				subgroup: [{
+					type: 'hidden',
+					name: 'expandLangTopic',
+					parameter: 'topic',
+					value: '',
+					required: true // force empty topic param in output
+				}, {
+					name: 'expandLanguageLangCode',
+					parameter: 'langcode',
+					type: 'input',
+					label: 'Kode bahasa:',
+					tooltip: 'Kode bahasa dari artikel yang harusnya dikembangkan',
+					required: true
+				}, {
+					name: 'expandLanguageArticle',
+					parameter: 'otherarticle',
+					type: 'input',
+					label: 'Nama artikel:',
+					tooltip: 'Nama artikel yang ingin dikembangkan dari, tanpa prefix interwiki'
+				}]
+			}
 		],
-		'Referencing technique': [
-			'Citation style',
-			'Cleanup bare URLs',
-			'More footnotes',
-			'No footnotes'
+		Links: [
+			{ tag: 'Dead end', description: 'artikel tidak mempunyai pranla ke artikel lain' },
+			{ tag: 'Orphan', description: 'tidak memiliki pranala balik dari artikel lain' },
+			{ tag: 'Overlinked', description: 'terlalu banyak tautan duplikat dan/atau tidak terkait ke artikel lain' },
+			{ tag: 'Underlinked', description: 'butuh pranala wiki lainnya ke artikel lain' }
 		],
-		'Categories': [
-			'Improve categories',
-			'Uncategorized'
+		'Teknik referensi': [
+			{ tag: 'Citation style', description: 'gaya pengutipan tidak konsisten atau jelas' },
+			{ tag: 'Cleanup bare URLs', description: 'uses bare URLs for references, which are prone to link rot' },
+			{ tag: 'More footnotes needed', description: 'mempunyai beberapa refrensi, but insufficient inline citations' },
+			{ tag: 'No footnotes', description: 'mempunyai referensi, but lacks inline citations' },
+			{ tag: 'Parenthetical referencing', description: 'uses parenthetical referencing, which is deprecated on Wikipedia' }
+		],
+		Categories: [
+			{ tag: 'Improve categories', description: 'membutuhkan kategori tambahan atau spesifik', excludeMI: true },
+			{ tag: 'Uncategorized', description: 'tidak ada kategori', excludeMI: true }
 		]
 	},
-	'Merging': [
-		'History merge',
-		'Merge',   // these three have a subgroup with several options
-		'Merge from',
-		'Merge to'
+	Merging: [
+		{
+			tag: 'History merge',
+			description: 'halaman lainnya yang riwayatnya perlu digabung dengan halaman ini',
+			excludeMI: true,
+			subgroup: [
+				{
+					name: 'histmergeOriginalPage',
+					parameter: 'originalpage',
+					type: 'input',
+					label: 'Halaman lainnya:',
+					tooltip: 'Nama dari halaman yang harus digabung ke halaman ini (wajib).',
+					required: true
+				},
+				{
+					name: 'histmergeReason',
+					parameter: 'reason',
+					type: 'input',
+					label: 'Alasan:',
+					tooltip: 'Penjelasan singkat alasan penggabungan riwayat dibutuhkan.'
+				},
+				{
+					name: 'histmergeSysopDetails',
+					parameter: 'details',
+					type: 'input',
+					label: 'Detail ekstra:',
+					tooltip: 'Untuk kasus sulit, sediakan instruksi ekstra untuk pengurus pengulas.'
+				}
+			]
+		},
+		{ tag: 'Merge', description: 'harus digabung ke artikel yang diberikan lainnya', excludeMI: true,
+			subgroup: getMergeSubgroups('Merge') },
+		{ tag: 'Merge from', description: 'artikel yang diberikan lainnya harus digabung ke halaman ini', excludeMI: true,
+			subgroup: getMergeSubgroups('Merge from') },
+		{ tag: 'Merge to', description: 'harus digabung ke artikel yang diberikan', excludeMI: true,
+			subgroup: getMergeSubgroups('Merge to') }
 	],
-	'Informational': [
-		'GOCEinuse',
-		'In use',
-		'Under construction'
-*/
+	Informational: [
+		{ tag: 'GOCEinuse', description: 'sedang dilakukan salin suntingan dari Kelompok Penyunting', excludeMI: true },
+		{ tag: 'In use', description: 'sedang dilakukan suntingan besar dalam waktu singkat', excludeMI: true },
+		{ tag: 'Under construction', description: 'dalam proses pengembangan atau perapian penuh', excludeMI: true }
 	]
 };
 
-// Contains those article tags that *do not* work inside {{multiple issues}}.
-Twinkle.tag.multipleIssuesExceptions = [
-	'Copypaste',
-	'Current', // Works but not intended for use in MI
-	'Expand language',
-	'GOCEinuse',
-	'History merge',
-	'Improve categories',
-	'In use',
-	'Merge',
-	'Merge from',
-	'Merge to',
-	'Not English',
-	'Rough translation',
-	'Uncategorized',
-	'Under construction'
-];
-
 // Tags for REDIRECTS start here
-
-Twinkle.tag.spellingList = [
-	{
-		label: '{{R from acronym}}: dialihkan dari akronim (contoh POTUS) ke bentuk panjangnya',
-		value: 'R from acronym'
-	},
-	{
-		label: '{{R from alternative spelling}}: pengalihan dari judul dengan ejaan berbeda',
-		value: 'R from alternative spelling'
-	},
-	{
-		label: '{{R from initialism}}: dialihkan dari penyingkatan (contoh ANB) ke bentuk panjangnya',
-		value: 'R from initialism'
-	},
-	{
-		label: '{{R from ASCII-only}}: pengalihan dari sebuah judul dalam ASCII dasar ke judul artikel yang formal, dengan perbedaan yang bukan berupa tanda diakritik atau sebagainya',
-		value: 'R from ASCII-only'
-	},
-	{
-		label: '{{R from member}}: pengalihan dari anggota kelompok ke topik terkait seperti kelompok, organisasi, atau tim yang ia terlibat di dalamnya',
-		value: 'R from member'
-	},
-	{
-		label: '{{R from misspelling}}: pengalihan dari kesalahan ejaan atau tipografi',
-		value: 'R from misspelling'
-	},
-	{
-		label: '{{R from modification}}: redirect from a modification of the target\'s title, such as with words rearranged',
-		value: 'R from modification'
-	},
-	{
-		label: '{{R from other capitalisation}}: pengalihan dari judul dengan metode kapitalisasi lainnya',
-		value: 'R from other capitalisation'
-	},
-	{
-		label: '{{R from plural}}: pengalihan dari kata yang menunjukkan jumlah banyak ke padanan jumlah tunggalnya',
-		value: 'R from plural'
-	},
-	{
-		label: '{{R from related word}}: pengalihan dari kata yang berkaitan',
-		value: 'R from related word'
-	},
-	{
-		label: '{{R to list entry}}: mengalihkan ke artikel berbentuk ¨entitas kecil¨ yang mengandung pemerian ringkas subjek yang tidak cukup layak untuk dipisahkan artikelnya',
-		value: 'R to list entry'
-	},
-	{
-		label: '{{R to section}}: mirip dengan {{R to list entry}}, tetapi ketika daftar disusun dalam bagian seperti daftar karakter fiksi.',
-		value: 'R to section'
-	},
-	{
-		label: '{{R with possibilities}}: pengalihan dari judul yang spesifik ke judul yang lebih umum',
-		value: 'R with possibilities'
-	}
-];
-
-Twinkle.tag.alternativeList = [
-	{
-		label: '{{R from alternative language}}: pengalihan dari nama bahasa Inggris ke nama dalam bahasa lain, atau sebaliknya',
-		value: 'R from alternative language',
-		subgroup: [
-			{
-				name: 'altLangFrom',
-				type: 'input',
-				label: 'From language (two-letter code): ',
-				tooltip: 'Enter the two-letter code of the language the redirect name is in; such as en for English, de for German'
-			},
-			{
-				name: 'altLangTo',
-				type: 'input',
-				label: 'To language (two-letter code): ',
-				tooltip: 'Enter the two-letter code of the language the target name is in; such as en for English, de for German'
-			},
-			{
-				name: 'altLangInfo',
-				type: 'div',
-				label: $.parseHTML('<p>For a list of language codes, see <a href="/wiki/Wp:Template_messages/Redirect_language_codes">Wikipedia:Template messages/Redirect language codes</a></p>')
-			}
+// Not by policy, but the list roughly approximates items with >500
+// transclusions from Template:R template index
+Twinkle.tag.redirectList = {
+	'Grammar, punctuation, and spelling': {
+		Abbreviation: [
+			{ tag: 'R from acronym', description: 'dialihkan dari akronim (contoh POTUS) ke bentuk panjangnya', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from airport code', description: 'redirect from an airport\'s IATA or ICAO code to that airport\'s article', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from airline code', description: 'redirect from an airline\'s IATA or ICAO code to that airline\'s article', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from initialism', description: 'redirect from an initialism (e.g. AGF) to its expanded form', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from MathSciNet abbreviation', description: 'redirect from MathSciNet publication title abbreviation to the unabbreviated title', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from NLM abbreviation', description: 'redirect from a NLM publication title abbreviation to the unabbreviated title', restriction: 'insideMainspaceOnly' }
+		],
+		Capitalisation: [
+			{ tag: 'R from CamelCase', description: 'redirect from a CamelCase title' },
+			{ tag: 'R from other capitalisation', description: 'redirect from a title with another method of capitalisation', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from miscapitalisation', description: 'redirect from a capitalisation error' }
+		],
+		'Grammar & punctuation': [
+			{ tag: 'R from modification', description: 'redirect from a modification of the target\'s title, such as with words rearranged' },
+			{ tag: 'R from plural', description: 'redirect from a plural word to the singular equivalent', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R to plural', description: 'redirect from a singular noun to its plural form', restriction: 'insideMainspaceOnly' }
+		],
+		'Parts of speech': [
+			{ tag: 'R from verb', description: 'redirect from an English-language verb or verb phrase', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from adjective', description: 'redirect from an adjective (word or phrase that describes a noun)', restriction: 'insideMainspaceOnly' }
+		],
+		Spelling: [
+			{ tag: 'R from alternative spelling', description: 'redirect from a title with a different spelling' },
+			{ tag: 'R from alternative transliteration', description: 'redirect from an alternative English transliteration to a more common variation' },
+			{ tag: 'R from ASCII-only', description: 'redirect from a title in only basic ASCII to the formal title, with differences that are not diacritical marks or ligatures' },
+			{ tag: 'R to ASCII-only', description: 'redirect to a title in only basic ASCII from the formal title, with differences that are not diacritical marks or ligatures' },
+			{ tag: 'R from diacritic', description: 'redirect from a page name that has diacritical marks (accents, umlauts, etc.)' },
+			{ tag: 'R to diacritic', description: 'redirect to the article title with diacritical marks (accents, umlauts, etc.)' },
+			{ tag: 'R from misspelling', description: 'redirect from a misspelling or typographical error' }
 		]
 	},
-	{
-		label: '{{R from alternative name}}: pengalihan dari judul dari suatu judul lain, nama lain, atau sinonim',
-		value: 'R from alternative name'
-	},
-	{
-		label: '{{R from former name}}: redirect from a former name or working title',
-		value: 'R from former name'
-	},
-	{
-		label: '{{R from historic name}}: pengalihan dari nama lain dengan sejarah yang penting mengenai sebuah wilayah, provinsi, kota, atau lainnya, yang saat ini tidak lagi dikenal dengan nama tersebut',
-		value: 'R from historic name'
-	},
-	{ // TODO: Translate!
-		label: '{{R from incorrect name}}: redirect from an erroneus name that is unsuitable as a title',
-		value: 'R from incorrect name'
-	},
-	{
-		label: '{{R from long name}}: pengalihan dari sebuah judul yang lebih lengkap',
-		value: 'R from long name'
-	},
-	{
-		label: '{{R from molecular formula}}: redirect from a molecular/chemical formula to its technical or trivial name',
-		value: 'R from molecular formula'
-	},
-	{
-		label: '{{R from name and country}}: pengalihan dari nama khusus ke nama yang lebih ringkas',
-		value: 'R from name and country'
-	},
-	{
-		label: '{{R from phrase}}: pengalihan dari sebuah frasa ke artikel yang lebih umum yang mencakup semua topik',
-		value: 'R from phrase'
-	},
-	{
-		label: '{{R from scientific name}}: pengalihan dari nama ilmiah ke nama yang umum',
-		value: 'R from scientific name'
-	},
-	{
-		label: '{{R from short name}}: redirect from a title that is a shortened form of a person\'s full name, a book title, or other more complete title',
-		value: 'R from short name'
-	},
-	{
-		label: '{{R from subtopic}}: redirect from a title that is a subtopic of the target article',
-		value: 'R from subtopic'
-	},
-	{
-		label: '{{R from surname}}: pengalihan dari sebuah judul yang merupakan nama belakang',
-		value: 'R from surname'
-	},
-	{
-		label: '{{R to diacritic}}: pengalihan ke judul dengan disertai tanda diakritik (accents, umlauts, etc.)',
-		value: 'R to diacritic'
-	},
-	{
-		label: '{{R to related topic}}: redirect to an article about a similar topic',
-		value: 'R to related topic'
-	},
-	{
-		label: '{{R to scientific name}}: pengalihan dari nama yang umum ke nama ilmiah',
-		value: 'R to scientific name'
-	}
-];
+	'Alternative names': {
+		General: [
+			{
+				tag: 'R from alternative language',
+				description: 'pengalihan dari atau ke judul di bahasa lain',
+				subgroup: [
+					{
+						name: 'altLangFrom',
+						type: 'input',
+						label: 'dari bahasa (kode dua huruf):',
+						tooltip: 'Masukan kode dua huruf bahasa pengalihan dari yang sudah ada; seperti id untuk Indonesia, en untuk Inggris'
+					},
+					{
+						name: 'altLangTo',
+						type: 'input',
+						label: 'Ke bahasa (kode dua huruf):',
+						tooltip: 'Masukan kode dua huruf bahasa tujuan; seperti id untuk Indonesia, en untuk Inggris'
+					},
+					{
+						name: 'altLangInfo',
+						type: 'div',
+						label: $.parseHTML('<p>Untuk daftar kode bahasa, lihat <a href="/wiki/Wp:Template_messages/Redirect_language_codes">Wikipedia:Template messages/Redirect language codes</a></p>')
+					}
+				]
+			},
+			{ tag: 'R from alternative name', description: 'redirect from a title that is another name, a pseudonym, a nickname, or a synonym' },
+			{ tag: 'R from ambiguous sort name', description: 'redirect from an ambiguous sort name to a page or list that disambiguates it' },
+			{ tag: 'R from former name', description: 'redirect from a former or historic name or a working title', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from incomplete name', description: 'R from incomplete name' },
+			{ tag: 'R from incorrect name', description: 'redirect from an erroneus name that is unsuitable as a title' },
+			{ tag: 'R from less specific name', description: 'redirect from a less specific title to a more specific, less general one' },
+			{ tag: 'R from long name', description: 'redirect from a more complete title' },
+			{ tag: 'R from more specific name', description: 'redirect from a more specific title to a less specific, more general one' },
+			{ tag: 'R from non-neutral name', description: 'redirect from a title that contains a non-neutral, pejorative, controversial, or offensive word, phrase, or name' },
+			{ tag: 'R from short name', description: 'redirect from a title that is a shortened form of a person\'s full name, a book title, or other more complete title' },
+			{ tag: 'R from sort name', description: 'redirect from the target\'s sort name, such as beginning with their surname rather than given name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from synonym', description: 'redirect from a semantic synonym of the target page title' }
+		],
+		People: [
+			{ tag: 'R from birth name', description: 'redirect from a person\'s birth name to a more common name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from given name', description: 'redirect from a person\'s given name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from married name', description: 'redirect from a person\'s married name to a more common name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from name with title', description: 'redirect from a person\'s name preceded or followed by a title to the name with no title or with the title in parentheses', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from person', description: 'redirect from a person or persons to a related article', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from personal name', description: 'redirect from an individual\'s personal name to an article titled with their professional or other better known moniker', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from pseudonym', description: 'redirect from a pseudonym', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from surname', description: 'redirect from a title that is a surname', restriction: 'insideMainspaceOnly' }
+		],
+		Technical: [
+			{ tag: 'R from drug trade name', description: 'redirect from (or to) the trade name of a drug to (or from) the international nonproprietary name (INN)' },
+			{ tag: 'R from filename', description: 'redirect from a title that is a filename of the target', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from molecular formula', description: 'redirect from a molecular/chemical formula to its technical or trivial name' },
 
-Twinkle.tag.administrativeList = [
-	{
-		label: '{{R from ambiguous term}}: redirect from an ambiguous page name to a page that disambiguates it. This template should never appear on a page that has "(disambiguation)" in its title, use R to disambiguation page instead',
-		value: 'R from ambiguous term'
+			{ tag: 'R from gene symbol', description: 'redirect from a Human Genome Organisation (HUGO) symbol for a gene to an article about the gene', restriction: 'insideMainspaceOnly' }
+		],
+		Organisms: [
+			{ tag: 'R to scientific name', description: 'redirect from the common name to the scientific name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from scientific name', description: 'redirect from the scientific name to the common name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from alternative scientific name', description: 'redirect from an alternative scientific name to the accepted scientific name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from scientific abbreviation', description: 'redirect from a scientific abbreviation', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R to monotypic taxon', description: 'redirect from the only lower-ranking member of a monotypic taxon to its monotypic taxon', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from monotypic taxon', description: 'redirect from a monotypic taxon to its only lower-ranking member', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R taxon with possibilities', description: 'redirect from a title related to a living organism that potentially could be expanded into an article', restriction: 'insideMainspaceOnly' }
+		],
+		Geography: [
+			{ tag: 'R from name and country', description: 'redirect from the specific name to the briefer name', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from more specific geographic name', description: 'redirect from a geographic location that includes extraneous identifiers such as the county or region of a city', restriction: 'insideMainspaceOnly' }
+		]
 	},
-	{
-		label: '{{R from CamelCase}}:  pengalihan dari judul CamelCase',
-		value: 'R from CamelCase'
+	'Navigation aids': {
+		Navigation: [
+			{ tag: 'R to anchor', description: 'dialihkan dari sebuah topik yang tidak mempunyai halamannya sendiri ke bagian yang telha ada di subyek' },
+			{
+				tag: 'R avoided double redirect',
+				description: 'dialihkan dari judul alternatif untuk pengalihan lainnya',
+				subgroup: {
+					name: 'doubleRedirectTarget',
+					type: 'input',
+					label: 'Nama tujuan pengalihan',
+					tooltip: 'Masukan nama halaman yang akan ditargetkan oleh pengalihan ini jika halamannya bukan pengalihan'
+				}
+			},
+			{ tag: 'R from file metadata link', description: 'redirect of a wikilink created from EXIF, XMP, or other information (i.e. the "metadata" section on some image description pages)', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R to list entry', description: 'redirect to a list which contains brief descriptions of subjects not notable enough to have separate articles', restriction: 'insideMainspaceOnly' },
+
+			{ tag: 'R mentioned in hatnote', description: 'redirect from a title that is mentioned in a hatnote at the redirect target' },
+			{ tag: 'R to section', description: 'similar to {{R to list entry}}, but when list is organized in sections, such as list of characters in a fictional universe' },
+			{ tag: 'R from shortcut', description: 'redirect from a Wikipedia shortcut' },
+			{ tag: 'R to subpage', description: 'redirect to a subpage' }
+		],
+		Disambiguation: [
+			{ tag: 'R from ambiguous term', description: 'redirect from an ambiguous page name to a page that disambiguates it. This template should never appear on a page that has "(disambiguation)" in its title, use R to disambiguation page instead' },
+			{ tag: 'R to disambiguation page', description: 'redirect to a disambiguation page', restriction: 'disambiguationPagesOnly' },
+			{ tag: 'R from incomplete disambiguation', description: 'redirect from a page name that is too ambiguous to be the title of an article and should redirect to an appropriate disambiguation page' },
+			{ tag: 'R from incorrect disambiguation', description: 'redirect from a page name with incorrect disambiguation due to an error or previous editorial misconception' },
+			{ tag: 'R from other disambiguation', description: 'redirect from a page name with an alternative disambiguation qualifier' },
+			{ tag: 'R from unnecessary disambiguation', description: 'redirect from a page name that has an unneeded disambiguation qualifier' }
+		],
+		'Merge, duplicate & move': [
+			{ tag: 'R from duplicated article', description: 'redirect to a similar article in order to preserve its edit history' },
+			{ tag: 'R with history', description: 'redirect from a page containing substantive page history, kept to preserve content and attributions' },
+			{ tag: 'R from move', description: 'redirect from a page that has been moved/renamed' },
+			{ tag: 'R from merge', description: 'redirect from a merged page in order to preserve its edit history' }
+		],
+		Namespace: [
+			{ tag: 'R from remote talk page', description: 'redirect from a talk page in any talk namespace to a corresponding page that is more heavily watched', restriction: 'insideTalkNamespaceOnly' },
+			{ tag: 'R to category namespace', description: 'redirect from a page outside the category namespace to a category page' },
+			{ tag: 'R to help namespace', description: 'redirect from any page inside or outside of help namespace to a page in that namespace' },
+			{ tag: 'R to main namespace', description: 'redirect from a page outside the main-article namespace to an article in mainspace' },
+			{ tag: 'R to portal namespace', description: 'redirect from any page inside or outside of portal space to a page in that namespace' },
+			{ tag: 'R to project namespace', description: 'redirect from any page inside or outside of project (Wikipedia: or WP:) space to any page in the project namespace' },
+			{ tag: 'R to user namespace', description: 'redirect from a page outside the user namespace to a user page (not to a user talk page)', restriction: 'outsideUserspaceOnly' }
+		]
 	},
-	{
-		label: '{{R to decade}}: pengalihan dari suatu tahun ke artikel dekade',
-		value: 'R to decade'
+	Media: {
+		General: [
+			{ tag: 'R from album', description: 'redirect from an album to a related topic such as the recording artist or a list of albums', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from band name', description: 'redirect from a musical band or musical group name that redirects an article on a single person, i.e. the band or group leader' },
+			{ tag: 'R from book', description: 'redirect from a book title to a more general, relevant article', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from cover song', description: 'redirect from a cover version of a song to the article about the original song this version covers' },
+			{ tag: 'R from film', description: 'redirect from a film title that is a subtopic of the redirect target or a title in an alternative language that has been produced in that language', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from journal', description: 'redirect from a trade or professional journal article a more general, relevant Wikipedia article, such as the author or publisher of the article or to the title in an alternative language' },
+			{ tag: 'R from lyric', description: 'redirect from a lyric to a song or other source that describes the lyric' },
+			{ tag: 'R from meme', description: 'redirect from a name of an internet meme or other pop culture phenomenon that is a subtopic of the redirect target' },
+			{ tag: 'R from song', description: 'redirect from a song title to a more general, relevant article' },
+			{ tag: 'R from television episode', description: 'redirect from a television episode title to a related work or lists of episodes', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from television program', description: 'redirect from a title of television program, television series or web series that is a subtopic of the redirect target' },
+			{ tag: 'R from upcoming film', description: 'redirect from a title that potentially could be expanded into a new article or other type of associated page such as a new template.' },
+			{ tag: 'R from work', description: 'redirect from a creative work a related topic such as the author/artist, publisher, or a subject related to the work' }
+		],
+		Fiction: [
+			{ tag: 'R from fictional character', description: 'redirect from a fictional character to a related fictional work or list of characters', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from fictional element', description: 'redirect from a fictional element (such as an object or concept) to a related fictional work or list of similar elements', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from fictional location', description: 'redirect from a fictional location or setting to a related fictional work or list of places', restriction: 'insideMainspaceOnly' }
+		]
 	},
-	{
-		label: '{{R to disambiguation page}}: pengalihan ke halaman disambiguasi',
-		value: 'R to disambiguation page'
-	},
-	{
-		label: '{{R from duplicated article}}: pengalihan ke artikel serupa untuk menyimpan sejarah suntingannya',
-		value: 'R from duplicated article'
-	},
-	{
-		label: '{{R from file metadata link}}: redirect of a wikilink created from EXIF, XMP, or other information (i.e. the "metadata" section on some image description pages)',
-		value: 'R from file metadata link'
-	},
-	{
-		label: '{{R with history}}: redirect from a page containing substantive page history, kept to preserve content and attributions',
-		value: 'R with history'
-	},
-	{
-		label: '{{R from incomplete disambiguation}}: redirect from a page name that is too ambiguous to be the title of an article and should redirect to an appropriate disambiguation page',
-		value: 'R from incomplete disambiguation'
-	},
-	{
-		label: '{{R from merge}}: pengalihan dari halaman yang digabung untuk menyimpan sejarah suntingannya',
-		value: 'R from merge'
-	},
-	{
-		label: '{{R from other disambiguation}}: redirect from a page name with an alternative disambiguation qualifier',
-		value: 'R from other disambiguation'
-	},
-	{
-		label: '{{R printworthy}}: redirect from a title that would be helpful in a printed or CD/DVD version of Wikipedia',
-		value: 'R printworthy'
-	},
-	{
-		label: '{{R from school}}: pengalihan dari artikel sekolah yang mengandung sedikit informasi',
-		value: 'R from school'
-	},
-	{
-		label: '{{R from shortcut}}: pengalihan dari pintasan Wikipedia',
-		value: 'R from shortcut'
-	},
-	{
-		label: '{{R from sort name}}: redirect from the target\'s sort name, such as beginning with their surname rather than given name',
-		value: 'R from sort name'
-	},
-	{
-		label: '{{R unprintworthy}}: redirect from a title that would NOT be helpful in a printed or CD/DVD version of Wikipedia',
-		value: 'R unprintworthy'
+	Miscellaneous: {
+		'Related information': [
+			{ tag: 'R to article without mention', description: 'redirect to an article without any mention of the redirected word or phrase', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R to decade', description: 'redirect from a year to the decade article', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from domain name', description: 'redirect from a domain name to an article about a website', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from emoji', description: 'redirect from an emoji to an article describing the depicted concept or the emoji itself' },
+			{ tag: 'R from phrase', description: 'redirect from a phrase to a more general relevant article covering the topic' },
+			{ tag: 'R from list topic', description: 'redirect from the topic of a list to the equivalent list' },
+			{ tag: 'R from member', description: 'redirect from a member of a group to a related topic such as the group or organization' },
+			{ tag: 'R to related topic', description: 'redirect to an article about a similar topic', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from related word', description: 'redirect from a related word' },
+			{ tag: 'R from school', description: 'redirect from a school article that had very little information', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from subtopic', description: 'redirect from a title that is a subtopic of the target article', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R to subtopic', description: 'redirect to a subtopic of the redirect\'s title', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from Unicode character', description: 'redirect from a single Unicode character to an article or Wikipedia project page that infers meaning for the symbol', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from Unicode code', description: 'redirect from a Unicode code point to an article about the character it represents', restriction: 'insideMainspaceOnly' }
+		],
+		'With possibilities': [
+			{ tag: 'R with possibilities', description: 'redirect from a specific title to a more general, less detailed article (something which can and should be expanded)' }
+		],
+		'ISO codes': [
+			{ tag: 'R from ISO 4 abbreviation', description: 'redirect from an ISO 4 publication title abbreviation to the unabbreviated title', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R from ISO 639 code', description: 'redirect from a title that is an ISO 639 language code to an article about the language', restriction: 'insideMainspaceOnly' }
+		],
+		Printworthiness: [
+			{ tag: 'R printworthy', description: 'redirect from a title that would be helpful in a printed or CD/DVD version of Wikipedia', restriction: 'insideMainspaceOnly' },
+			{ tag: 'R unprintworthy', description: 'redirect from a title that would NOT be helpful in a printed or CD/DVD version of Wikipedia', restriction: 'insideMainspaceOnly' }
+		]
 	}
-];
+};
 
 // maintenance tags for FILES start here
 
-Twinkle.tag.file = {};
-
-Twinkle.tag.file.licenseList = [
-	{ label: '{{Bsr}}: informasi sumber terdiri dari URL kasar', value: 'Bsr' },
-	{ label: '{{Non-free reduce}}: gambar penggunaan wajar yang beresolusi tinggi (atau klip suara yang panjang, dsb.)', value: 'Non-free reduce' },
-	{ label: '{{Orphaned non-free revisions}}: media penggunaan wajar dengan revisi lama yang perlu dihapus', value: 'subst:orfurrev' }
-];
-
-Twinkle.tag.file.commonsList = [
-	{ label: '{{Copy to Commons}}: media bebas yang perlu dipindahkan ke Commons', value: 'Copy to Commons' },
-	{ label: '{{Do not move to Commons}} (masalah domain umum): berkas berlisensi domain umum di AS namun tidak dengan negara asalnya', value: 'Do not move to Commons' },
-	{
-		label: '{{Do not move to Commons}} (alasan lain)',
-		value: 'Jangan pindahkan ke Commons Commons_reason',
-		subgroup: {
-			type: 'input',
-			name: 'DoNotMoveToCommons',
-			label: 'Alasan: ',
-			tooltip: 'Masukkan alasan mengapa berkas ini tidak layak dipindahkan ke Commons (diperlukan)'
-		}
-	},
-	{
-		label: '{{Keep local}}: permintaan untuk menyimpan salinan lokal dari berkas Commons',
-		value: 'Keep local',
-		subgroup: {
-			type: 'input',
-			name: 'keeplocalName',
-			label: 'Nama berkas di Commons, jika berbeda: ',
-			tooltip: 'Nama berkas di Commons, jika nama berkas tidak sama, jangan taruh awalan "Berkas:":'
-		}
-	},
-	{
-		label: '{{Now Commons}}: berkas sudah dipindahkan ke Commons',
-		value: 'subst:ncd',
-		subgroup: {
-			type: 'input',
-			name: 'ncdName',
-			label: 'Nama berkas di Commons, jika berbeda: ',
-			tooltip: 'Nama berkas di Commons, jika nama berkas tidak sama, jangan taruh awalan "Berkas:":'
-		}
-	}
-];
-
-Twinkle.tag.file.cleanupList = [
-	{ label: '{{Artifacts}}: PNG mengandung artefak sisa kompresi', value: 'Artifacts' },
-	{ label: '{{Bad font}}: SVG menggunakan huruf yang tidak tersedia di peladen miniatur', value: 'Bad font' },
-	{ label: '{{Bad format}}: berkas PDF/DOC/... harus diubah ke format yang lebih umum/berguna', value: 'Bad format' },
-	{ label: '{{Bad GIF}}: GIF yang harus diganti dengan PNG, JPEG, atau SVG', value: 'Bad GIF' },
-	{ label: '{{Bad JPEG}}: JPEG yang harus diganti dengan PNG atau SVG', value: 'Bad JPEG' },
-	{ label: '{{Bad trace}}: sisa SVG yang perlu dibersihkan', value: 'Bad trace' },
-	{
-		label: '{{Cleanup image}}: perapian umum', value: 'Cleanup image',
-		subgroup: {
-			type: 'input',
-			name: 'cleanupimageReason',
-			label: 'Alasan: ',
-			tooltip: 'Masukkan alasan perapian (diperlukan)'
-		}
-	},
-	{ label: '{{ClearType}}: gambar (selain tangkapan layar) dengan anti-aliasing ClearType', value: 'ClearType' },
-	{ label: '{{Imagewatermark}}: gambar mengandung tanda air yang tampak', value: 'Imagewatermark' },
-	{ label: '{{NoCoins}}: gambar menggunakan koin untuk mengindikasikan skala', value: 'NoCoins' },
-	{ label: '{{Overcompressed JPEG}}: JPEG dengan artefak tingkat tinggi', value: 'Overcompressed JPEG' },
-	{ label: '{{Opaque}}: latar belakang yang perlu dibuat transparan', value: 'Opaque' },
-	{ label: '{{Remove border}}: garis pinggir, bagian putih, dsb. yang tak diperlukan', value: 'Remove border' },
-	{
-		label: '{{Rename media}}: nama berkas perlu diubah, sesuai kriteria',
-		value: 'Rename media',
-		subgroup: [
-			{
+Twinkle.tag.fileList = {
+	'License and sourcing problem tags': [
+		{ label: '{{Better source requested}}: info sumber hanya terdiri dari URL gambar kosong/URL dasar generik', value: 'Better source requested' },
+		{ label: '{{Maybe free media}}: sedang ditandai dibawah lisensi tak-bebas, tetapi lisensi bebas mungkin tersedia ', value: 'Maybe free media' },
+		{ label: '{{Non-free reduce}}: gambar grafis rendah non-bebas (atau potongan audio terlalu panjang, dll)', value: 'Non-free reduce' },
+		{ label: '{{Orphaned non-free revisions}}: penggunaan wajar media dengan revisi lama yang perlu dihapus', value: 'Orphaned non-free revisions' }
+	],
+	'Wikimedia Commons-related tags': [
+		{ label: '{{Copy to Commons}}: media bebas yang harusnya disalin ke Commons', value: 'Copy to Commons' },
+		{
+			label: '{{Deleted on Commons}}: berkas sebelumnya telah dihapus dari Commons',
+			value: 'Deleted on Commons',
+			subgroup: {
 				type: 'input',
-				name: 'renamemediaNewname',
-				label: 'Nama baru: ',
-				tooltip: 'Masukkan nama baru berkas ini (opsional)'
-			},
-			{
-				type: 'input',
-				name: 'renamemediaReason',
-				label: 'Alasan: ',
-				tooltip: 'Masukkan alasan perubahan nama ini (opsional)'
+				name: 'deletedOnCommonsName',
+				label: 'Nama di Commons:',
+				tooltip: 'Nama gambar di Commons (jika berbeda dari nama lokal), mengecualikan Berkas: prefix'
 			}
-		]
-	},
-	{ label: '{{Should be PNG}}: GIF atau JPEG harus berbentuk "lossless"', value: 'Should be PNG' },
-	{
-		label: '{{Should be SVG}}: PNG, GIF atau JPEG harus berupa grafik vektor', value: 'Should be SVG',
-		subgroup: {
-			name: 'svgCategory',
-			type: 'select',
-			list: [
+		},
+		{
+			label: '{{Do not move to Commons}}: berkas tidak sesuai untuk dipindahkan ke Commons',
+			value: 'Do not move to Commons',
+			subgroup: [
+				{
+					type: 'input',
+					name: 'DoNotMoveToCommons_reason',
+					label: 'Alasan:',
+					tooltip: 'Alasan mengapa gambarnya tidak harus dimasukkan ke Commons (wajib). If the file is PD in the US but not in country of origin, enter "US only"',
+					required: true
+				},
+				{
+					type: 'number',
+					name: 'DoNotMoveToCommons_expiry',
+					label: 'Tahun kadaluwarsa:',
+					min: new Morebits.Date().getFullYear(),
+					tooltip: 'Jika berkas ini dapat dipindahkan ke awal Commons di tahun tertentu, anda dapat masukan disini (opsional).'
+				}
+			]
+		},
+		{
+			label: '{{Keep local}}: meminta salinan lokal dari berkas Commons',
+			value: 'Keep local',
+			subgroup: {
+				type: 'input',
+				name: 'keeplocalName',
+				label: 'Nama berkas Commons jika berbeda:',
+				tooltip: 'Nama gambar di Commons (jika berbeda dari nama lokal), mengecualikan Berkas: prefix:'
+			}
+		},
+		{
+			label: '{{Nominated for deletion on Commons}}: berkas dinominasikan untuk dihapus di Commons',
+			value: 'Nominated for deletion on Commons',
+			subgroup: {
+				type: 'input',
+				name: 'nominatedOnCommonsName',
+				label: 'Nama di Commons:',
+				tooltip: 'Nama gambar di Commons (jika berbeda dari nama lokal), mengecualikan Berkas: prefix:'
+			}
+		}
+	],
+	'Cleanup tags': [
+		{ label: '{{Artifacts}}: PNG mengandung artefak sisa kompresi', value: 'Artifacts' },
+		{ label: '{{Bad font}}: SVG menggunakan huruf yang tidak tersedia di peladen miniatur', value: 'Bad font' },
+		{ label: '{{Bad format}}: berkas PDF/DOC/... harus diubah ke format yang lebih umum/berguna', value: 'Bad format' },
+		{ label: '{{Bad GIF}}: GIF yang harus diganti dengan PNG, JPEG, atau SVG', value: 'Bad GIF' },
+		{ label: '{{Bad JPEG}}: JPEG yang harus diganti dengan PNG atau SVG', value: 'Bad JPEG' },
+		{ label: '{{Bad SVG}}: SVG dengan campuran grafis buram dan kotak-kotak', value: 'Bad SVG' },
+		{ label: '{{Bad trace}}: sisa SVG yang perlu dibersihkan', value: 'Bad trace' },
+		{
+			label: '{{Cleanup image}}: perapian umum', value: 'Cleanup image',
+			subgroup: {
+				type: 'input',
+				name: 'cleanupimageReason',
+				label: 'Alasan:',
+				tooltip: 'Masukan alasan untuk dirapikan (wajib)',
+				required: true
+			}
+		},
+		{ label: '{{ClearType}}: gambar (selain tangkapan layar) dengan anti-aliasing ClearType', value: 'ClearType' },
+		{ label: '{{Fake SVG}}: SVG solely containing raster graphics without true vector content', value: 'Fake SVG' },
+		{ label: '{{Imagewatermark}}: gambar mengandung tanda air yang tampak', value: 'Imagewatermark' },
+		{ label: '{{NoCoins}}: gambar menggunakan koin untuk mengindikasikan skala', value: 'NoCoins' },
+		{ label: '{{Overcompressed JPEG}}: JPEG dengan artefak tingkat tinggi', value: 'Overcompressed JPEG' },
+		{ label: '{{Opaque}}: latar belakang yang perlu dibuat transparan', value: 'Opaque' },
+		{ label: '{{Remove border}}: garis pinggir, bagian putih, dsb. yang tak diperlukan', value: 'Remove border' },
+		{
+			label: '{{Rename media}}: Berkas harus diganti nama menurut kriteria pada [[WP:FMV]]',
+			value: 'Rename media',
+			subgroup: [
+				{
+					type: 'input',
+					name: 'renamemediaNewname',
+					label: 'Nama baru:',
+					tooltip: 'Masukan nama baru untuk gambar (opsional)'
+				},
+				{
+					type: 'input',
+					name: 'renamemediaReason',
+					label: 'Alasan:',
+					tooltip: 'Masukan alasan penggantian nama (opsional)'
+				}
+			]
+		},
+		{ label: '{{Should be PNG}}: GIF atau JPEG harus berbentuk "lossless', value: 'Should be PNG' },
+		{
+			label: '{{Should be SVG}}: PNG, GIF atau JPEG harus grafik vektor', value: 'Should be SVG',
+			subgroup: {
+				name: 'svgCategory',
+				type: 'select',
+				list: [
 				{ label: '{{Should be SVG|other}}', value: 'other' },
 				{ label: '{{Should be SVG|alphabet}}: gambar karakter, contoh huruf, dsb.', value: 'alphabet' },
 				{ label: '{{Should be SVG|chemical}}: diagram kimia, dsb.', value: 'chemical' },
@@ -1421,63 +1273,65 @@ Twinkle.tag.file.cleanupList = [
 				{ label: '{{Should be SVG|music}}: notasi musik, dsb.', value: 'music' },
 				{ label: '{{Should be SVG|physical}}: gambar "realistis" dari objek fisik, manusia, dsb.', value: 'physical' },
 				{ label: '{{Should be SVG|symbol}}: simbol, ikon lainnya, dsb.', value: 'symbol' }
-			]
+				]
+			}
+		},
+		{ label: '{{Harus teks}}: gambar harus diganti dengan teks, tabel, atau kode matematika', value: 'Should be text' }
+	],
+	'Tag kualitas gambar': [
+		{ label: '{{Image hoax}}: Gambar mungkin memanipulasi atau sebuah hoaks', value: 'Image hoax' },
+		{ label: '{{Image-blownout}}', value: 'Image-blownout' },
+		{ label: '{{Image-out-of-focus}}', value: 'Image-out-of-focus' },
+		{
+			label: '{{Image-Poor-Quality}}', value: 'Image-Poor-Quality',
+			subgroup: {
+				type: 'input',
+				name: 'ImagePoorQualityReason',
+				label: 'Alasan:',
+				tooltip: 'Masukan alasan mengapa kualitas gambarnya buruk (wajib)',
+				required: true
+			}
+		},
+		{ label: '{{Image-underexposure}}', value: 'Image-underexposure' },
+		{
+			label: '{{Low quality chem}}: struktur kimia yang dipertentangkan', value: 'Low quality chem',
+			subgroup: {
+				type: 'input',
+				name: 'lowQualityChemReason',
+				label: 'Alasan:',
+				tooltip: 'Masukan alasan mengapa diagramnya diperdebatkan (dibutuhkan)',
+				required: true
+			}
 		}
-	},
-	{ label: '{{Should be text}}: gambar harus diganti dengan teks, tabel, atau kode matematika', value: 'Should be text' }
-];
-
-Twinkle.tag.file.qualityList = [
-	{ label: '{{Image-blownout}}', value: 'Image-blownout' },
-	{ label: '{{Image-out-of-focus}}', value: 'Image-out-of-focus' },
-	{
-		label: '{{Image-Poor-Quality}}', value: 'Image-Poor-Quality',
-		subgroup: {
-			type: 'input',
-			name: 'ImagePoorQualityReason',
-			label: 'Reason: ',
-			tooltip: 'Enter the reason why this image is so bad (required)'
-		}
-	},
-	{ label: '{{Image-underexposure}}', value: 'Image-underexposure' },
-	{
-		label: '{{Low quality chem}}: struktur kimia yang dipertentangkan', value: 'Low quality chem',
-		subgroup: {
-			type: 'input',
-			name: 'lowQualityChemReason',
-			label: 'Alasan: ',
-			tooltip: 'Masukkan alasan mengapa diagram ini dipertentangkan (diperlukan)'
-		}
-	}
-];
-
-Twinkle.tag.file.replacementList = [
-	{ label: '{{Obsolete}}: berkas baru telah tersedia', value: 'Obsolete' },
-	{ label: '{{PNG version available}}', value: 'PNG version available' },
-	{ label: '{{Vector version available}}', value: 'Vector version available' }
-];
-Twinkle.tag.file.replacementList.forEach(function(el) {
+	],
+	'Replacement tags': [
+		{ label: '{{Obsolete}}: versi lebih baik tersedia', value: 'Obsolete' },
+		{ label: '{{PNG version available}}', value: 'Versi PNG tersedia' },
+		{ label: '{{Vector version available}}', value: 'Versi Vektor tersedia' }
+	]
+};
+Twinkle.tag.fileList['Replacement tags'].forEach((el) => {
 	el.subgroup = {
 		type: 'input',
-		label: 'Replacement file: ',
-		tooltip: 'Enter the name of the file which replaces this one (required)',
-		name: el.value.replace(/ /g, '_') + 'File'
+		label: 'Berkas pengganti:',
+		tooltip: 'Masukan nama dari berkas yang mengganti berkas saat ini (wajib)',
+		name: el.value.replace(/ /g, '_') + 'File',
+		required: true
 	};
 });
-
 
 Twinkle.tag.callbacks = {
 	article: function articleCallback(pageobj) {
 
 		// Remove tags that become superfluous with this action
-		var pageText = pageobj.getPageText().replace(/\{\{\s*([Uu]serspace draft)\s*(\|(?:\{\{[^{}]*\}\}|[^{}])*)?\}\}\s*/g, '');
-		var params = pageobj.getCallbackParameters();
+		let pageText = pageobj.getPageText().replace(/\{\{\s*([Uu]serspace draft)\s*(\|(?:\{\{[^{}]*\}\}|[^{}])*)?\}\}\s*/g, '');
+		const params = pageobj.getCallbackParameters();
 
 		/**
 		 * Saves the page following the removal of tags if any. The last step.
 		 * Called from removeTags()
 		 */
-		var postRemoval = function() {
+		const postRemoval = function() {
 			if (params.tagsToRemove.length) {
 				// Remove empty {{multiple issues}} if found
 				pageText = pageText.replace(/\{\{(multiple ?issues|article ?issues|mi)\s*\|\s*\}\}\n?/im, '');
@@ -1486,31 +1340,31 @@ Twinkle.tag.callbacks = {
 			}
 
 			// Build edit summary
-			var makeSentence = function(array) {
+			const makeSentence = function(array) {
 				if (array.length < 3) {
-					return array.join(' and ');
+					return array.join(' dan ');
 				}
-				var last = array.pop();
-				return array.join(', ') + ', and ' + last;
+				const last = array.pop();
+				return array.join(', ') + ', dan ' + last;
 			};
-			var makeTemplateLink = function(tag) {
-				var text = '{{[[';
+			const makeTemplateLink = function(tag) {
+				let text = '{{[[';
 				// if it is a custom tag with a parameter
-				if (tag.indexOf('|') !== -1) {
+				if (tag.includes('|')) {
 					tag = tag.slice(0, tag.indexOf('|'));
 				}
-				text += tag.indexOf(':') !== -1 ? tag : 'Template:' + tag + '|' + tag;
+				text += tag.includes(':') ? tag : 'Templat:' + tag + '|' + tag;
 				return text + ']]}}';
 			};
 
-			var summaryText;
-			var addedTags = params.tags.map(makeTemplateLink);
-			var removedTags = params.tagsToRemove.map(makeTemplateLink);
+			let summaryText;
+			const addedTags = params.tags.map(makeTemplateLink);
+			const removedTags = params.tagsToRemove.map(makeTemplateLink);
 			if (addedTags.length) {
-				summaryText = 'Added ' + makeSentence(addedTags);
-				summaryText += removedTags.length ? '; and removed ' + makeSentence(removedTags) : '';
+				summaryText = 'Ditambahkan ' + makeSentence(addedTags);
+				summaryText += removedTags.length ? '; dan dihilangkan ' + makeSentence(removedTags) : '';
 			} else {
-				summaryText = 'Removed ' + makeSentence(removedTags);
+				summaryText = 'Dihilangkan ' + makeSentence(removedTags);
 			}
 			summaryText += ' tag' + (addedTags.length + removedTags.length > 1 ? 's' : '');
 			if (params.reason) {
@@ -1518,37 +1372,48 @@ Twinkle.tag.callbacks = {
 			}
 
 			// avoid truncated summaries
-			if (summaryText.length > (499 - Twinkle.getPref('summaryAd').length)) {
+			if (summaryText.length > 499) {
 				summaryText = summaryText.replace(/\[\[[^|]+\|([^\]]+)\]\]/g, '$1');
 			}
 
 			pageobj.setPageText(pageText);
-			pageobj.setEditSummary(summaryText + Twinkle.getPref('summaryAd'));
-			pageobj.setWatchlist(Twinkle.getPref('watchTaggedPages'));
+			pageobj.setEditSummary(summaryText);
+			if ((mw.config.get('wgNamespaceNumber') === 0 && Twinkle.getPref('watchTaggedVenues').includes('articles')) || (mw.config.get('wgNamespaceNumber') === 118 && Twinkle.getPref('watchTaggedVenues').includes('drafts'))) {
+				pageobj.setWatchlist(Twinkle.getPref('watchTaggedPages'));
+			}
 			pageobj.setMinorEdit(Twinkle.getPref('markTaggedPagesAsMinor'));
 			pageobj.setCreateOption('nocreate');
-			pageobj.save(function() {
-				// special functions for merge tags
-				if (params.mergeReason) {
-					// post the rationale on the talk page (only operates in main namespace)
-					var talkpageText = '\n\n== ' + params.talkDiscussionTitleLinked + ' ==\n\n';
-					talkpageText += params.mergeReason.trim() + ' ~~~~';
-					var talkpage = new Morebits.wiki.page('Talk:' + params.discussArticle, 'Posting rationale on talk page');
-					talkpage.setAppendText(talkpageText);
-					talkpage.setEditSummary('/* ' + params.talkDiscussionTitle + ' */ new section' + Twinkle.getPref('summaryAd'));
-					talkpage.setWatchlist(Twinkle.getPref('watchMergeDiscussions'));
-					talkpage.setCreateOption('recreate');
-					talkpage.append();
+			pageobj.save(() => {
+				// COI: Start the discussion on the talk page (mainspace only)
+				if (params.coiReason) {
+					const coiTalkPage = new Morebits.wiki.Page('Pembicaraan:' + Morebits.pageNameNorm, 'Mulai diskusi pada halaman pembicaraan ');
+					coiTalkPage.setNewSectionText(params.coiReason + ' ~~~~');
+					coiTalkPage.setNewSectionTitle('Tag COI (' + new Morebits.Date(pageobj.getLoadTime()).format('MMMM Y', 'utc') + ')');
+					coiTalkPage.setChangeTags(Twinkle.changeTags);
+					coiTalkPage.setCreateOption('recreate');
+					coiTalkPage.newSection();
 				}
+
+				// Special functions for merge tags
+				// Post a rationale on the talk page (mainspace only)
+				if (params.mergeReason) {
+					const mergeTalkPage = new Morebits.wiki.Page('Talk:' + params.discussArticle, 'Menambahkan tag di halaman pembicaraan ');
+					mergeTalkPage.setNewSectionText(params.mergeReason.trim() + ' ~~~~');
+					mergeTalkPage.setNewSectionTitle(params.talkDiscussionTitleLinked);
+					mergeTalkPage.setChangeTags(Twinkle.changeTags);
+					mergeTalkPage.setWatchlist(Twinkle.getPref('watchMergeDiscussions'));
+					mergeTalkPage.setCreateOption('recreate');
+					mergeTalkPage.newSection();
+				}
+				// Tag the target page (if requested)
 				if (params.mergeTagOther) {
-					// tag the target page if requested
-					var otherTagName = 'Merge';
+					let otherTagName = 'Merge';
 					if (params.mergeTag === 'Merge from') {
 						otherTagName = 'Merge to';
 					} else if (params.mergeTag === 'Merge to') {
 						otherTagName = 'Merge from';
 					}
-					var newParams = {
+					const newParams = {
 						tags: [otherTagName],
 						tagsToRemove: [],
 						tagsToRemain: [],
@@ -1557,68 +1422,75 @@ Twinkle.tag.callbacks = {
 						talkDiscussionTitle: params.talkDiscussionTitle,
 						talkDiscussionTitleLinked: params.talkDiscussionTitleLinked
 					};
-					var otherpage = new Morebits.wiki.page(params.mergeTarget, 'Tagging other page (' +
+					const otherpage = new Morebits.wiki.Page(params.mergeTarget, 'Menandai halaman lain (' +
 						params.mergeTarget + ')');
+					otherpage.setChangeTags(Twinkle.changeTags);
 					otherpage.setCallbackParameters(newParams);
 					otherpage.load(Twinkle.tag.callbacks.article);
 				}
 
-				// post at WP:PNT for {{not English}} and {{rough translation}} tag
+				// Special functions for {{not English}} and {{rough translation}}
+				// Post at WP:PNT (mainspace only)
 				if (params.translationPostAtPNT) {
-					var pntPage = new Morebits.wiki.page('Wikipedia:Pages needing translation into English',
+					const pntPage = new Morebits.wiki.Page('Wikipedia:Pages needing translation into English',
 						'Listing article at Wikipedia:Pages needing translation into English');
 					pntPage.setFollowRedirect(true);
-					pntPage.load(function friendlytagCallbacksTranslationListPage(pageobj) {
-						var old_text = pageobj.getPageText();
+					pntPage.load((pageobj) => {
+						const oldText = pageobj.getPageText();
 
-						var template = params.tags.indexOf('Rough translation') !== -1 ? 'duflu' : 'needtrans';
-						var lang = params.translationLanguage;
-						var reason = params.translationComments;
+						const lang = params.translationLanguage;
+						const reason = params.translationComments;
 
-						var templateText = '{{subst:' + template + '|pg=' + Morebits.pageNameNorm + '|Language=' +
+						let templateText;
+
+						let text, summary;
+						if (params.tags.includes('Rough translation')) {
+							templateText = '{{subst:Dual fluency request|pg=' + Morebits.pageNameNorm + '|Language=' +
 							(lang || 'uncertain') + '|Comments=' + reason.trim() + '}} ~~~~';
-
-						var text, summary;
-						if (template === 'duflu') {
-							text = old_text + '\n\n' + templateText;
-							summary = 'Translation cleanup requested on ';
-						} else {
-							text = old_text.replace(/\n+(==\s?Translated pages that could still use some cleanup\s?==)/,
+							// Place in section == Translated pages that could still use some cleanup ==
+							text = oldText + '\n\n' + templateText;
+							summary = 'Perapian terjamahan diminta pada ';
+						} else if (params.tags.includes('Not English')) {
+							templateText = '{{subst:Translation request|pg=' + Morebits.pageNameNorm + '|Language=' +
+							(lang || 'uncertain') + '|Comments=' + reason.trim() + '}} ~~~~';
+							// Place in section == Pages for consideration ==
+							text = oldText.replace(/\n+(==\s?Halaman yang diterjemahkan masih perlu perapian\s?==)/,
 								'\n\n' + templateText + '\n\n$1');
-							summary = 'Translation' + (lang ? ' from ' + lang : '') + ' requested on ';
+							summary = 'Penerjemahan' + (lang ? ' dari ' + lang : '') + ' diminta pada ';
 						}
 
-						if (text === old_text) {
-							pageobj.getStatusElement().error('failed to find target spot for the discussion');
+						if (text === oldText) {
+							pageobj.getStatusElement().error('gagal untuk menemukan tempat untuk diskusi');
 							return;
 						}
 						pageobj.setPageText(text);
-						pageobj.setEditSummary(summary + ' [[:' + Morebits.pageNameNorm + ']]' + Twinkle.getPref('summaryAd'));
+						pageobj.setEditSummary(summary + ' [[:' + Morebits.pageNameNorm + ']]');
+						pageobj.setChangeTags(Twinkle.changeTags);
 						pageobj.setCreateOption('recreate');
 						pageobj.save();
 					});
 				}
+				// Notify the user ({{Not English}} only)
 				if (params.translationNotify) {
-					pageobj.lookupCreation(function(innerPageobj) {
-						var initialContrib = innerPageobj.getCreator();
+					new Morebits.wiki.Page(Morebits.pageNameNorm).lookupCreation((innerPageobj) => {
+						const initialContrib = innerPageobj.getCreator();
 
 						// Disallow warning yourself
 						if (initialContrib === mw.config.get('wgUserName')) {
-							innerPageobj.getStatusElement().warn('You (' + initialContrib + ') created this page; skipping user notification');
+							innerPageobj.getStatusElement().warn('Anda (' + initialContrib + ') membuat halaman ini; melewati notifikasi pengguna');
 							return;
 						}
 
-						var userTalkPage = new Morebits.wiki.page('User talk:' + initialContrib,
-							'Notifying initial contributor (' + initialContrib + ')');
-						var notifytext = '\n\n== Your article [[' + Morebits.pageNameNorm + ']]==\n' +
-							'{{subst:uw-notenglish|1=' + Morebits.pageNameNorm +
-							(params.translationPostAtPNT ? '' : '|nopnt=yes') + '}} ~~~~';
-						userTalkPage.setAppendText(notifytext);
-						userTalkPage.setEditSummary('Notice: Please use English when contributing to the English Wikipedia.' +
-							Twinkle.getPref('summaryAd'));
+						const userTalkPage = new Morebits.wiki.Page('Pembicaraan pengguna:' + initialContrib,
+							'Memberitahu penyunting awal (' + initialContrib + ')');
+						userTalkPage.setNewSectionTitle('Artikel anda [[' + Morebits.pageNameNorm + ']]');
+						userTalkPage.setNewSectionText('{{subst:uw-notenglish|1=' + Morebits.pageNameNorm +
+							(params.translationPostAtPNT ? '' : '|nopnt=yes') + '}} ~~~~');
+						userTalkPage.setEditSummary('Pemberitahua: Tolong gunakan Bahasa Indonesia saat berkontribusi ke Wikipedia Indonesia.');
+						userTalkPage.setChangeTags(Twinkle.changeTags);
 						userTalkPage.setCreateOption('recreate');
-						userTalkPage.setFollowRedirect(true);
-						userTalkPage.append();
+						userTalkPage.setFollowRedirect(true, false);
+						userTalkPage.newSection();
 					});
 				}
 			});
@@ -1632,27 +1504,27 @@ Twinkle.tag.callbacks = {
 		 * Removes the existing tags that were deselected (if any)
 		 * Calls postRemoval() when done
 		 */
-		var removeTags = function removeTags() {
+		const removeTags = function removeTags() {
 
 			if (params.tagsToRemove.length === 0) {
 				postRemoval();
 				return;
 			}
 
-			Morebits.status.info('Info', 'Removing deselected tags that were already present');
+			Morebits.Status.info('Info', 'Menghapus tag yang dibatalkan pilih yang sudah tersedia');
 
-			var getRedirectsFor = [];
+			const getRedirectsFor = [];
 
 			// Remove the tags from the page text, if found in its proper name,
 			// otherwise moves it to `getRedirectsFor` array earmarking it for
 			// later removal
-			params.tagsToRemove.forEach(function removeTag(tag) {
-				var tag_re = new RegExp('\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]+)?\\}\\}\\n?');
+			params.tagsToRemove.forEach((tag) => {
+				const tagRegex = new RegExp('\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]+)?\\}\\}\\n?');
 
-				if (tag_re.test(pageText)) {
-					pageText = pageText.replace(tag_re, '');
+				if (tagRegex.test(pageText)) {
+					pageText = pageText.replace(tagRegex, '');
 				} else {
-					getRedirectsFor.push('Template:' + tag);
+					getRedirectsFor.push('Templat:' + tag);
 				}
 			});
 
@@ -1662,37 +1534,38 @@ Twinkle.tag.callbacks = {
 			}
 
 			// Remove tags which appear in page text as redirects
-			var api = new Morebits.wiki.api('Getting template redirects', {
-				'action': 'query',
-				'prop': 'linkshere',
-				'titles': getRedirectsFor.join('|'),
-				'redirects': 1,  // follow redirect if the class name turns out to be a redirect page
-				'lhnamespace': '10',  // template namespace only
-				'lhshow': 'redirect',
-				'lhlimit': 'max' // 500 is max for normal users, 5000 for bots and sysops
-			}, function removeRedirectTag(apiobj) {
-
-				$(apiobj.responseXML).find('page').each(function(idx, page) {
-					var removed = false;
-					$(page).find('lh').each(function(idx, el) {
-						var tag = $(el).attr('title').slice(9);
-						var tag_re = new RegExp('\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]*)?\\}\\}\\n?');
-						if (tag_re.test(pageText)) {
-							pageText = pageText.replace(tag_re, '');
+			const api = new Morebits.wiki.Api('Mengambil templat pengalihan', {
+				action: 'query',
+				prop: 'linkshere',
+				titles: getRedirectsFor.join('|'),
+				redirects: 1, // follow redirect if the class name turns out to be a redirect page
+				lhnamespace: '10', // template namespace only
+				lhshow: 'redirect',
+				lhlimit: 'max', // 500 is max for normal users, 5000 for bots and sysops
+				format: 'json'
+			}, ((apiobj) => {
+				const pages = apiobj.getResponse().query.pages.filter((p) => !p.missing && !!p.linkshere);
+				pages.forEach((page) => {
+					let removed = false;
+					page.linkshere.concat({title: page.title}).forEach((el) => {
+						const tag = el.title.slice(9);
+						const tagRegex = new RegExp('\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]*)?\\}\\}\\n?');
+						if (tagRegex.test(pageText)) {
+							pageText = pageText.replace(tagRegex, '');
 							removed = true;
-							return false;   // break out of $.each
+							return false; // break out of $.each
 						}
 					});
 					if (!removed) {
-						Morebits.status.warn('Info', 'Failed to find {{' +
-						$(page).attr('title').slice(9) + '}} on the page... excluding');
+						Morebits.Status.warn('Info', 'Gagal untuk menemukan {{' +
+						page.title.slice(9) + '}} di halaman... mengecualikan');
 					}
 
 				});
 
 				postRemoval();
 
-			});
+			}));
 			api.post();
 
 		};
@@ -1702,87 +1575,40 @@ Twinkle.tag.callbacks = {
 			return;
 		}
 
-		var tagRe, tagText = '', tags = [], groupableTags = [], groupableExistingTags = [];
+		let tagRe, tagText = '', tags = [];
+		const groupableTags = [], groupableExistingTags = [];
 		// Executes first: addition of selected tags
 
 		/**
 		 * Updates `tagText` with the syntax of `tagName` template with its parameters
+		 *
 		 * @param {number} tagIndex
 		 * @param {string} tagName
 		 */
-		var addTag = function articleAddTag(tagIndex, tagName) {
-			var currentTag = '';
+		const addTag = function articleAddTag(tagIndex, tagName) {
+			let currentTag = '';
 			if (tagName === 'Uncategorized' || tagName === 'Improve categories') {
 				pageText += '\n\n{{' + tagName + '|date={{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
 			} else {
 				currentTag += '{{' + tagName;
 				// fill in other parameters, based on the tag
+
+				const subgroupObj = Twinkle.tag.article.flatObject[tagName] &&
+					Twinkle.tag.article.flatObject[tagName].subgroup;
+				if (subgroupObj) {
+					const subgroups = Array.isArray(subgroupObj) ? subgroupObj : [ subgroupObj ];
+					subgroups.forEach((gr) => {
+						if (gr.parameter && (params[gr.name] || gr.required)) {
+							currentTag += '|' + gr.parameter + '=' + (params[gr.name] || '');
+						}
+					});
+				}
+
 				switch (tagName) {
-					case 'Cleanup':
-						currentTag += '|reason=' + params.cleanup;
-						break;
-					case 'Close paraphrasing':
-						currentTag += '|source=' + params.closeParaphrasing;
-						break;
-					case 'Copy edit':
-						if (params.copyEdit) {
-							currentTag += '|for=' + params.copyEdit;
-						}
-						break;
-					case 'Copypaste':
-						if (params.copypaste) {
-							currentTag += '|url=' + params.copypaste;
-						}
-						break;
-					case 'Expand language':
-						currentTag += '|topic=';
-						currentTag += '|langcode=' + params.expandLanguageLangCode;
-						if (params.expandLanguageArticle !== null) {
-							currentTag += '|otherarticle=' + params.expandLanguageArticle;
-						}
-						break;
-					case 'Expert needed':
-						if (params.expertNeeded) {
-							currentTag += '|1=' + params.expertNeeded;
-						}
-						if (params.expertNeededTalk) {
-							currentTag += '|talk=' + params.expertNeededTalk;
-						}
-						if (params.expertNeededReason) {
-							currentTag += '|reason=' + params.expertNeededReason;
-						}
-						break;
-					case 'Globalize':
-						currentTag += '|1=article';
-						if (params.globalizeRegion) {
-							currentTag += '|2=' + params.globalizeRegion;
-						}
-						break;
-					case 'News release':
-						currentTag += '|1=article';
-						break;
-					case 'Notability':
-						if (params.notability !== 'none') {
-							currentTag += '|' + params.notability;
-						}
-						break;
-					case 'Not Indonesian':
 					case 'Not English':
 					case 'Rough translation':
-						if (params.translationLanguage) {
-							currentTag += '|1=' + params.translationLanguage;
-						}
 						if (params.translationPostAtPNT) {
 							currentTag += '|listed=yes';
-						}
-						break;
-					case 'History merge':
-						currentTag += '|originalpage=' + params.histmergeOriginalPage;
-						if (params.histmergeReason) {
-							currentTag += '|reason=' + params.histmergeReason;
-						}
-						if (params.histmergeSysopDetails) {
-							currentTag += '|details=' + params.histmergeSysopDetails;
 						}
 						break;
 					case 'Merge':
@@ -1801,11 +1627,12 @@ Twinkle.tag.callbacks = {
 								params.discussArticle = tagName === 'Merge to' ? params.mergeTarget : mw.config.get('wgTitle');
 								// nonDiscussArticle is the article which won't have the discussion
 								params.nonDiscussArticle = tagName === 'Merge to' ? mw.config.get('wgTitle') : params.mergeTarget;
-								var direction = '[[' + params.nonDiscussArticle + ']]' + (params.mergeTag === 'Merge' ? ' with ' : ' into ') + '[[' + params.discussArticle + ']]';
-								params.talkDiscussionTitleLinked = 'Diusulkan digabung dengan ' + direction;
+								const direction = '[[' + params.nonDiscussArticle + ']]' + (params.mergeTag === 'Merge' ? ' dengan ' : ' ke ') + '[[' + params.discussArticle + ']]';
+								params.talkDiscussionTitleLinked = 'Pengusulan penggabungan dari ' + direction;
 								params.talkDiscussionTitle = params.talkDiscussionTitleLinked.replace(/\[\[(.*?)\]\]/g, '$1');
 							}
-							currentTag += '|discuss=Talk:' + params.discussArticle + '#' + params.talkDiscussionTitle;
+							const titleWithSectionRemoved = params.discussArticle.replace(/^([^#]*)#.*$/, '$1'); // If article name is Test#Section, delete #Section
+							currentTag += '|discuss=Talk:' + titleWithSectionRemoved + '#' + params.talkDiscussionTitle;
 						}
 						break;
 					default:
@@ -1822,55 +1649,37 @@ Twinkle.tag.callbacks = {
 		 * these tags aren't supported in {{multiple issues}} or because
 		 * {{multiple issues}} is not being added to the page at all
 		 */
-		var addUngroupedTags = function() {
+		const addUngroupedTags = function() {
 			$.each(tags, addTag);
 
-			// Smartly insert the new tags after any hatnotes or
-			// afd, csd, or prod templates or hatnotes. Regex is
-			// extra complicated to allow for templates with
-			// parameters and to handle whitespace properly.
-			pageText = pageText.replace(
-				new RegExp(
-					// leading whitespace
-					'^\\s*' +
-					// capture template(s)
-					'(?:((?:\\s*' +
-					// AfD is special, as the tag includes html comments before and after the actual template
-					'(?:<!--.*AfD.*\\n\\{\\{(?:Article for deletion\\/dated|AfDM).*\\}\\}\\n<!--.*(?:\\n<!--.*)?AfD.*(?:\\s*\\n))?|' + // trailing whitespace/newline needed since this subst's a newline
-					// begin template format
-					'\\{\\{\\s*(?:' +
-					// CSD
-					'db|delete|db-.*?|speedy deletion-.*?|' +
-					// PROD
-					'(?:proposed deletion|prod blp)\\/dated(?:\\s*\\|(?:concern|user|timestamp|help).*)+|' +
-					// various hatnote templates
-					'about|correct title|dablink|distinguish|for|other\\s?(?:hurricaneuses|people|persons|places|uses(?:of)?)|redirect(?:-acronym)?|see\\s?(?:also|wiktionary)|selfref|short description|the' +
-					// not a hatnote, but sometimes under a CSD or AfD
-					'|salt|proposed deletion endorsed' +
-					// end main template name, optionally with a number (such as redirect2)
-					')\\d*\\s*' +
-					// template parameters
-					'(\\|(?:\\{\\{[^{}]*\\}\\}|[^{}])*)?' +
-					// end template format
-					'\\}\\})+' +
-					// end capture
-					'(?:\\s*\\n)?)' +
-					// trailing whitespace
-					'\\s*)?',
-					'i'), '$1' + tagText
-			);
+			// Insert tag after short description or any hatnotes,
+			// as well as deletion/protection-related templates
+			const wikipage = new Morebits.wikitext.Page(pageText);
+			const templatesAfter = Twinkle.hatnoteRegex +
+				// Protection templates
+				'pp|pp-.*?|' +
+				// CSD
+				'db|delete|db-.*?|speedy deletion-.*?|' +
+				// PROD
+				'(?:proposed deletion|prod blp)\\/dated(?:\\s*\\|(?:concern|user|timestamp|help).*)+|' +
+				// not a hatnote, but sometimes under a CSD or AfD
+				'salt|proposed deletion endorsed';
+			// AfD is special, as the tag includes html comments before and after the actual template
+			// trailing whitespace/newline needed since this subst's a newline
+			const afdRegex = '(?:<!--.*UP.*\\n\\{\\{(?:Usulan penghapusan\\/dated|AfDM).*\\}\\}\\n<!--.*(?:\\n<!--.*)?UP.*(?:\\s*\\n))?';
+			pageText = wikipage.insertAfterTemplates(tagText, templatesAfter, null, afdRegex).getText();
 
 			removeTags();
 		};
 
 		// Separate tags into groupable ones (`groupableTags`) and non-groupable ones (`tags`)
-		params.tags.forEach(function(tag) {
+		params.tags.forEach((tag) => {
 			tagRe = new RegExp('\\{\\{' + tag + '(\\||\\}\\})', 'im');
 			// regex check for preexistence of tag can be skipped if in canRemove mode
 			if (Twinkle.tag.canRemove || !tagRe.exec(pageText)) {
 				// condition Twinkle.tag.article.tags[tag] to ensure that its not a custom tag
 				// Custom tags are assumed non-groupable, since we don't know whether MI template supports them
-				if (Twinkle.tag.article.tags[tag] && Twinkle.tag.multipleIssuesExceptions.indexOf(tag) === -1) {
+				if (Twinkle.tag.article.flatObject[tag] && !Twinkle.tag.article.flatObject[tag].excludeMI) {
 					groupableTags.push(tag);
 				} else {
 					tags.push(tag);
@@ -1879,10 +1688,10 @@ Twinkle.tag.callbacks = {
 				if (tag === 'Merge from' || tag === 'History merge') {
 					tags.push(tag);
 				} else {
-					Morebits.status.warn('Info', 'Ditemukan tag {{' + tag +
-						'}} di artikel tersebut... membatalkan');
+					Morebits.Status.warn('Info', 'Sudah ditemukan {{' + tag +
+						'}} di artikel...mengecualikan');
 					// don't do anything else with merge tags
-					if (['Merge', 'Merge to'].indexOf(tag) !== -1) {
+					if (['Merge', 'Merge to'].includes(tag)) {
 						params.mergeTarget = params.mergeReason = params.mergeTagOther = null;
 					}
 				}
@@ -1890,53 +1699,53 @@ Twinkle.tag.callbacks = {
 		});
 
 		// To-be-retained existing tags that are groupable
-		params.tagsToRemain.forEach(function(tag) {
-			if (Twinkle.tag.multipleIssuesExceptions.indexOf(tag) === -1) {
+		params.tagsToRemain.forEach((tag) => {
+			// If the tag is unknown to us, we consider it non-groupable
+			if (Twinkle.tag.article.flatObject[tag] && !Twinkle.tag.article.flatObject[tag].excludeMI) {
 				groupableExistingTags.push(tag);
 			}
 		});
 
-		var miTest = /\{\{(multiple ?issues|article ?issues|mi)(?!\s*\|\s*section\s*=)[^}]+\{/im.exec(pageText);
+		const miTest = /\{\{(multiple ?issues|article ?issues|mi)(?!\s*\|\s*section\s*=)[^}]+\{/im.exec(pageText);
 
 		if (miTest && groupableTags.length > 0) {
-			Morebits.status.info('Info', 'Menambah tag yang lain ke dalam tag {{multiple issues}} yang telah ada');
+			Morebits.Status.info('Info', 'menambahkan tag tersedia di dalam tag {{multiple issues}} yang sudah ada');
 
 			tagText = '';
 			$.each(groupableTags, addTag);
 
-			var miRegex = new RegExp('(\\{\\{\\s*' + miTest[1] + '\\s*(?:\\|(?:\\{\\{[^{}]*\\}\\}|[^{}])*)?)\\}\\}\\s*', 'im');
+			const miRegex = new RegExp('(\\{\\{\\s*' + miTest[1] + '\\s*(?:\\|(?:\\{\\{[^{}]*\\}\\}|[^{}])*)?)\\}\\}\\s*', 'im');
 			pageText = pageText.replace(miRegex, '$1' + tagText + '}}\n');
 			tagText = '';
 
 			addUngroupedTags();
 
 		} else if (params.group && !miTest && (groupableExistingTags.length + groupableTags.length) >= 2) {
-			Morebits.status.info('Info', 'Mengelompokkan tag yang didukung ke dalam {{multiple issues}}');
+			Morebits.Status.info('Info', 'Menggabungkan tag yang tersedia dalam {{multiple issues}}');
 
 			tagText += '{{Multiple issues|\n';
 
 			/**
 			 * Adds newly added tags to MI
 			 */
-			var addNewTagsToMI = function() {
+			const addNewTagsToMI = function() {
 				$.each(groupableTags, addTag);
 				tagText += '}}\n';
 
 				addUngroupedTags();
 			};
 
-
-			var getRedirectsFor = [];
+			const getRedirectsFor = [];
 
 			// Reposition the tags on the page into {{multiple issues}}, if found with its
 			// proper name, else moves it to `getRedirectsFor` array to be handled later
-			groupableExistingTags.forEach(function repositionTagIntoMI(tag) {
-				var tag_re = new RegExp('(\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]+)?\\}\\}\\n?)');
-				if (tag_re.test(pageText)) {
-					tagText += tag_re.exec(pageText)[1];
-					pageText = pageText.replace(tag_re, '');
+			groupableExistingTags.forEach((tag) => {
+				const tagRegex = new RegExp('(\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]+)?\\}\\}\\n?)');
+				if (tagRegex.test(pageText)) {
+					tagText += tagRegex.exec(pageText)[1];
+					pageText = pageText.replace(tagRegex, '');
 				} else {
-					getRedirectsFor.push('Template:' + tag);
+					getRedirectsFor.push('Templat:' + tag);
 				}
 			});
 
@@ -1945,34 +1754,36 @@ Twinkle.tag.callbacks = {
 				return;
 			}
 
-			var api = new Morebits.wiki.api('Getting template redirects', {
-				'action': 'query',
-				'prop': 'linkshere',
-				'titles': getRedirectsFor.join('|'),
-				'redirects': 1,
-				'lhnamespace': '10', // template namespace only
-				'lhshow': 'redirect',
-				'lhlimit': 'max' // 500 is max for normal users, 5000 for bots and sysops
-			}, function replaceRedirectTag(apiobj) {
-				$(apiobj.responseXML).find('page').each(function(idx, page) {
-					var found = false;
-					$(page).find('lh').each(function(idx, el) {
-						var tag = $(el).attr('title').slice(9);
-						var tag_re = new RegExp('(\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]*)?\\}\\}\\n?)');
-						if (tag_re.test(pageText)) {
-							tagText += tag_re.exec(pageText)[1];
-							pageText = pageText.replace(tag_re, '');
+			const api = new Morebits.wiki.Api('Mengambil templat pengalihan', {
+				action: 'query',
+				prop: 'linkshere',
+				titles: getRedirectsFor.join('|'),
+				redirects: 1,
+				lhnamespace: '10', // template namespace only
+				lhshow: 'redirect',
+				lhlimit: 'max', // 500 is max for normal users, 5000 for bots and sysops
+				format: 'json'
+			}, ((apiobj) => {
+				const pages = apiobj.getResponse().query.pages.filter((p) => !p.missing && !!p.linkshere);
+				pages.forEach((page) => {
+					let found = false;
+					page.linkshere.forEach((el) => {
+						const tag = el.title.slice(9);
+						const tagRegex = new RegExp('(\\{\\{' + Morebits.pageNameRegex(tag) + '\\s*(\\|[^}]*)?\\}\\}\\n?)');
+						if (tagRegex.test(pageText)) {
+							tagText += tagRegex.exec(pageText)[1];
+							pageText = pageText.replace(tagRegex, '');
 							found = true;
-							return false;   // break out of $.each
+							return false; // break out of $.each
 						}
 					});
 					if (!found) {
-						Morebits.status.warn('Info', 'Failed to find the existing {{' +
-						$(page).attr('title').slice(9) + '}} on the page... skip repositioning');
+						Morebits.Status.warn('Info', 'gagal untuk menemukan {{' +
+						page.title.slice(9) + '}} di halaman...');
 					}
 				});
 				addNewTagsToMI();
-			});
+			}));
 			api.post();
 
 		} else {
@@ -1982,22 +1793,24 @@ Twinkle.tag.callbacks = {
 	},
 
 	redirect: function redirect(pageobj) {
-		var params = pageobj.getCallbackParameters(),
-			pageText = pageobj.getPageText(),
-			tagRe, tagText = '', summaryText = 'Added',
-			tags = [], i;
+		const params = pageobj.getCallbackParameters(),
+			tags = [];
+		let pageText = pageobj.getPageText(),
+			tagRe, tagText = '',
+			summaryText = 'Ditambahkan',
+			i;
 
 		for (i = 0; i < params.tags.length; i++) {
 			tagRe = new RegExp('(\\{\\{' + params.tags[i] + '(\\||\\}\\}))', 'im');
 			if (!tagRe.exec(pageText)) {
 				tags.push(params.tags[i]);
 			} else {
-				Morebits.status.warn('Info', 'Found {{' + params.tags[i] +
-					'}} on the redirect already...excluding');
+				Morebits.Status.warn('Info', 'Sudah ditemukan {{' + params.tags[i] +
+					'}} di pengalihan...mengecualikan');
 			}
 		}
 
-		var addTag = function redirectAddTag(tagIndex, tagName) {
+		const addTag = function redirectAddTag(tagIndex, tagName) {
 			tagText += '\n{{' + tagName;
 			if (tagName === 'R from alternative language') {
 				if (params.altLangFrom) {
@@ -2006,52 +1819,61 @@ Twinkle.tag.callbacks = {
 				if (params.altLangTo) {
 					tagText += '|to=' + params.altLangTo;
 				}
+			} else if (tagName === 'R avoided double redirect' && params.doubleRedirectTarget) {
+				tagText += '|1=' + params.doubleRedirectTarget;
 			}
 			tagText += '}}';
 
 			if (tagIndex > 0) {
 				if (tagIndex === (tags.length - 1)) {
-					summaryText += ' and';
+					summaryText += ' dan';
 				} else if (tagIndex < (tags.length - 1)) {
 					summaryText += ',';
 				}
 			}
 
-			summaryText += ' {{[[:' + (tagName.indexOf(':') !== -1 ? tagName : 'Template:' + tagName + '|' + tagName) + ']]}}';
+			summaryText += ' {{[[:' + (tagName.includes(':') ? tagName : 'Templat:' + tagName + '|' + tagName) + ']]}}';
 		};
+
+		if (!tags.length) {
+			Morebits.Status.warn('Info', 'Tidak ada tag tersisa untuk ditambahkan');
+		}
 
 		tags.sort();
 		$.each(tags, addTag);
 
 		// Check for all Rcat shell redirects (from #433)
-		if (pageText.match(/{{(?:redr|this is a redirect|r(?:edirect)?(?:.?cat.*)?[ _]?sh)/i)) {
+		if (pageText.match(/{{(?:redr|ini adalah pengalihan|r(?:edirect)?(?:.?cat.*)?[ _]?sh)/i)) {
 			// Regex inspired by [[User:Kephir/gadgets/sagittarius.js]] ([[Special:PermaLink/831402893]])
-			var oldTags = pageText.match(/(\s*{{[A-Za-z ]+\|)((?:[^|{}]*|{{[^}]*}})+)(}})\s*/i);
+			const oldTags = pageText.match(/(\s*{{[A-Za-z\s]+\|(?:\s*1=)?)((?:[^|{}]|{{[^}]+}})+)(}})\s*/i);
 			pageText = pageText.replace(oldTags[0], oldTags[1] + tagText + oldTags[2] + oldTags[3]);
 		} else {
 			// Fold any pre-existing Rcats into taglist and under Rcatshell
-			var pageTags = pageText.match(/\n{{R(?:edirect)? .*?}}/img);
-			var oldPageTags = '';
+			const pageTags = pageText.match(/\s*{{R(?:edirect)? .*?}}/img);
+			let oldPageTags = '';
 			if (pageTags) {
-				pageTags.forEach(function(pageTag) {
-					var pageRe = new RegExp(pageTag, 'img');
+				pageTags.forEach((pageTag) => {
+					const pageRe = new RegExp(Morebits.string.escapeRegExp(pageTag), 'img');
 					pageText = pageText.replace(pageRe, '');
-					oldPageTags += pageTag;
+					pageTag = pageTag.trim();
+					oldPageTags += '\n' + pageTag;
 				});
 			}
-			pageText += '\n{{Redirect category shell|' + tagText + oldPageTags + '\n}}';
+			pageText = pageText.trim() + '\n\n{{Redirect category shell|' + tagText + oldPageTags + '\n}}';
 		}
 
-		summaryText += (tags.length > 0 ? ' tag' + (tags.length > 1 ? 's' : '') : '') + ' to redirect';
+		summaryText += (tags.length > 0 ? ' tag' + (tags.length > 1 ? 's' : ' ') : ' {{[[Templat:Redirect category shell|Redirect category shell]]}}') + ' ke pengalihan';
 
 		// avoid truncated summaries
-		if (summaryText.length > (499 - Twinkle.getPref('summaryAd').length)) {
+		if (summaryText.length > 499) {
 			summaryText = summaryText.replace(/\[\[[^|]+\|([^\]]+)\]\]/g, '$1');
 		}
 
 		pageobj.setPageText(pageText);
-		pageobj.setEditSummary(summaryText + Twinkle.getPref('summaryAd'));
-		pageobj.setWatchlist(Twinkle.getPref('watchTaggedPages'));
+		pageobj.setEditSummary(summaryText);
+		if (Twinkle.getPref('watchTaggedVenues').includes('redirects')) {
+			pageobj.setWatchlist(Twinkle.getPref('watchTaggedPages'));
+		}
 		pageobj.setMinorEdit(Twinkle.getPref('markTaggedPagesAsMinor'));
 		pageobj.setCreateOption('nocreate');
 		pageobj.save();
@@ -2062,30 +1884,24 @@ Twinkle.tag.callbacks = {
 
 	},
 
-	file: function friendlytagCallbacksFile(pageobj) {
-		var text = pageobj.getPageText();
-		var params = pageobj.getCallbackParameters();
-		var summary = 'Menambahkan ';
+	file: function twinkletagCallbacksFile(pageobj) {
+		let text = pageobj.getPageText();
+		const params = pageobj.getCallbackParameters();
+		let summary = 'Adding ';
 
 		// Add maintenance tags
 		if (params.tags.length) {
 
-			var tagtext = '', currentTag;
-			$.each(params.tags, function(k, tag) {
+			let tagtext = '', currentTag;
+			$.each(params.tags, (k, tag) => {
 				// when other commons-related tags are placed, remove "move to Commons" tag
-				if (['Keep local', 'subst:ncd', 'Jangan pindahkan ke Commons Commons_reason', 'Do not move to Commons',
-					'Now Commons'].indexOf(tag) !== -1) {
-					text = text.replace(/\{\{(mtc|(copy |move )?to ?commons|move to wikimedia commons|copy to wikimedia commons)[^}]*\}\}/gi, '');
+				if (['Keep local', 'Do not move to Commons'].includes(tag)) {
+					text = text.replace(/\{\{(mtc|(copy |move )?to ?commons|pindahkan ke wikimedia commons|salin ke wikimedia commons)[^}]*\}\}/gi, '');
 				}
 
-				currentTag = '{{' + (tag === 'Jangan pindahkan ke Commons Commons_reason' ? 'Do not move to Commons' : tag);
+				currentTag = tag;
 
 				switch (tag) {
-					case 'subst:ncd':
-						if (params.ncdName !== '') {
-							currentTag += '|1=' + params.ncdName;
-						}
-						break;
 					case 'Keep local':
 						if (params.keeplocalName !== '') {
 							currentTag += '|1=' + params.keeplocalName;
@@ -2105,6 +1921,9 @@ Twinkle.tag.callbacks = {
 					case 'Image-Poor-Quality':
 						currentTag += '|1=' + params.ImagePoorQualityReason;
 						break;
+					case 'Image hoax':
+						currentTag += '|date={{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}';
+						break;
 					case 'Low quality chem':
 						currentTag += '|1=' + params.lowQualityChemReason;
 						break;
@@ -2116,12 +1935,16 @@ Twinkle.tag.callbacks = {
 					case 'Obsolete':
 						currentTag += '|1=' + params[tag.replace(/ /g, '_') + 'File'];
 						break;
-					case 'Jangan pindahkan ke Commons Commons_reason':
-						currentTag += '|reason=' + params.DoNotMoveToCommons;
+					case 'Do not move to Commons':
+						currentTag += '|reason=' + params.DoNotMoveToCommons_reason;
+						if (params.DoNotMoveToCommons_expiry) {
+							currentTag += '|expiry=' + params.DoNotMoveToCommons_expiry;
+						}
 						break;
-					case 'subst:orfurrev':
+					case 'Orphaned non-free revisions':
+						currentTag = 'subst:' + currentTag; // subst
 						// remove {{non-free reduce}} and redirects
-						text = text.replace(/\{\{\s*(Template\s*:\s*)?(Non-free reduce|FairUseReduce|Fairusereduce|Fair Use Reduce|Fair use reduce|Reduce size|Reduce|Fair-use reduce|Image-toobig|Comic-ovrsize-img|Non-free-reduce|Nfr|Smaller image|Nonfree reduce)\s*(\|(?:\{\{[^{}]*\}\}|[^{}])*)?\}\}\s*/ig, '');
+						text = text.replace(/\{\{\s*(Templat\s*:\s*)?(Non-free reduce|FairUseReduce|Fairusereduce|Fair Use Reduce|Fair use reduce|Reduce size|Reduce|Fair-use reduce|Image-toobig|Comic-ovrsize-img|Non-free-reduce|Nfr|Smaller image|Nonfree reduce)\s*(\|(?:\{\{[^{}]*\}\}|[^{}])*)?\}\}\s*/ig, '');
 						currentTag += '|date={{subst:date}}';
 						break;
 					case 'Copy to Commons':
@@ -2130,18 +1953,28 @@ Twinkle.tag.callbacks = {
 					case 'Should be SVG':
 						currentTag += '|' + params.svgCategory;
 						break;
+					case 'Nominated for deletion on Commons':
+						if (params.nominatedOnCommonsName !== '') {
+							currentTag += '|1=' + params.nominatedOnCommonsName;
+						}
+						break;
+					case 'Deleted on Commons':
+						if (params.deletedOnCommonsName !== '') {
+							currentTag += '|1=' + params.deletedOnCommonsName;
+						}
+						break;
 					default:
-						break;  // don't care
+						break; // don't care
 				}
 
-				currentTag += '}}\n';
+				currentTag = '{{' + currentTag + '}}\n';
 
 				tagtext += currentTag;
 				summary += '{{' + tag + '}}, ';
 			});
 
 			if (!tagtext) {
-				pageobj.getStatusElement().warn('Tindakan pengguna dibatalkan; tugas tidak dilanjutkan');
+				pageobj.getStatusElement().warn('Pengguna membatalkan tindakan, menghentikan');
 				return;
 			}
 
@@ -2149,8 +1982,11 @@ Twinkle.tag.callbacks = {
 		}
 
 		pageobj.setPageText(text);
-		pageobj.setEditSummary(summary.substring(0, summary.length - 2) + Twinkle.getPref('summaryAd'));
-		pageobj.setWatchlist(Twinkle.getPref('watchTaggedPages'));
+		pageobj.setEditSummary(summary.substring(0, summary.length - 2));
+		pageobj.setChangeTags(Twinkle.changeTags);
+		if (Twinkle.getPref('watchTaggedVenues').includes('files')) {
+			pageobj.setWatchlist(Twinkle.getPref('watchTaggedPages'));
+		}
 		pageobj.setMinorEdit(Twinkle.getPref('markTaggedPagesAsMinor'));
 		pageobj.setCreateOption('nocreate');
 		pageobj.save();
@@ -2161,126 +1997,185 @@ Twinkle.tag.callbacks = {
 	}
 };
 
-Twinkle.tag.callback.evaluate = function friendlytagCallbackEvaluate(e) {
-	var form = e.target;
-	var params = {};
-	if (form.patrolPage) {
-		params.patrol = form.patrolPage.checked;
+/**
+ * Given an array of incompatible tags, check if we have two or more selected
+ *
+ * @param {Array} incompatibleTags
+ * @param {Array} tagsToCheck
+ * @param {string} [extraMessage]
+ * @return {true|undefined}
+ */
+Twinkle.tag.checkIncompatible = function(incompatibleTags, tagsToCheck, extraMessage = null) {
+	const count = incompatibleTags.filter((tag) => tagsToCheck.includes(tag)).length;
+	if (count > 1) {
+		const incompatibleTagsString = '{{' + incompatibleTags.join('}}, {{') + '}}';
+		let message = 'Tolong pilih salah satu dari: ' + incompatibleTagsString + '.';
+		message += extraMessage ? ' ' + extraMessage : '';
+		alert(message);
+		return true;
 	}
+};
 
-	// Don't return null if there aren't any available tags
-	params.tags = form.getChecked(Twinkle.tag.mode + 'Tags') || [];
+Twinkle.tag.callback.evaluate = function twinkletagCallbackEvaluate(e) {
+	const form = e.target;
+	const params = Morebits.QuickForm.getInputData(form);
 
-	// Save values of input fields into params object. This works as quickform input
-	// fields within subgroups of elements with name 'articleTags' (say) have their
-	// name attribute as 'articleTags.' + name of the subgroup element
+	// Validation
 
-	var name_prefix = Twinkle.tag.mode + 'Tags.';
-	$(form).find("[name^='" + name_prefix + "']:not(div)").each(function(idx, el) {
-		// el are the HTMLInputElements, el.name gives the name attribute
-		params[el.name.slice(name_prefix.length)] =
-			el.type === 'checkbox' ? form[el.name].checked : form[el.name].value;
-	});
-
+	// We could theoretically put them all checkIncompatible calls in a
+	// forEach loop, but it's probably clearer not to have [[array one],
+	// [array two]] devoid of context.
 	switch (Twinkle.tag.mode) {
 		case 'article':
-			params.tagsToRemove = form.getUnchecked('alreadyPresentArticleTags') || [];
-			params.tagsToRemain = form.getChecked('alreadyPresentArticleTags') || [];
-			params.reason = form.reason.value.trim();
+			params.tagsToRemove = form.getUnchecked('existingTags'); // not in `input`
+			params.tagsToRemain = params.existingTags || []; // container not created if none present
 
-			params.group = form.group.checked;
+			if ((params.tags.includes('Merge')) || (params.tags.includes('Merge from')) ||
+				(params.tags.includes('Merge to'))) {
+				if (Twinkle.tag.checkIncompatible(['Merge', 'Merge from', 'Merge to'], params.tags, 'Jika beberapa penggabungan dibutuhkan, gunakan {{Merge}} dan pisahkan nama artikel dengan garis lurus (walaupun di kasus ini Twinkle tidak dapat menandai artikel lainnya secara otomatis).')) {
+					return;
+				}
+				if ((params.mergeTagOther || params.mergeReason) && params.mergeTarget.includes('|')) {
+					alert('Menandai beberapa artikel dalam sebuah penggabungan, dan memulai diskusi beberapa artikel tidak didukung untuk saat ini. Harap matikan "tag other article", dan/atau batalkan centang kotak "alasan", dan coba lagi.');
+					return;
+				}
+			}
 
-			// Validation
-			if ((params.tags.indexOf('Merge') !== -1) || (params.tags.indexOf('Merge from') !== -1) ||
-				(params.tags.indexOf('Merge to') !== -1)) {
-				if (((params.tags.indexOf('Merge') !== -1) + (params.tags.indexOf('Merge from') !== -1) +
-					(params.tags.indexOf('Merge to') !== -1)) > 1) {
-					alert('Please select only one of {{merge}}, {{merge from}}, and {{merge to}}. If several merges are required, use {{merge}} and separate the article names with pipes (although in this case Twinkle cannot tag the other articles automatically).');
-					return;
-				}
-				if (!params.mergeTarget) {
-					alert('Please specify the title of the other article for use in the merge template.');
-					return;
-				}
-				if ((params.mergeTagOther || params.mergeReason) && params.mergeTarget.indexOf('|') !== -1) {
-					alert('Tagging multiple articles in a merge, and starting a discussion for multiple articles, is not supported at the moment. Please turn off "tag other article", and/or clear out the "reason" box, and try again.');
-					return;
-				}
-			}
-			if ((params.tags.indexOf('Not Indonesian') !== -1) && (params.tags.indexOf('Rough translation') !== -1)) {
-				alert('Please select only one of {{not Indonesian}} and {{rough translation}}.');
-				return;
-			}
-			if (params.tags.indexOf('History merge') !== -1 && params.histmergeOriginalPage.trim() === '') {
-				alert('You must specify a page to be merged for the {{history merge}} tag.');
-				return;
-			}
-			if (params.tags.indexOf('Cleanup') !== -1 && params.cleanup.trim() === '') {
-				alert('You must specify a reason for the {{cleanup}} tag.');
-				return;
-			}
-			if (params.tags.indexOf('Expand language') !== -1 && params.expandLanguageLangCode.trim() === '') {
-				alert('You must specify language code for the {{expand language}} tag.');
+			if (Twinkle.tag.checkIncompatible(['Not English', 'Rough translation'], params.tags)) {
 				return;
 			}
 			break;
 
 		case 'file':
+			if (Twinkle.tag.checkIncompatible(['Bad GIF', 'Bad JPEG', 'Bad SVG', 'Bad format'], params.tags)) {
+				return;
+			}
+			if (Twinkle.tag.checkIncompatible(['Should be PNG', 'Should be SVG', 'Should be text'], params.tags)) {
+				return;
+			}
+			if (Twinkle.tag.checkIncompatible(['Bad SVG', 'Vector version available'], params.tags)) {
+				return;
+			}
+			if (Twinkle.tag.checkIncompatible(['Bad JPEG', 'Overcompressed JPEG'], params.tags)) {
+				return;
+			}
+			if (Twinkle.tag.checkIncompatible(['PNG version available', 'Vector version available'], params.tags)) {
+				return;
+			}
 
-			if (params.tags.indexOf('Cleanup image') !== -1 && params.cleanupimageReason === '') {
-				alert('You must specify a reason for the cleanup tag.');
-				return;
+			// Get extension from either mime-type or title, if not present (e.g., SVGs)
+			var extension = ((extension = $('.mime-type').text()) && extension.split(/\//)[1]) || mw.Title.newFromText(Morebits.pageNameNorm).getExtension();
+			if (extension) {
+				const extensionUpper = extension.toUpperCase();
+
+				// What self-respecting file format has *two* extensions?!
+				if (extensionUpper === 'JPG') {
+					extension = 'JPEG';
+				}
+
+				// Check that selected templates make sense given the file's extension.
+
+				// {{Bad GIF|JPEG|SVG}}, {{Fake SVG}}
+				if (extensionUpper !== 'GIF' && params.tags.includes('Bad GIF')) {
+					alert('Ini tampak seperti berkas ' + extension + 'jadi {{Bad GIF}} tidak sesuai.');
+					return;
+				} else if (extensionUpper !== 'JPEG' && params.tags.includes('Bad JPEG')) {
+					alert('Ini tampak seperti berkas ' + extension + 'jadi {{Bad JPEG}} tidak sesuai.');
+					return;
+				} else if (extensionUpper !== 'SVG' && params.tags.includes('Bad SVG')) {
+					alert('Ini tampak seperti berkas ' + extension + 'jadi {{Bad SVG}} tidak sesuai.');
+					return;
+				} else if (extensionUpper !== 'SVG' && params.tags.includes('Fake SVG')) {
+					alert('Ini tampak seperti berkas ' + extension + 'jadi {{Fake SVG}} tidak sesuai.');
+					return;
+				}
+
+				// {{Should be PNG|SVG}}
+				if (params.tags.includes('Should be ' + extensionUpper)) {
+					alert('This is already a ' + extension + 'jadi {{Should be ' + extensionUpper + '}} tidak sesuai.');
+					return;
+				}
+
+				// {{Overcompressed JPEG}}
+				if (params.tags.includes('Overcompressed JPEG') && extensionUpper !== 'JPEG') {
+					alert('Ini tampak seperti berkas ' + extension + 'jadi {{Overcompressed JPEG}} tidak dimasukkan.');
+					return;
+				}
+
+				// {{Bad trace}} and {{Bad font}}
+				if (extensionUpper !== 'SVG') {
+					if (params.tags.includes('Bad trace')) {
+						alert('Ini tampak seperti berkas ' + extension + 'jadi {{Bad trace}} tidak dimasukkan.');
+						return;
+					} else if (params.tags.includes('Bad font')) {
+						alert('Ini tampak seperti berkas ' + extension + 'jadi {{Bad font}} tidak dimasukkan.');
+						return;
+					}
+				}
 			}
-			if (params.tags.indexOf('Image-Poor-Quality') !== -1 && params.ImagePoorQualityReason === '') {
-				alert('You must specify a reason for the {{Image-Poor-Quality}} tag');
-				return;
-			}
-			if (params.tags.indexOf('Low Quality Chem') !== -1 && params.lowQualityChemReason === '') {
-				alert('You must specify a reason for the {{Low Quality Chem}} tag');
-				return;
-			}
-			if ((params.tags.indexOf('Obsolete') !== -1 && params.ObsoleteFile === '') ||
-				(params.tags.indexOf('PNG version available') !== -1 && params.PNG_version_availableFile === '') ||
-				(params.tags.indexOf('Vector version available') !== -1 && params.Vector_version_availableFile === '')
+
+			// {{Do not move to Commons}}
+			if (
+				params.tags.includes('Do not move to Commons') &&
+				params.DoNotMoveToCommons_expiry &&
+				(
+					!/^2\d{3}$/.test(params.DoNotMoveToCommons_expiry) ||
+					parseInt(params.DoNotMoveToCommons_expiry, 10) <= new Date().getFullYear()
+				)
 			) {
-				alert('You must specify the replacement file name for a tag in the Replacement tags list');
+				alert('Harus tahun berikutnya yang valid.');
 				return;
 			}
-			if (params.tags.indexOf('Jangan pindahkan ke Commons Commons_reason') !== -1 && params.DoNotMoveToCommons === '') {
-				alert('You must specify a reason for the {{Do not move to Commons}} tag');
-				return;
-			}
+
 			break;
 
 		case 'redirect':
+			if (Twinkle.tag.checkIncompatible(['R printworthy', 'R unprintworthy'], params.tags)) {
+				return;
+			}
+			if (Twinkle.tag.checkIncompatible(['R from subtopic', 'R to subtopic'], params.tags)) {
+				return;
+			}
+			if (Twinkle.tag.checkIncompatible([
+				'R to category namespace',
+				'R to help namespace',
+				'R to main namespace',
+				'R to portal namespace',
+				'R to project namespace',
+				'R to user namespace'
+			], params.tags)) {
+				return;
+			}
 			break;
 
 		default:
-			alert('Twinkle.tag: moda tak dikenal ' + Twinkle.tag.mode);
+			alert('Twinkle.tag: mode tidak diketahui ' + Twinkle.tag.mode);
 			break;
 	}
 
 	// File/redirect: return if no tags selected
 	// Article: return if no tag is selected and no already present tag is deselected
 	if (params.tags.length === 0 && (Twinkle.tag.mode !== 'article' || params.tagsToRemove.length === 0)) {
-		alert('Setidaknya Anda harus memiliki satu tag!');
+		alert('Anda harus memilh setidaknya satu tag!');
 		return;
 	}
 
-	Morebits.simpleWindow.setButtonsEnabled(false);
-	Morebits.status.init(form);
+	Morebits.SimpleWindow.setButtonsEnabled(false);
+	Morebits.Status.init(form);
 
 	Morebits.wiki.actionCompleted.redirect = Morebits.pageNameNorm;
-	Morebits.wiki.actionCompleted.notice = 'Menandai selesai, sedang memuat kembali halaman ini dalam beberapa detik';
+	Morebits.wiki.actionCompleted.notice = 'Menandai selesai, memuat kembali artikel dalam beberapa saat';
 	if (Twinkle.tag.mode === 'redirect') {
 		Morebits.wiki.actionCompleted.followRedirect = false;
 	}
 
-	var wikipedia_page = new Morebits.wiki.page(Morebits.pageNameNorm, 'Menandai ' + Twinkle.tag.mode);
-	wikipedia_page.setCallbackParameters(params);
-	wikipedia_page.load(Twinkle.tag.callbacks[Twinkle.tag.mode]);
+	const wikipediaPage = new Morebits.wiki.Page(Morebits.pageNameNorm, 'Menandai ' + Twinkle.tag.mode);
+	wikipediaPage.setCallbackParameters(params);
+	wikipediaPage.setChangeTags(Twinkle.changeTags); // Here to apply to triage
+	wikipediaPage.load(Twinkle.tag.callbacks[Twinkle.tag.mode]);
 
 };
 
-})(jQuery);
+Twinkle.addInitCallback(Twinkle.tag, 'tag');
+}());
 // </nowiki>
