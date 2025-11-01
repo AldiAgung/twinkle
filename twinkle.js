@@ -312,7 +312,7 @@ const scriptpathbefore = mw.util.wikiScript('index') + '?title=',
 
 // Retrieve the user's Twinkle preferences
 $.ajax({
-	url: scriptpathbefore + 'User:' + encodeURIComponent(mw.config.get('wgUserName')) + '/twinkleoptions.js' + scriptpathafter,
+	url: scriptpathbefore + 'Pengguna:' + encodeURIComponent(mw.config.get('wgUserName')) + '/twinkleoptions.js' + scriptpathafter,
 	dataType: 'text'
 })
 	.fail(() => {
@@ -421,7 +421,7 @@ Twinkle.summaryAd = ' ([[WP:TW|TW]])';
 
 // Various hatnote templates, used when tagging (csd/xfd/tag/prod/protect) to
 // ensure MOS:ORDER
-Twinkle.hatnoteRegex = 'short description|hatnote|main|correct title|dablink|distinguish|for|further|selfref|year dab|similar names|highway detail hatnote|broader|about(?:-distinguish| other people)?|other\\s?(?:hurricane(?: use)?s|people|persons|places|ships|uses(?: of)?)|redirect(?:-(?:distinguish|synonym|multi))?|see\\s?(?:wiktionary|also(?: if exists)?)';
+Twinkle.hatnoteRegex = 'short description|hatnote|main|correct title|dablink|distinguish|for|further|selfref|year dab|similar names|highway detail hatnote|broader|about(?:-distinguish| other people)?|other\\s?(?:hurricane(?: use)?s|people|persons|places|ships|uses(?: of)?)|redirect(?:-(?:distinguish|synonym|multi))?|lihat?(?:wiktionary|juga(?: jika ada)?)';
 
 /* Twinkle-specific utility functions shared by multiple modules */
 
@@ -453,7 +453,7 @@ Twinkle.makeFindSourcesDiv = function makeSourcesDiv(divID) {
 	}
 	if (!Twinkle.findSources) {
 		const parser = new Morebits.wiki.Preview($(divID)[0]);
-		parser.beginRender('({{Cari sumber|' + Morebits.pageNameNorm + '}})', 'WP:UP').then(() => {
+		parser.beginRender('({{Find sources|' + Morebits.pageNameNorm + '}})', 'WP:UP').then(() => {
 			// Save for second-time around
 			Twinkle.findSources = parser.previewbox.innerHTML;
 			$(divID).removeClass('morebits-previewbox');

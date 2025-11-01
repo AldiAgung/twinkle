@@ -1403,7 +1403,7 @@ Twinkle.block.blockGroups = [
 			{ label: 'Nama pengguna meniru-niru, pemblokiran rumit', value: 'uw-uhblock-double' },
 			{ label: 'Nama pengguna yang mewakili tokoh terkenal, pemblokiran lunak', value: 'uw-ublock-wellknown' },
 			{ label: 'Nama pengguna yang mewakili organisasi nirlaba, pemblokiran lunak', value: 'uw-causeblock' },
-			{ label: 'Pelanggaran nama pengguna, vandalism-only account', value: 'uw-vaublock' }
+			{ label: 'Pelanggaran nama pengguna, akun hanya digunakan untuk vandalisme', value: 'uw-vaublock' }
 		]
 	},
 	{
@@ -1416,7 +1416,7 @@ Twinkle.block.blockGroups = [
 			{ label: 'colocationwebhost', value: 'colocationwebhost'},
 			{ label: 'oversightblock', value: 'oversightblock'},
 			// { label: 'rangeblock', value: 'rangeblock' }, // placeholder for when we add support for rangeblocks
-			{ label: 'spamblacklistblock', value: 'spamblacklistblock' },
+			{ label: 'pemblokiran daftar hitam spam', value: 'spamblacklistblock' },
 			{ label: 'tor', value: 'tor' },
 			{ label: 'pemblokiran penyedia web', value: 'webhostblock' },
 			{ label: 'proksi zombie', value: 'zombie proxy' }

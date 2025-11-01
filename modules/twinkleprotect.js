@@ -1509,7 +1509,7 @@ Twinkle.protect.callbacks = {
 
 			const rppLink = document.createElement('a');
 			rppLink.setAttribute('href', mw.util.getUrl('Wikipedia:RPP'));
-			rppLink.appendChild(document.createTextNode('Wikipedia:Permintaan pelindungan halaman'));
+			rppLink.appendChild(document.createTextNode('Wikipedia:Permintaan pelindungan halaman/'));
 
 			if (tag) {
 				statusElement.error([ 'Sudah terdapat permintaan perlindungan untuk halaman ini di ', rppLink, ', membatalkan.' ]);
