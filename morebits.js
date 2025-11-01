@@ -1832,7 +1832,7 @@ Morebits.date = function() {
 
 	// Still no?
 	if (!this.isValid()) {
-		mw.log.warn('Invalid Morebits.date initialisation:', args);
+		mw.log.warn('Inisiasi Morebits.date tidak valid:', args);
 	}
 };
 
@@ -3901,7 +3901,7 @@ Morebits.wiki.page = function(pageName, status) {
 				}
 			}
 			// set revert edit summary
-			ctx.editSummary = '[[Help:Revert|Dibalikkan]] ke revisi ' + ctx.revertOldID + ' oleh ' + ctx.revertUser + ': ' + ctx.editSummary;
+			ctx.editSummary = '[[Bantuan:Revert|Dibalikkan]] ke revisi ' + ctx.revertOldID + ' oleh ' + ctx.revertUser + ': ' + ctx.editSummary;
 		}
 
 		ctx.pageLoaded = true;
@@ -3933,13 +3933,13 @@ Morebits.wiki.page = function(pageName, status) {
 				const origNs = new mw.Title(ctx.pageName).namespace;
 				const newNs = new mw.Title(resolvedName).namespace;
 				if (origNs !== newNs && !ctx.followCrossNsRedirect) {
-					ctx.statusElement.error(msg('cross-redirect-abort', ctx.pageName, resolvedName, ctx.pageName + ' is a cross-namespace redirect to ' + resolvedName + ', aborted'));
+					ctx.statusElement.error(msg('cross-redirect-abort', ctx.pageName, resolvedName, ctx.pageName + ' merupakan pengalihan lintas ruangnama ke ' + resolvedName + ', membatalkan'));
 					onFailure(this);
 					return false;
 				}
 
 				// only notify user for redirects, not normalization
-				new Morebits.status('Note', msg('redirected', ctx.pageName, resolvedName, 'Dialihkan dari ' + ctx.pageName + ' to ' + resolvedName));
+				new Morebits.status('Note', msg('redirected', ctx.pageName, resolvedName, 'Dialihkan dari ' + ctx.pageName + ' ke ' + resolvedName));
 			}
 
 			ctx.pageName = resolvedName; // update to redirect target or normalized name
@@ -4011,7 +4011,7 @@ Morebits.wiki.page = function(pageName, status) {
 			const link = document.createElement('a');
 			link.setAttribute('href', mw.util.getUrl(ctx.pageName));
 			link.appendChild(document.createTextNode(ctx.pageName));
-			ctx.statusElement.info(['completed (', link, ')']);
+			ctx.statusElement.info(['selesai (', link, ')']);
 			if (ctx.onSaveSuccess) {
 				ctx.onSaveSuccess(this); // invoke callback
 			}
@@ -4061,7 +4061,7 @@ Morebits.wiki.page = function(pageName, status) {
 		} else if ((errorCode === null || errorCode === undefined) && ctx.retries++ < ctx.maxRetries) {
 
 			// the error might be transient, so try again
-			ctx.statusElement.info(msg('save-failed-retrying', 2, 'Gagal menyimpan, mencoba ulang dalam 2 detik ...'));
+			ctx.statusElement.info(msg('save-failed-retrying', 2, 'Gagal menyimpan, mencoba ulang sebentar lagi ...'));
 			--Morebits.wiki.numberOfActionsLeft; // allow for normal completion if retry succeeds
 
 			// wait for sometime for client to regain connectivity
@@ -4381,7 +4381,7 @@ Morebits.wiki.page = function(pageName, status) {
 			format: 'json'
 		};
 
-		ctx.triageProcessListApi = new Morebits.wiki.api('checking curation status...', query, fnProcessTriage);
+		ctx.triageProcessListApi = new Morebits.wiki.api('memeriksa status patroli...', query, fnProcessTriage);
 		ctx.triageProcessListApi.setParent(this);
 		ctx.triageProcessListApi.post();
 	};
@@ -4406,8 +4406,8 @@ Morebits.wiki.page = function(pageName, status) {
 				token: ctx.csrfToken,
 				format: 'json'
 			};
-			const triageStat = new Morebits.status('Marking page as curated');
-			ctx.triageProcessApi = new Morebits.wiki.api('curating page...', query, null, triageStat);
+			const triageStat = new Morebits.status('Menandai halaman sebagai terpatroli');
+			ctx.triageProcessApi = new Morebits.wiki.api('menandai halaman...', query, null, triageStat);
 			ctx.triageProcessApi.setParent(this);
 			ctx.triageProcessApi.post();
 		}
@@ -4463,7 +4463,7 @@ Morebits.wiki.page = function(pageName, status) {
 
 		// check for "Database query error"
 		if (errorCode === 'internal_api_error_DBQueryError' && ctx.retries++ < ctx.maxRetries) {
-			ctx.statusElement.info('Galat kueri database, mencoba ulang');
+			ctx.statusElement.info('Galat kueri pusat data, mencoba ulang');
 			--Morebits.wiki.numberOfActionsLeft; // allow for normal completion if retry succeeds
 			ctx.deleteProcessApi.post(); // give it another go!
 
@@ -4536,7 +4536,7 @@ Morebits.wiki.page = function(pageName, status) {
 				--Morebits.wiki.numberOfActionsLeft; // allow for normal completion if retry succeeds
 				ctx.undeleteProcessApi.post(); // give it another go!
 			} else {
-				ctx.statusElement.error('Galat kueri database berulang, tolong coba kembali');
+				ctx.statusElement.error('Galat kueri pusat data berulang, tolong coba kembali');
 				if (ctx.onUndeleteFailure) {
 					ctx.onUndeleteFailure.call(this, ctx.undeleteProcessApi); // invoke callback
 				}
@@ -4604,8 +4604,8 @@ Morebits.wiki.page = function(pageName, status) {
 			if (((!ctx.protectEdit || ctx.protectEdit.level !== 'sysop') ||
 				(!ctx.protectMove || ctx.protectMove.level !== 'sysop')) &&
 				!confirm('Anda mempunyai perlindungan bertingkat diaktifkan di "' + ctx.pageName +
-				'" tapi tidak memilih perlindungan tingkat perlindungan sysop-level.\n\n' +
-				'Tekan OK untuk menyesuaikan dan lanjutkan dengan perlindungan bertingkat sysop, atau Batal untuk melewati tindakan ini.')) {
+				'" tapi tidak memilih perlindungan tingkat perlindungan tingkat pengurus.\n\n' +
+				'Tekan OK untuk menyesuaikan dan lanjutkan dengan perlindungan tingkat pengurus, atau Batal untuk melewati tindakan ini.')) {
 				ctx.statusElement.error('Perlidungan bertingkat dibatalkan.');
 				ctx.onProtectFailure(this);
 				return;

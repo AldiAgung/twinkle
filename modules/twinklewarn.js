@@ -1592,7 +1592,7 @@ Twinkle.warn.callbacks = {
 	 * warning and date; history lists all prior warnings
 	 */
 	dateProcessing: function(wikitext) {
-		const history_re = /<!--\s?Template:([uU]w-.*?)\s?-->.*?(\d{1,2}:\d{1,2}, \d{1,2} \w+ \d{4} \(UTC\))/g;
+		const history_re = /<!--\s?Templat:([uU]w-.*?)\s?-->.*?(\d{1,2}:\d{1,2}, \d{1,2} \w+ \d{4} \(UTC\))/g;
 		const history = {};
 		const latest = { date: new Morebits.Date(0), type: '' };
 		let current;

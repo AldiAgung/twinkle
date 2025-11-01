@@ -28,8 +28,8 @@ Twinkle.config.commonSets = {
 	csdCriteria: {
 		db: 'Alasan khusus ({{db}})',
 		a1: 'A1', a2: 'A2', a3: 'A3', a7: 'A7', a9: 'A9', a10: 'A10', a11: 'A11',
-		c1: 'C1', c4: 'C4',
-		f1: 'F1', f2: 'F2', f3: 'F3', f7: 'F7', f8: 'F8', f9: 'F9',
+		c1: 'K1', c4: 'K4',
+		f1: 'B1', f2: 'B2', f3: 'B3', f7: 'B7', f8: 'B8', f9: 'B9',
 		u1: 'U1', g2: 'U2', g3: 'U3', g4: 'U4', g5: 'U5', U6: 'U6', g7: 'U7', g8: 'U8', g10: 'U10', g11: 'U11', g12: 'U12', g13: 'U13', g14: 'U14', g15: 'U15',
 		r2: 'R2', r3: 'R3', r4: 'R4',
 		t5: 'T5',
@@ -39,8 +39,8 @@ Twinkle.config.commonSets = {
 	csdCriteriaNotification: {
 		db: 'Alasan khusus ({{db}})',
 		a1: 'A1', a2: 'A2', a3: 'A3', a7: 'A7', a9: 'A9', a10: 'A10', a11: 'A11',
-		c1: 'C1',
-		f1: 'F1', f2: 'F2', f3: 'F3', f7: 'F7', f9: 'F9',
+		c1: 'K1',
+		f1: 'B1', f2: 'B2', f3: 'B3', f7: 'B7', f9: 'B9',
 		g1: 'U1', g2: 'U2', g3: 'U3', g4: 'U4', g6: 'U6 (hanya "pindah salin-tempel")', g10: 'U10', g11: 'U11', g12: 'U12', g13: 'U13', g14: 'U14', g15: 'U15',
 		r2: 'R2', r3: 'R3', r4: 'R4',
 		u5: 'U5',
@@ -49,8 +49,8 @@ Twinkle.config.commonSets = {
 	csdAndImageDeletionCriteria: {
 		db: 'Alasan khusus ({{db}})',
 		a1: 'A1', a2: 'A2', a3: 'A3', a7: 'A7', a9: 'A9', a10: 'A10', a11: 'A11',
-		c1: 'C1', c4: 'C4',
-		f1: 'F1', f2: 'F2', f3: 'F3', f4: 'F4', f5: 'F5', f6: 'F6', f7: 'F7', f8: 'F8', f9: 'F9', f11: 'F11',
+		c1: 'K1', c4: 'K4',
+		f1: 'B1', f2: 'B2', f3: 'B3', f4: 'B4', f5: 'B5', f6: 'B6', f7: 'B7', f8: 'B8', f9: 'B9', f11: 'B11',
 		g1: 'U1', g2: 'U2', g3: 'U3', g4: 'U4', g5: 'U5', g6: 'U6', g7: 'U7', g8: 'U8', g10: 'U10', g11: 'U11', g12: 'U12', g13: 'U13', g14: 'U14', g15: 'U15',
 		r2: 'R2', r3: 'R3', r4: 'R4',
 		t5: 'T5',
@@ -1670,7 +1670,7 @@ Twinkle.config.writePrefs = function twinkleconfigWritePrefs(pageobj) {
 		'\n' +
 		// eslint-disable-next-line no-useless-concat
 		'// </no' + 'wiki>\n' +
-		'// End of twinkleoptions.js\n';
+		'// Akhir dari twinkleoptions.js\n';
 
 	pageobj.setPageText(text);
 	pageobj.setEditSummary('Menyimpan preferensi Twinkle: suntingan otomatis dari [[:' + Morebits.pageNameNorm + ']]');

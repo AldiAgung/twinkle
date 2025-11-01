@@ -1,0 +1,8 @@
+file yang sudah di update : deprod (v) , config (v) , batch_undeleted (v), warn (v),
+							controller (twinkle.js) (v), diff (v), image (v),
+							morebits.css (v), morebits.js (v), unlink (v),
+							fluff (v), talkback (v), talkback (V), welcome (V),
+							warn (V), block (v), arv (v), shared (V), speedy (v),
+							protect (V), batch_protect (V),
+
+
